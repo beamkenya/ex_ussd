@@ -18,15 +18,15 @@ defmodule ExUssd.MixProject do
         canonical: "http://hexdocs.pm/ex_ussd",
         source_url: "https://github.com/beamkenya/ex_ussd.git",
         extras: ["README.md", "contributing.md"]
-      ],
+      ]
     ]
   end
 
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger],
-      mod: {ExUssd.Application, []}
+      extra_applications: [:logger]
+      # mod: {ExUssd.Application, []}
     ]
   end
 
@@ -46,6 +46,7 @@ defmodule ExUssd.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:defnamed, "~> 0.1"},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
     ]
   end
