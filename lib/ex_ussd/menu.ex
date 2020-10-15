@@ -11,7 +11,8 @@ defmodule ExUssd.Menu do
             next: "98",
             previous: "0",
             split: 7,
-            should_close: false
+            should_close: false,
+            display_style: ":"
 
   @doc """
     Render Function is used to create a ussd Menu.

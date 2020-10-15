@@ -48,4 +48,6 @@ defmodule ExUssd do
         menu: menu,
         api_parameters: api_parameters
       )
+
+  def end_session(session_id: session_id), do: @provider.end_session(session_id: session_id)
 end
