@@ -8,12 +8,12 @@ defmodule ExUssd.MenuTest do
   describe "test menu structure on render" do
     menu =
       Menu.render(
-      name: "Home",
-      handler: fn menu, _api_parameters ->
-        menu
-        |> Map.put(:title, "Home Page: Welcome")
-      end
-    )
+        name: "Home",
+        handler: fn menu, _api_parameters ->
+          menu
+          |> Map.put(:title, "Home Page: Welcome")
+        end
+      )
 
     assert is_function(menu.callback)
     assert is_function(menu.handler)

@@ -13,7 +13,7 @@ defmodule ExUssd.Menu do
             split: 7,
             should_close: false
 
-   @doc """
+  @doc """
     Render Function is used to create a ussd Menu.
 
     ## Params
