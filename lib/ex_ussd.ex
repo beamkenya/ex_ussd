@@ -22,7 +22,7 @@ defmodule ExUssd do
       ...>  internal_routing: %{text: "1", session_id: "session_01", service_code: "*544#"},
       ...>  menu: ExUssd.Menu.render(
       ...>    name: "Home",
-      ...>    handler: fn menu, _api_parameters ->
+      ...>    handler: fn menu, _api_parameters, _should_handle ->
       ...>      menu |> Map.put(:title, "Home Page: Welcome")
       ...>    end
       ...>  ),

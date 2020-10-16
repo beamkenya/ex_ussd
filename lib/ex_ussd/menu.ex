@@ -12,7 +12,9 @@ defmodule ExUssd.Menu do
             previous: "0",
             split: 7,
             should_close: false,
-            display_style: ":"
+            display_style: ":",
+            parent: nil,
+            default_error_message: "Invalid Choice\n"
 
   @doc """
     Render Function is used to create a ussd Menu.
@@ -53,13 +55,13 @@ defmodule ExUssd.Menu do
     %ExUssd.Menu{
       name: name,
       handler: handler,
-      callback: fn api_parameters ->
-        handle(%ExUssd.Menu{name: name, handler: handler}, api_parameters)
+      callback: fn api_parameters, should_handle ->
+        handle(%ExUssd.Menu{name: name, handler: handler}, api_parameters, should_handle)
       end
     }
   end
 
-  defp handle(menu, api_parameters) do
-    menu.handler.(menu, api_parameters)
+  defp handle(menu, api_parameters, should_handle) do
+    menu.handler.(menu, api_parameters, should_handle)
   end
 end

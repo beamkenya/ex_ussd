@@ -9,7 +9,7 @@ defmodule ExUssd.MenuTest do
     menu =
       Menu.render(
         name: "Home",
-        handler: fn menu, _api_parameters ->
+        handler: fn menu, _api_parameters, _should_handle ->
           menu
           |> Map.put(:title, "Home Page: Welcome")
         end
