@@ -4,7 +4,6 @@ defmodule ExUssd.DisplayTest do
   alias ExUssd.Menu
   alias ExUssd.Utils
   alias ExUssd.Display
-  alias ExUssd.Routes
 
   describe "generate menu with title (level 1)" do
     menu =
