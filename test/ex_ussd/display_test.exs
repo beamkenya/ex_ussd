@@ -4,13 +4,12 @@ defmodule ExUssd.DisplayTest do
   alias ExUssd.Menu
   alias ExUssd.Utils
   alias ExUssd.Display
-  alias ExUssd.Routes
 
   describe "generate menu with title (level 1)" do
     menu =
       Menu.render(
         name: "Home",
-        handler: fn menu, _api_parameters ->
+        handler: fn menu, _api_parameters, _should_handle ->
           menu
           |> Map.put(:title, "Home Page: Welcome")
         end
@@ -26,14 +25,14 @@ defmodule ExUssd.DisplayTest do
       menu =
         Menu.render(
           name: "Home",
-          handler: fn menu, _api_parameters ->
+          handler: fn menu, _api_parameters, _should_handle ->
             menu
             |> Map.put(:title, "Welcome")
             |> Map.put(:menu_list,
             [
               Menu.render(
               name: "child 1",
-              handler: fn menu, _api_parameters ->
+              handler: fn menu, _api_parameters, _should_handle ->
                 menu
                 |> Map.put(:title, "Welcome to child 1 page")
               end),
@@ -57,32 +56,32 @@ defmodule ExUssd.DisplayTest do
         menu =
           Menu.render(
             name: "Home",
-            handler: fn menu, _api_parameters ->
+            handler: fn menu, _api_parameters, _should_handle ->
               menu
               |> Map.put(:title, "Welcome")
               |> Map.put(:menu_list,
               [
                 Menu.render(
                 name: "child 1",
-                handler: fn menu, _api_parameters ->
+                handler: fn menu, _api_parameters, _should_handle ->
                   menu
                   |> Map.put(:title, "Welcome to child 1 page")
                 end),
                 Menu.render(
                 name: "child 2",
-                handler: fn menu, _api_parameters ->
+                handler: fn menu, _api_parameters, _should_handle ->
                   menu
                   |> Map.put(:title, "Welcome to child 2 page")
                 end),
                 Menu.render(
                 name: "child 3",
-                handler: fn menu, _api_parameters ->
+                handler: fn menu, _api_parameters, _should_handle ->
                   menu
                   |> Map.put(:title, "Welcome to child 3 page")
                 end),
                 Menu.render(
                 name: "child 4",
-                handler: fn menu, _api_parameters ->
+                handler: fn menu, _api_parameters, _should_handle ->
                   menu
                   |> Map.put(:title, "Welcome to child 4 page")
                 end),
@@ -101,32 +100,32 @@ defmodule ExUssd.DisplayTest do
           menu =
             Menu.render(
               name: "Home",
-              handler: fn menu, _api_parameters ->
+              handler: fn menu, _api_parameters, _should_handle ->
                 menu
                 |> Map.put(:title, "Welcome")
                 |> Map.put(:menu_list,
                 [
                   Menu.render(
                   name: "child 1",
-                  handler: fn menu, _api_parameters ->
+                  handler: fn menu, _api_parameters, _should_handle ->
                     menu
                     |> Map.put(:title, "Welcome to child 1 page")
                   end),
                   Menu.render(
                   name: "child 2",
-                  handler: fn menu, _api_parameters ->
+                  handler: fn menu, _api_parameters, _should_handle ->
                     menu
                     |> Map.put(:title, "Welcome to child 2 page")
                   end),
                   Menu.render(
                   name: "child 3",
-                  handler: fn menu, _api_parameters ->
+                  handler: fn menu, _api_parameters, _should_handle ->
                     menu
                     |> Map.put(:title, "Welcome to child 3 page")
                   end),
                   Menu.render(
                   name: "child 4",
-                  handler: fn menu, _api_parameters ->
+                  handler: fn menu, _api_parameters, _should_handle ->
                     menu
                     |> Map.put(:title, "Welcome to child 4 page")
                   end),
@@ -146,20 +145,20 @@ defmodule ExUssd.DisplayTest do
         menu =
           Menu.render(
             name: "child 1",
-            handler: fn menu, _api_parameters ->
+            handler: fn menu, _api_parameters, _should_handle ->
               menu
               |> Map.put(:title, "Welcome to child 1 page")
               |> Map.put(:menu_list,
               [
                 Menu.render(
                 name: "page 1",
-                handler: fn menu, _api_parameters ->
+                handler: fn menu, _api_parameters, _should_handle ->
                   menu
                   |> Map.put(:title, "On page 1")
                 end),
                 Menu.render(
                 name: "page 2",
-                handler: fn menu, _api_parameters ->
+                handler: fn menu, _api_parameters, _should_handle ->
                   menu
                   |> Map.put(:title, "On page 2")
                 end),

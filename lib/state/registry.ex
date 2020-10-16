@@ -24,7 +24,11 @@ defmodule ExUssd.State.Registry do
     end
   end
   def set_menu(session, menu), do: GenServer.call(via_tuple(session), {:set_menu, menu})
+
+  def add_current_menu(session, current_menu), do: GenServer.call(via_tuple(session), {:add_current_menu, current_menu})
   def get_menu(session), do: GenServer.call(via_tuple(session), {:get_menu})
+
+  def get_current_menu(session), do: GenServer.call(via_tuple(session), {:get_current_menu})
   def get(session), do: GenServer.call(via_tuple(session), {:get})
   def next(session), do: GenServer.call(via_tuple(session), {:next})
   def previous(session), do: GenServer.call(via_tuple(session), {:previous})
@@ -61,17 +65,18 @@ defmodule ExUssd.State.Registry do
     %{ routes: routes } = state
     [head | tail ] = routes
     depth = head[:depth]
-    new_state = case depth do
+    case depth do
       1 ->
-        case tail do
+        new_state = case tail do
           [] -> [%{depth: 1, value: "555"}]
           _ -> tail
         end
+        {:reply, routes, Map.put(state, :routes, new_state)}
       _->
         new_head = Map.put(head, :depth, depth - 1)
-        [new_head | tail]
+        new_state = [new_head | tail]
+        {:reply, routes, Map.put(state, :routes, new_state)}
     end
-    {:reply, new_state, Map.put(state, :routes, new_state)}
   end
 
   def handle_call({:set_menu, menu }, _from, state ) do
@@ -79,8 +84,19 @@ defmodule ExUssd.State.Registry do
     {:reply, new_state, new_state}
   end
 
+  def handle_call({:add_current_menu, current_menu }, _from, state ) do
+    new_state = Map.put(state, :current_menu, current_menu)
+    %{ current_menu: current_menu } = new_state
+    {:reply, current_menu, new_state}
+  end
+
   def handle_call({:get_menu}, _from, state ) do
     %{ menu: menu } = state
     {:reply, menu, state}
+  end
+
+  def handle_call({:get_current_menu}, _from, state ) do
+    %{ current_menu: current_menu } = state
+    {:reply, current_menu, state}
   end
 end
