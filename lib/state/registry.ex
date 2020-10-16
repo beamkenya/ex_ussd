@@ -65,17 +65,18 @@ defmodule ExUssd.State.Registry do
     %{ routes: routes } = state
     [head | tail ] = routes
     depth = head[:depth]
-    new_state = case depth do
+    case depth do
       1 ->
-        case tail do
+        new_state = case tail do
           [] -> [%{depth: 1, value: "555"}]
           _ -> tail
         end
+        {:reply, routes, Map.put(state, :routes, new_state)}
       _->
         new_head = Map.put(head, :depth, depth - 1)
-        [new_head | tail]
+        new_state = [new_head | tail]
+        {:reply, routes, Map.put(state, :routes, new_state)}
     end
-    {:reply, new_state, Map.put(state, :routes, new_state)}
   end
 
   def handle_call({:set_menu, menu }, _from, state ) do

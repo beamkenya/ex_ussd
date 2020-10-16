@@ -11,10 +11,11 @@ defmodule ExUssd.Navigation do
 
   def navigate(session_id, %{} = route, _menu, api_parameters) do
     parent_menu = Registry.get_current_menu(session_id)
-    handle_current_menu(session_id, route, parent_menu, api_parameters)
+    results = handle_current_menu(session_id, route, parent_menu, api_parameters)
+    Registry.add_current_menu(session_id, results)
   end
-  def loop([_head | tail] = routes, menu, api_parameters) when is_list(routes) and length(routes) == 1 do
-    loop(tail, menu, api_parameters)
+  def loop([_head | _tail] = routes, menu, _api_parameters) when is_list(routes) and length(routes) == 1 do
+    menu
   end
 
   def loop(routes, menu, _api_parameters) when is_list(routes) and length(routes) == 0 do
@@ -24,7 +25,7 @@ defmodule ExUssd.Navigation do
   def loop(routes, menu, api_parameters) when is_list(routes) and length(routes) > 1 do
     [head | tail] = Enum.reverse(routes) |> tl
     response = get_next_menu(menu, head, api_parameters)
-    response |> Map.put(:parent, menu)
+    response = %{response | parent: fn -> menu end}
     loop(tail, response, api_parameters)
   end
 
@@ -46,8 +47,12 @@ defmodule ExUssd.Navigation do
       nil ->
         case depth do
           128977754852657127041634246588 ->
-            Registry.previous(session_id)
-            parent_menu.parent
+            route = Registry.previous(session_id) |> hd
+            %{depth: depth} = route
+            case depth do
+              1 -> parent_menu.parent.()
+              _-> parent_menu
+            end
           605356150351840375921999017933 ->
             Registry.next(session_id)
             parent_menu
@@ -55,7 +60,8 @@ defmodule ExUssd.Navigation do
             %{handle: handle} = parent_menu
             case handle do
               true ->
-                can_handle?(parent_menu, api_parameters, state, session_id)
+                child_menu = Enum.at(menu_list, 0)
+                can_handle?(parent_menu, api_parameters, state, session_id, child_menu)
               false ->
                 parent_menu |> Map.put(:error, parent_menu.default_error_message)
               end
@@ -67,17 +73,15 @@ defmodule ExUssd.Navigation do
     end
   end
 
-  def can_handle?(parent_menu, api_parameters, state, session_id) do
-    current_menu = Utils.call_menu_callback(parent_menu, api_parameters, true)
-    %{success: success} = current_menu
+  def can_handle?(parent_menu, api_parameters, state, session_id, child_menu) do
+    current_menu = Utils.call_menu_callback(child_menu, %{api_parameters | text: state.value}, true)
+    %{success: success, error: error} = current_menu
     case success do
       false ->
-        current_menu
+        %{parent_menu | error:  error <> "\n"}
       _->
         Registry.add(session_id, state)
-        %{menu_list: current_menu_list} = current_menu
-        next_parent =  Enum.at(current_menu_list, 0)
-        Utils.call_menu_callback(next_parent, api_parameters)
+        current_menu
     end
   end
   def to_int({value, ""}, menu) do
