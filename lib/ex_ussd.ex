@@ -3,7 +3,7 @@ defmodule ExUssd do
     USSD interation
   """
 
-  @provider Application.get_env(:ex_ussd, :provider) || Infobip
+  @provider Application.get_env(:ex_ussd, :provider) || AfricasTalking
 
   @doc """
   Navigation
@@ -13,7 +13,7 @@ defmodule ExUssd do
 
   `config.exs`
     ```elixir
-      config :ex_ussd :provider, Infobip
+      config :ex_ussd :provider, AfricasTalking
     ```
 
   ## Example
@@ -34,7 +34,7 @@ defmodule ExUssd do
       ...>      text: "1"
       ...>    }
       ...>  )
-      {:ok, %{responseExitCode: 200, responseMessage: "", shouldClose: false, ussdMenu: "Home Page: Welcome"}}
+      {:ok, "CON Home Page: Welcome"}
   """
   @spec goto(
           internal_routing: ExUssd.Ussd.internal_routing(),
