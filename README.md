@@ -38,8 +38,6 @@ ExUssd currently supports
 
 [Infobip API](https://www.infobip.com/)
 
-[Hubtel API](https://developers.hubtel.com/reference#ussd)
-
 
 ## Configuration
 To Use One of the above gateway providers for your project
