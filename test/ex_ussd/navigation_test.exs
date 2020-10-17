@@ -341,8 +341,8 @@ defmodule ExUssd.NavigationTest do
         handler: fn menu, _api_parameters, _should_handle ->
           menu
             |> Map.put(:title, "Enter Pin Number")
-            |> Map.put(:menu_list,
-            [
+            |> Map.put(:handle, true)
+            |> Map.put(:validation_menu,
               Menu.render(
               name: "",
               handler: fn menu, api_parameters, should_handle ->
@@ -359,9 +359,8 @@ defmodule ExUssd.NavigationTest do
                   false -> menu
                 end
               end)
-            ])
-            |> Map.put(:handle, true)
-            |> Map.put(:show_options, false)
+            )
+
         end
       )
 
