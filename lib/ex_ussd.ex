@@ -19,7 +19,7 @@ defmodule ExUssd do
   ## Example
 
       iex> ExUssd.goto(
-      ...>  internal_routing: %{text: "*544#", session_id: "session_01", service_code: "*544#"},
+      ...>  internal_routing: %{text: "", session_id: "session_01", service_code: "*544#"},
       ...>  menu: ExUssd.Menu.render(
       ...>    name: "Home",
       ...>    handler: fn menu, _api_parameters, _should_handle ->

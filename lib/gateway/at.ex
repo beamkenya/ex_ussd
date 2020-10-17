@@ -1,4 +1,5 @@
 defmodule AfricasTalking do
+  alias ExUssd.Routes
   alias ExUssd.State.Registry
 
   @behaviour ExUssd.Ussd
