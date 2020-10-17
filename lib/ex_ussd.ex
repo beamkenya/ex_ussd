@@ -3,7 +3,7 @@ defmodule ExUssd do
     USSD interation
   """
 
-  @provider Application.get_env(:ex_ussd, :provider) || AfricasTalking
+  @provider Application.get_env(:ex_ussd, :gateway) || AfricasTalking
 
   @doc """
   Navigation
