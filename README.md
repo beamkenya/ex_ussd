@@ -60,13 +60,6 @@ Add below config to dev.exs / prod.exs files
 config :ex_ussd, :gateway, Infobip
 ```
 
-### Hubtel
-Add below config to dev.exs / prod.exs files
-
-```elixir
-config :ex_ussd, :gateway, Hubtel
-```
-
 ## Menu
 
 ExUssd supports Ussd customizations through `Menu` struct via the render function
@@ -218,10 +211,7 @@ ExUssd supports Ussd customizations through `Menu` struct via the render functio
   ```
   - `next` - Used render the next menu chunk, default `"98"`
   - `previous` - Ussd to navigate to the previous menu, default "0"
-  - `handle` - To let ExUssd allow the developer to handle the client input, 
-  Set the `handle` value to `true` to trigger a callback call on the handler for the first menu of the menu list. 
-  The handler callback will trigger with `should_handle` value `true`
-  handle default is `false`.
+  - `handle` - To let ExUssd allow the developer to validate the client input, before navigating to the next menu. 
 
 ```elixir
   iex> ExUssd.Menu.render(
@@ -229,9 +219,8 @@ ExUssd supports Ussd customizations through `Menu` struct via the render functio
         handler: fn menu, _api_parameters, _should_handle ->
           menu
             |> Map.put(:title, "Enter Pin Number")
-            |> Map.put(:menu_list,
-            [
-              Menu.render(
+            |> Map.put(:handle, true)
+            |> Map.put(:validation_menu, Menu.render(
               name: "",
               handler: fn menu, api_parameters, should_handle ->
                 case should_handle do
@@ -239,7 +228,7 @@ ExUssd supports Ussd customizations through `Menu` struct via the render functio
                     case api_parameters.text == "5342" do
                       true ->
                         menu
-                        |> Map.put(:title, "your pin is valid, thank you.")
+                        |> Map.put(:title, "success, thank you.")
                         |> Map.put(:success, true)
                         |> Map.put(:should_close, true)
                       _->
@@ -248,23 +237,21 @@ ExUssd supports Ussd customizations through `Menu` struct via the render functio
                   false -> menu
                 end
               end)
-            ])
-            |> Map.put(:handle, true)
-            |> Map.put(:show_options, false)
+            )
         end
       )
     )
 
     {:ok, "CON Enter Pin Number"}
     ## simulate 5342
-    {:ok, "END your pin is valid, thank you."}
+    {:ok, "END success, thank you."}
     ## simulate 5555
     {:ok, "CON Wrong pin number\nEnter Pin Number"}
 ```
 
   - `error` - custom error message on failed validation/handling,
   - `success` - allows ExUssd to Render next menu on successful validation/handling,
-  -`show_options` - hides menu list
+  -`show_options` - hides menu list on false
 
 ## Render Menu
 ExUssd to render `Menu` struct for different ussd providers. ExUssd provides `goto` function that starts and manages the ussd sessions.

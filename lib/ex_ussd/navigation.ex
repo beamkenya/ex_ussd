@@ -60,8 +60,8 @@ defmodule ExUssd.Navigation do
             %{handle: handle} = parent_menu
             case handle do
               true ->
-                child_menu = Enum.at(menu_list, 0)
-                can_handle?(parent_menu, api_parameters, state, session_id, child_menu)
+                child_menu = parent_menu.validation_menu #Enum.at(menu_list, 0)
+                can_handle?(parent_menu, api_parameters, state, session_id, %{child_menu | show_options: false})
               false ->
                 parent_menu |> Map.put(:error, parent_menu.default_error_message)
               end
@@ -85,15 +85,15 @@ defmodule ExUssd.Navigation do
     end
   end
   def to_int({value, ""}, menu) do
-    %{next: next, previous: previous, menu_list: menu_list } = menu
+    %{next: next, previous: previous, validation_menu: validation_menu } = menu
     text = Integer.to_string(value)
     case text do
       v when v == next -> 605356150351840375921999017933
       v when v == previous -> 128977754852657127041634246588
       _ ->
-        case length(menu_list) do
-          1 -> 437325457672214320980
-          _ -> value
+        case validation_menu do
+          nil -> value
+          _ -> 437325457672214320980
         end
     end
   end

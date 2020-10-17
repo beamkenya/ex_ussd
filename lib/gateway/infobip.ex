@@ -1,5 +1,6 @@
 defmodule Infobip do
   alias ExUssd.State.Registry
+  alias ExUssd.Routes
 
   @behaviour ExUssd.Ussd
 
