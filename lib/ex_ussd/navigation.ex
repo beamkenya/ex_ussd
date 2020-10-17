@@ -78,7 +78,7 @@ defmodule ExUssd.Navigation do
     %{success: success, error: error} = current_menu
     case success do
       false ->
-        %{parent_menu | error:  error <> "\n"}
+        %{parent_menu | error:  error}
       _->
         Registry.add(session_id, state)
         current_menu
