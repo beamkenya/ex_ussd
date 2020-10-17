@@ -12,6 +12,8 @@ Under the hood ExUssd is implemented using Elixir Registry as a local, decentral
 - [Providers](##providers)
 - [Configuration](##Configuration)
 - [Select Providers](##providers)
+- [Create Ussd Menu](##Menu)
+- [Render Ussd Menu](##Render-Menu)
 
 ## Installation
 
@@ -33,9 +35,11 @@ be found at [https://hexdocs.pm/ex_ussd](https://hexdocs.pm/ex_ussd).
 ## Providers
 ExUssd currently supports 
 
-[Africastalking API](https://africastalking.com), 
-[Infobip API](https://www.infobip.com/),
-[Hubtel API](https://developers.hubtel.com/reference#ussd).
+[Africastalking API](https://africastalking.com)
+
+[Infobip API](https://www.infobip.com/)
+
+[Hubtel API](https://developers.hubtel.com/reference#ussd)
 
 
 ## Configuration
@@ -64,18 +68,18 @@ Add below config to dev.exs / prod.exs files
 config :ex_ussd, :provider, Hubtel
 ```
 
-### Menu
+## Menu
 
 ExUssd supports Ussd customizations through `Menu` struct via the render function
 
-`handler`: This is a callback function that returns the menu struct, ussd api_parameters map and should_handle boolean.
-   - menu - The menu struct is modified to produce ussd menu struct
-   - api_parameters - This a map of ussd response call
-   - should_handle - a check value, where ExUssd allows the developer to handle client input, more on `handle`, default is `false`
+  - `handler` - This is a callback function that returns the menu struct, ussd api_parameters map and should_handle boolean.
+    - menu - The menu struct is modified to produce ussd menu struct
+    - api_parameters - This a map of ussd response call
+    - should_handle - a check value, where ExUssd allows the developer to handle client input, more on `handle`, default is `false`
 
-`name`: This is the value display when Menu is rendered as menu_list. check more on `menu_list`.
+  - `name` - This is the value display when Menu is rendered as menu_list. check more on `menu_list`.
 
-`title`: "Outputs the ussd's title",
+  - `title` - "Outputs the ussd's title",
   ```elixir
   ExUssd.Menu.render(
           name: "Home",
@@ -85,7 +89,7 @@ ExUssd supports Ussd customizations through `Menu` struct via the render functio
           )
   {:ok, "CON Welcome"}
   ```
-`menu_list`: "Takes a list of Ussd Menu"
+  - `menu_list` - "Takes a list of Ussd Menu"
 ```elixir
   ExUssd.Menu.render(
           name: "Home",
@@ -108,7 +112,7 @@ ExUssd supports Ussd customizations through `Menu` struct via the render functio
   # simulate 1
   {:ok, "CON selected product a\n0:BACK"}
   ```
-`should_close`: This triggers ExUssd to display end the session state on the registry and display the correct preffix,
+  - `should_close` - This triggers ExUssd to display end the session state on the registry and display the correct preffix,
 ```elixir
   ExUssd.Menu.render(
           name: "Home",
@@ -134,7 +138,7 @@ ExUssd supports Ussd customizations through `Menu` struct via the render functio
   {:ok, "END selected product a"}
   ```
 
-`default_error_message`: Shows the error message on top of the title in case of an invalid input. default `"Invalid Choice\n"`
+  - `default_error_message` - Shows the error message on top of the title in case of an invalid input. default `"Invalid Choice\n"`
 ```elixir
   ExUssd.Menu.render(
           name: "Home",
@@ -160,7 +164,7 @@ ExUssd supports Ussd customizations through `Menu` struct via the render functio
   {:ok, "CON Invalid selection, try again\nWelcome\n1:Product A\n2:Product B"}
   ```
 
-`display_style`: Used change the default's display style `:`,
+  - `display_style` - Used change the default's display style `:`,
 ```elixir
   ExUssd.Menu.render(
           name: "Home",
@@ -183,7 +187,7 @@ ExUssd supports Ussd customizations through `Menu` struct via the render functio
           )
   {:ok, "CON Welcome\n1)Product A\n2)Product B"}
   ```
-`split`: This is used to set the chuck size value when rendering menu_list. default value `7`,
+  - `split` - This is used to set the chuck size value when rendering menu_list. default value `7`,
 ```elixir
   ExUssd.Menu.render(
           name: "Home",
@@ -213,10 +217,10 @@ ExUssd supports Ussd customizations through `Menu` struct via the render functio
   # simulate 98
   {:ok, "CON Welcome\n3:Product C\n0:BACK"}
   ```
-`next`: Used render the next menu chuck, default `"98"`,
-`previous`: Ussd to navigate to the previous menu, default "0",
+  - `next` - Used render the next menu chuck, default `"98"`,
+  - `previous` - Ussd to navigate to the previous menu, default "0",
 
-`handle`: To let ExUssd allow the developer to handle the client input, set the value to `true`, this will then trigger a callback call on the handler for the first menu of the menu list with should_handle value `true`, default `false`.
+  - `handle` - To let ExUssd allow the developer to handle the client input, set the value to `true`, this will then trigger a callback call on the handler for the first menu of the menu list with should_handle value `true`, default `false`.
 
 ```elixir
   iex> ExUssd.Menu.render(
@@ -257,16 +261,16 @@ ExUssd supports Ussd customizations through `Menu` struct via the render functio
     {:ok, "CON Wrong pin number\nEnter Pin Number"}
 ```
 
-`error`: custom error message on failed validation/handling,
-`success`: allows ExUssd to Render next menu on successful validation/handling,
-`show_options`: hides menu list
+  - `error` - custom error message on failed validation/handling,
+  - `success` - allows ExUssd to Render next menu on successful validation/handling,
+  -`show_options` - hides menu list
 
-### Render Menu
+## Render Menu
 ExUssd to render `Menu` struct for different ussd providers. ExUssd provides `goto` function that starts and manages the ussd sessions.
 The `goto` function receives the following parameters.
-`internal_routing` - it takes a map with ussd text, session_id and serive_code
-`menu` - Menu struct
-`api_parameters` - api_parameters
+  - `internal_routing` - it takes a map with ussd text, session_id and serive_code
+  - `menu` - Menu struct
+  - `api_parameters` - api_parameters
 
 ```elixir
   iex> menu = ExUssd.Menu.render(
