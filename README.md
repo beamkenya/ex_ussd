@@ -79,7 +79,7 @@ ExUssd supports Ussd customizations through `Menu` struct via the render functio
 
   - `name` - This is the value display when Menu is rendered as menu_list. check more on `menu_list`.
 
-  - `title` - "Outputs the ussd's title",
+  - `title` - Outputs the ussd's title,
   ```elixir
   ExUssd.Menu.render(
           name: "Home",
@@ -89,7 +89,7 @@ ExUssd supports Ussd customizations through `Menu` struct via the render functio
           )
   {:ok, "CON Welcome"}
   ```
-  - `menu_list` - "Takes a list of Ussd Menu"
+  - `menu_list` - Takes a list of Ussd Menu
 ```elixir
   ExUssd.Menu.render(
           name: "Home",
@@ -164,7 +164,7 @@ ExUssd supports Ussd customizations through `Menu` struct via the render functio
   {:ok, "CON Invalid selection, try again\nWelcome\n1:Product A\n2:Product B"}
   ```
 
-  - `display_style` - Used change the default's display style `:`,
+  - `display_style` - Used change the default's display style ":",
 ```elixir
   ExUssd.Menu.render(
           name: "Home",
