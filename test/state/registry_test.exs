@@ -81,5 +81,4 @@ defmodule ExUssd.State.RegistryTest do
     Registry.previous("session_01")
     assert [%{depth: 1, value: "555"}] == Registry.get("session_01")
   end
-
 end
