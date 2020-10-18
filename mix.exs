@@ -18,6 +18,13 @@ defmodule ExUssd.MixProject do
         canonical: "http://hexdocs.pm/ex_ussd",
         source_url: "https://github.com/beamkenya/ex_ussd.git",
         extras: ["README.md", "contributing.md"]
+      ],
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test
       ]
     ]
   end
