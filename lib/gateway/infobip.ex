@@ -63,12 +63,6 @@ defmodule Infobip do
      }}
   end
 
-  @doc """
-  End session by ID
-  ## Example
-      iex> Infobip.end_session(session_id: "session_01")
-      {:error, :not_found}
-  """
   @impl true
   def end_session(session_id: session_id) do
     Registry.stop(session_id)
