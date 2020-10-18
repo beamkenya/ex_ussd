@@ -10,8 +10,12 @@ defmodule ExUssd.Navigation do
 
   def navigate(session_id, %{} = route, _menu, api_parameters) do
     parent_menu = Registry.get_current_menu(session_id)
-    results = handle_current_menu(session_id, route, parent_menu, api_parameters)
-    Registry.add_current_menu(session_id, results)
+    current_menu = handle_current_menu(session_id, route, parent_menu, api_parameters)
+    response = case current_menu.parent do
+      nil -> %{current_menu | parent: fn -> parent_menu end}
+      _-> current_menu
+    end
+    Registry.add_current_menu(session_id, response)
   end
 
   def loop([_head | _tail] = routes, menu, _api_parameters)
@@ -96,16 +100,17 @@ defmodule ExUssd.Navigation do
 
     case success do
       false ->
-        %{parent_menu | error: error}
-
-      _ ->
+        response = %{parent_menu | error:  error}
+        go_back_menu = parent_menu.parent.()
+        %{response | parent: fn -> go_back_menu end}
+      _->
         Registry.add(session_id, state)
         current_menu
     end
   end
 
   def to_int({value, ""}, menu) do
-    %{next: next, previous: previous, validation_menu: validation_menu} = menu
+    %{next: next, previous: previous} = menu
     text = Integer.to_string(value)
 
     case text do
