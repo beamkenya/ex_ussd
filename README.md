@@ -11,11 +11,11 @@ Under the hood ExUssd is implemented using Elixir Registry as a local, decentral
 
 ## Sections
 
-- [Installation](##Installation)
-- [Gateway Providers](##providers)
-- [Configuration](##Configuration)
-- [Create Ussd Menu](##Menu)
-- [Render Ussd Menu](##Render-Menu)
+- [Installation](#Installation)
+- [Gateway Providers](#providers)
+- [Configuration](#Configuration)
+- [Create Ussd Menu](#Menu)
+- [Render Ussd Menu](#Render-Menu)
 
 ## Installation
 
@@ -265,7 +265,8 @@ ExUssd.Menu.render(
 ```
 
 - `error` - custom error message on failed validation/handling,
-- `success` - allows ExUssd to Render next menu on successful validation/handling, -`show_options` - hides menu list on false
+- `success` - allows ExUssd to Render next menu on successful validation/handling
+-`show_options` - hides menu list on false
 
 ## Render Menu
 

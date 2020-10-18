@@ -49,5 +49,10 @@ defmodule ExUssd do
         api_parameters: api_parameters
       )
 
+  @doc """
+  ## Example
+      iex> ExUssd.end_session(session_id: "session_01")
+      {:error, :not_found}
+  """
   def end_session(session_id: session_id), do: @provider.end_session(session_id: session_id)
 end
