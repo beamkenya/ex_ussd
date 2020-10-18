@@ -14,6 +14,9 @@ defmodule ExUssd.Routes do
 
       iex> ExUssd.Routes.get_route(%{text: "2", service_code: "*544#"})
       %{depth: 1, value: "2"}
+
+      iex> ExUssd.Routes.get_route(%{text: "2*2", service_code: "*544#"})
+      %{depth: 1, value: "1"}
   """
 
   def get_route(%{text: text, service_code: service_code}) do
