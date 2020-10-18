@@ -3,6 +3,7 @@ defmodule ExUssd.NavigationTest do
   alias ExUssd.State.Registry
   alias ExUssd.Menu
   import ExUssd.Utils
+
   setup do
     internal_routing = %{session_id: "session_01", service_code: "*544#"}
     Registry.start(internal_routing.session_id)
@@ -15,7 +16,8 @@ defmodule ExUssd.NavigationTest do
         handler: fn menu, _api_parameters, _should_handle ->
           menu
           |> Map.put(:title, "Welcome")
-          |> Map.put(:menu_list,
+          |> Map.put(
+            :menu_list,
             [
               Menu.render(
                 name: "child 1",
@@ -35,6 +37,7 @@ defmodule ExUssd.NavigationTest do
           )
         end
       )
+
     internal_routing = %{session_id: "session_01", service_code: "*544#"}
     {:ok, menu_string} = simulate(text: "", session_id: internal_routing.session_id, menu: menu)
     assert menu_string == "Welcome\n1:child 1\n2:child 2"
@@ -113,14 +116,16 @@ defmodule ExUssd.NavigationTest do
 
   test "go 1 level in" do
     internal_routing = %{session_id: "session_01", service_code: "*544#"}
+
     menu =
       Menu.render(
         name: "Home",
         handler: fn menu, _api_parameters, _should_handle ->
           menu
-            |> Map.put(:split, 2)
-            |> Map.put(:title, "Welcome")
-            |> Map.put(:menu_list,
+          |> Map.put(:split, 2)
+          |> Map.put(:title, "Welcome")
+          |> Map.put(
+            :menu_list,
             [
               Menu.render(
                 name: "child 1",
@@ -144,12 +149,14 @@ defmodule ExUssd.NavigationTest do
                 end
               ),
               Menu.render(
-              name: "child 4",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu
-                |> Map.put(:title, "Welcome to child 4 page")
-              end),
-            ])
+                name: "child 4",
+                handler: fn menu, _api_parameters, _should_handle ->
+                  menu
+                  |> Map.put(:title, "Welcome to child 4 page")
+                end
+              )
+            ]
+          )
         end
       )
 
@@ -160,14 +167,16 @@ defmodule ExUssd.NavigationTest do
 
   test "go back 1 level" do
     internal_routing = %{session_id: "session_01", service_code: "*544#"}
+
     menu =
       Menu.render(
         name: "Home",
         handler: fn menu, _api_parameters, _should_handle ->
           menu
-            |> Map.put(:split, 2)
-            |> Map.put(:title, "Welcome")
-            |> Map.put(:menu_list,
+          |> Map.put(:split, 2)
+          |> Map.put(:title, "Welcome")
+          |> Map.put(
+            :menu_list,
             [
               Menu.render(
                 name: "child 1",
@@ -191,17 +200,22 @@ defmodule ExUssd.NavigationTest do
                 end
               ),
               Menu.render(
-              name: "child 4",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu
-                |> Map.put(:title, "Welcome to child 4 page")
-              end),
-            ])
+                name: "child 4",
+                handler: fn menu, _api_parameters, _should_handle ->
+                  menu
+                  |> Map.put(:title, "Welcome to child 4 page")
+                end
+              )
+            ]
+          )
         end
       )
 
     {:ok, _menu_string} = simulate(text: "", session_id: internal_routing.session_id, menu: menu)
-    {:ok, _menu_string} = simulate(text: "98", session_id: internal_routing.session_id, menu: menu)
+
+    {:ok, _menu_string} =
+      simulate(text: "98", session_id: internal_routing.session_id, menu: menu)
+
     {:ok, menu_string} = simulate(text: "0", session_id: internal_routing.session_id, menu: menu)
     assert menu_string == "Welcome\n1:child 1\n2:child 2\n98:MORE"
   end
@@ -238,11 +252,15 @@ defmodule ExUssd.NavigationTest do
                 end
               end
             )
+          )
         end
       )
 
     {:ok, _menu_string} = simulate(text: "", session_id: internal_routing.session_id, menu: menu)
-    {:ok, menu_string} = simulate(text: "5342", session_id: internal_routing.session_id, menu: menu)
+
+    {:ok, menu_string} =
+      simulate(text: "5342", session_id: internal_routing.session_id, menu: menu)
+
     assert menu_string == "Welcome Back\n0:BACK"
   end
 end

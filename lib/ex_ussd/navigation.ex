@@ -11,10 +11,13 @@ defmodule ExUssd.Navigation do
   def navigate(session_id, %{} = route, _menu, api_parameters) do
     parent_menu = Registry.get_current_menu(session_id)
     current_menu = handle_current_menu(session_id, route, parent_menu, api_parameters)
-    response = case current_menu.parent do
-      nil -> %{current_menu | parent: fn -> parent_menu end}
-      _-> current_menu
-    end
+
+    response =
+      case current_menu.parent do
+        nil -> %{current_menu | parent: fn -> parent_menu end}
+        _ -> current_menu
+      end
+
     Registry.add_current_menu(session_id, response)
   end
 
@@ -100,10 +103,11 @@ defmodule ExUssd.Navigation do
 
     case success do
       false ->
-        response = %{parent_menu | error:  error}
+        response = %{parent_menu | error: error}
         go_back_menu = parent_menu.parent.()
         %{response | parent: fn -> go_back_menu end}
-      _->
+
+      _ ->
         Registry.add(session_id, state)
         current_menu
     end
@@ -121,10 +125,7 @@ defmodule ExUssd.Navigation do
         128_977_754_852_657_127_041_634_246_588
 
       _ ->
-        case validation_menu do
-          nil -> value
-          _ -> 437_325_457_672_214_320_980
-        end
+        value
     end
   end
 
