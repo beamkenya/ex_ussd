@@ -6,6 +6,7 @@ defmodule ExUssd.NavigationTest do
   alias ExUssd.State.Registry
   alias ExUssd.Menu
   alias ExUssd.Display
+
   setup do
     internal_routing = %{text: "1", session_id: "session_01", service_code: "*544#"}
     Registry.start(internal_routing.session_id)
@@ -13,6 +14,7 @@ defmodule ExUssd.NavigationTest do
 
   test "navigate to (level 1)" do
     internal_routing = %{text: "*544#", session_id: "session_01", service_code: "*544#"}
+
     api_parameters = %{
       sessionId: "session_01",
       phoneNumber: "254722000000",
@@ -32,9 +34,11 @@ defmodule ExUssd.NavigationTest do
 
     response = Utils.call_menu_callback(menu, api_parameters)
 
-    route = Routes.get_route(%{text: internal_routing.text, service_code: internal_routing.service_code})
+    route =
+      Routes.get_route(%{text: internal_routing.text, service_code: internal_routing.service_code})
 
-    current_menu = Navigation.navigate(internal_routing.session_id, route, response, api_parameters)
+    current_menu =
+      Navigation.navigate(internal_routing.session_id, route, response, api_parameters)
 
     current_routes = Registry.get("session_01")
 
@@ -45,6 +49,7 @@ defmodule ExUssd.NavigationTest do
 
   test "navigate to (level 2)" do
     internal_routing = %{text: "*544*1#", session_id: "session_01", service_code: "*544#"}
+
     api_parameters = %{
       sessionId: "session_01",
       phoneNumber: "254722000000",
@@ -58,30 +63,36 @@ defmodule ExUssd.NavigationTest do
         name: "Home",
         handler: fn menu, _api_parameters, _should_handle ->
           menu
-            |> Map.put(:title, "Welcome")
-            |> Map.put(:menu_list,
+          |> Map.put(:title, "Welcome")
+          |> Map.put(
+            :menu_list,
             [
               Menu.render(
-              name: "child 1",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu
-                |> Map.put(:title, "Welcome to child 1 page")
-              end),
+                name: "child 1",
+                handler: fn menu, _api_parameters, _should_handle ->
+                  menu
+                  |> Map.put(:title, "Welcome to child 1 page")
+                end
+              ),
               Menu.render(
-              name: "child 2",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu
-                |> Map.put(:title, "Welcome to child 2 page")
-              end),
-            ])
+                name: "child 2",
+                handler: fn menu, _api_parameters, _should_handle ->
+                  menu
+                  |> Map.put(:title, "Welcome to child 2 page")
+                end
+              )
+            ]
+          )
         end
       )
 
     response = Utils.call_menu_callback(menu, api_parameters)
 
-    route = Routes.get_route(%{text: internal_routing.text, service_code: internal_routing.service_code})
+    route =
+      Routes.get_route(%{text: internal_routing.text, service_code: internal_routing.service_code})
 
-    current_menu = Navigation.navigate(internal_routing.session_id, route, response, api_parameters)
+    current_menu =
+      Navigation.navigate(internal_routing.session_id, route, response, api_parameters)
 
     current_routes = Registry.get("session_01")
 
@@ -107,22 +118,26 @@ defmodule ExUssd.NavigationTest do
         name: "Home",
         handler: fn menu, _api_parameters, _should_handle ->
           menu
-            |> Map.put(:title, "Welcome")
-            |> Map.put(:menu_list,
+          |> Map.put(:title, "Welcome")
+          |> Map.put(
+            :menu_list,
             [
               Menu.render(
-              name: "child 1",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu
-                |> Map.put(:title, "Welcome to child 1 page")
-              end),
+                name: "child 1",
+                handler: fn menu, _api_parameters, _should_handle ->
+                  menu
+                  |> Map.put(:title, "Welcome to child 1 page")
+                end
+              ),
               Menu.render(
-              name: "child 2",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu
-                |> Map.put(:title, "Welcome to child 2 page")
-              end),
-            ])
+                name: "child 2",
+                handler: fn menu, _api_parameters, _should_handle ->
+                  menu
+                  |> Map.put(:title, "Welcome to child 2 page")
+                end
+              )
+            ]
+          )
         end
       )
 
@@ -130,9 +145,11 @@ defmodule ExUssd.NavigationTest do
 
     Navigation.navigate("session_01", simulate_route, response, api_parameters)
 
-    route = Routes.get_route(%{text: internal_routing.text, service_code: internal_routing.service_code})
+    route =
+      Routes.get_route(%{text: internal_routing.text, service_code: internal_routing.service_code})
 
-    current_menu = Navigation.navigate(internal_routing.session_id, route, response, api_parameters)
+    current_menu =
+      Navigation.navigate(internal_routing.session_id, route, response, api_parameters)
 
     current_routes = Registry.get("session_01")
 
@@ -158,22 +175,26 @@ defmodule ExUssd.NavigationTest do
         name: "Home",
         handler: fn menu, _api_parameters, _should_handle ->
           menu
-            |> Map.put(:title, "Welcome")
-            |> Map.put(:menu_list,
+          |> Map.put(:title, "Welcome")
+          |> Map.put(
+            :menu_list,
             [
               Menu.render(
-              name: "child 1",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu
-                |> Map.put(:title, "Welcome to child 1 page")
-              end),
+                name: "child 1",
+                handler: fn menu, _api_parameters, _should_handle ->
+                  menu
+                  |> Map.put(:title, "Welcome to child 1 page")
+                end
+              ),
               Menu.render(
-              name: "child 2",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu
-                |> Map.put(:title, "Welcome to child 2 page")
-              end),
-            ])
+                name: "child 2",
+                handler: fn menu, _api_parameters, _should_handle ->
+                  menu
+                  |> Map.put(:title, "Welcome to child 2 page")
+                end
+              )
+            ]
+          )
         end
       )
 
@@ -181,9 +202,11 @@ defmodule ExUssd.NavigationTest do
 
     Navigation.navigate("session_01", simulate_route, response, api_parameters)
 
-    route = Routes.get_route(%{text: internal_routing.text, service_code: internal_routing.service_code})
+    route =
+      Routes.get_route(%{text: internal_routing.text, service_code: internal_routing.service_code})
 
-    current_menu = Navigation.navigate(internal_routing.session_id, route, response, api_parameters)
+    current_menu =
+      Navigation.navigate(internal_routing.session_id, route, response, api_parameters)
 
     current_routes = Registry.get("session_01")
 
@@ -210,35 +233,41 @@ defmodule ExUssd.NavigationTest do
         name: "Home",
         handler: fn menu, _api_parameters, _should_handle ->
           menu
-            |> Map.put(:title, "Welcome")
-            |> Map.put(:menu_list,
+          |> Map.put(:title, "Welcome")
+          |> Map.put(
+            :menu_list,
             [
               Menu.render(
-              name: "child 1",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu
-                |> Map.put(:title, "Welcome to child 1 page")
-              end),
+                name: "child 1",
+                handler: fn menu, _api_parameters, _should_handle ->
+                  menu
+                  |> Map.put(:title, "Welcome to child 1 page")
+                end
+              ),
               Menu.render(
-              name: "child 2",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu
-                |> Map.put(:title, "Welcome to child 2 page")
-              end),
+                name: "child 2",
+                handler: fn menu, _api_parameters, _should_handle ->
+                  menu
+                  |> Map.put(:title, "Welcome to child 2 page")
+                end
+              ),
               Menu.render(
-              name: "child 3",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu
-                |> Map.put(:title, "Welcome to child 3 page")
-              end),
+                name: "child 3",
+                handler: fn menu, _api_parameters, _should_handle ->
+                  menu
+                  |> Map.put(:title, "Welcome to child 3 page")
+                end
+              ),
               Menu.render(
-              name: "child 4",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu
-                |> Map.put(:title, "Welcome to child 4 page")
-              end),
-            ])
-            |> Map.put(:split, 2)
+                name: "child 4",
+                handler: fn menu, _api_parameters, _should_handle ->
+                  menu
+                  |> Map.put(:title, "Welcome to child 4 page")
+                end
+              )
+            ]
+          )
+          |> Map.put(:split, 2)
         end
       )
 
@@ -246,9 +275,11 @@ defmodule ExUssd.NavigationTest do
 
     Navigation.navigate("session_01", simulate_route, response, api_parameters)
 
-    route = Routes.get_route(%{text: internal_routing.text, service_code: internal_routing.service_code})
+    route =
+      Routes.get_route(%{text: internal_routing.text, service_code: internal_routing.service_code})
 
-    current_menu = Navigation.navigate(internal_routing.session_id, route, response, api_parameters)
+    current_menu =
+      Navigation.navigate(internal_routing.session_id, route, response, api_parameters)
 
     current_routes = Registry.get("session_01")
 
@@ -275,35 +306,41 @@ defmodule ExUssd.NavigationTest do
         name: "Home",
         handler: fn menu, _api_parameters, _should_handle ->
           menu
-            |> Map.put(:title, "Welcome")
-            |> Map.put(:menu_list,
+          |> Map.put(:title, "Welcome")
+          |> Map.put(
+            :menu_list,
             [
               Menu.render(
-              name: "child 1",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu
-                |> Map.put(:title, "Welcome to child 1 page")
-              end),
+                name: "child 1",
+                handler: fn menu, _api_parameters, _should_handle ->
+                  menu
+                  |> Map.put(:title, "Welcome to child 1 page")
+                end
+              ),
               Menu.render(
-              name: "child 2",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu
-                |> Map.put(:title, "Welcome to child 2 page")
-              end),
+                name: "child 2",
+                handler: fn menu, _api_parameters, _should_handle ->
+                  menu
+                  |> Map.put(:title, "Welcome to child 2 page")
+                end
+              ),
               Menu.render(
-              name: "child 3",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu
-                |> Map.put(:title, "Welcome to child 3 page")
-              end),
+                name: "child 3",
+                handler: fn menu, _api_parameters, _should_handle ->
+                  menu
+                  |> Map.put(:title, "Welcome to child 3 page")
+                end
+              ),
               Menu.render(
-              name: "child 4",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu
-                |> Map.put(:title, "Welcome to child 4 page")
-              end),
-            ])
-            |> Map.put(:split, 2)
+                name: "child 4",
+                handler: fn menu, _api_parameters, _should_handle ->
+                  menu
+                  |> Map.put(:title, "Welcome to child 4 page")
+                end
+              )
+            ]
+          )
+          |> Map.put(:split, 2)
         end
       )
 
@@ -311,9 +348,11 @@ defmodule ExUssd.NavigationTest do
 
     Navigation.navigate("session_01", simulate_route, response, api_parameters)
 
-    route = Routes.get_route(%{text: internal_routing.text, service_code: internal_routing.service_code})
+    route =
+      Routes.get_route(%{text: internal_routing.text, service_code: internal_routing.service_code})
 
-    current_menu = Navigation.navigate(internal_routing.session_id, route, response, api_parameters)
+    current_menu =
+      Navigation.navigate(internal_routing.session_id, route, response, api_parameters)
 
     current_routes = Registry.get("session_01")
 
@@ -340,10 +379,11 @@ defmodule ExUssd.NavigationTest do
         name: "Home",
         handler: fn menu, _api_parameters, _should_handle ->
           menu
-            |> Map.put(:title, "Enter Pin Number")
-            |> Map.put(:handle, true)
-            |> Map.put(:validation_menu,
-              Menu.render(
+          |> Map.put(:title, "Enter Pin Number")
+          |> Map.put(:handle, true)
+          |> Map.put(
+            :validation_menu,
+            Menu.render(
               name: "",
               handler: fn menu, api_parameters, should_handle ->
                 case should_handle do
@@ -353,14 +393,17 @@ defmodule ExUssd.NavigationTest do
                         menu
                         |> Map.put(:title, "Welcome Back")
                         |> Map.put(:success, true)
-                      _->
+
+                      _ ->
                         menu |> Map.put(:error, "Invalid Pin Number")
                     end
-                  false -> menu
-                end
-              end)
-            )
 
+                  false ->
+                    menu
+                end
+              end
+            )
+          )
         end
       )
 
@@ -368,9 +411,11 @@ defmodule ExUssd.NavigationTest do
 
     Navigation.navigate("session_01", simulate_route, response, api_parameters)
 
-    route = Routes.get_route(%{text: internal_routing.text, service_code: internal_routing.service_code})
+    route =
+      Routes.get_route(%{text: internal_routing.text, service_code: internal_routing.service_code})
 
-    current_menu = Navigation.navigate(internal_routing.session_id, route, response, api_parameters)
+    current_menu =
+      Navigation.navigate(internal_routing.session_id, route, response, api_parameters)
 
     current_routes = Registry.get("session_01")
 

@@ -47,7 +47,10 @@ defmodule ExUssd.MixProject do
   defp deps do
     [
       {:defnamed, "~> 0.1"},
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false}
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:ex_doc, "~> 0.21", only: :dev, runtime: false},
+      {:excoveralls, "~> 0.10", only: :test}
+
     ]
   end
 end

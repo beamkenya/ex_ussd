@@ -20,5 +20,4 @@ defmodule ExUssd.RoutesTest do
     route = Routes.get_route(%{text: "2", service_code: "*544#"})
     assert %{depth: 1, value: "2"} == route
   end
-
 end
