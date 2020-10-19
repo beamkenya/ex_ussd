@@ -31,9 +31,10 @@ defmodule ExUssd.Routes do
   defp find_route_for_service_code(text, service_code) do
     text_value = text |> String.replace("#", "")
     service_code_value = service_code |> String.replace("#", "")
+
     cond do
       text_value == service_code_value -> [%{depth: 1, value: "555"}]
-      text_value =~ service_code_value ->  take_range(clean(text), clean(service_code))
+      text_value =~ service_code_value -> take_range(clean(text), clean(service_code))
       true -> find_route_for_service_code(clean(text), clean(service_code))
     end
   end
