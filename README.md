@@ -101,12 +101,12 @@ ExUssd.Menu.render(
               name: "Product A",
               handler: fn menu, _api_parameters, _should_handle ->
                 menu |> Map.put(:title, "selected product a")
-            ),
+            end),
             Menu.render(
               name: "Product B",
               handler: fn menu, _api_parameters, _should_handle ->
                 menu |> Map.put(:title, "selected product b")
-            )]
+            end)]
           )
   {:ok, "CON Welcome\n1:Product A\n2:Product B"}
   # simulate 1
@@ -127,13 +127,13 @@ ExUssd.Menu.render(
               handler: fn menu, _api_parameters, _should_handle ->
                 menu |> Map.put(:title, "selected product a")
                 |> Map.put(:should_close, true)
-            ),
+            end),
             Menu.render(
               name: "Product B",
               handler: fn menu, _api_parameters, _should_handle ->
                 menu |> Map.put(:title, "selected product b")
                 |> Map.put(:should_close, true)
-            )]
+            end)]
           )
   {:ok, "CON Welcome\n1:Product A\n2:Product B"}
   # simulate 1
@@ -155,12 +155,12 @@ ExUssd.Menu.render(
               name: "Product A",
               handler: fn menu, _api_parameters, _should_handle ->
                 menu |> Map.put(:title, "selected product a")
-            ),
+            end),
             Menu.render(
               name: "Product B",
               handler: fn menu, _api_parameters, _should_handle ->
                 menu |> Map.put(:title, "selected product b")
-            )]
+            end)]
           )
   {:ok, "CON Welcome\n1:Product A\n2:Product B"}
   # simulate 11
@@ -182,12 +182,12 @@ ExUssd.Menu.render(
               name: "Product A",
               handler: fn menu, _api_parameters, _should_handle ->
                 menu |> Map.put(:title, "selected product a")
-            ),
+            end),
             Menu.render(
               name: "Product B",
               handler: fn menu, _api_parameters, _should_handle ->
                 menu |> Map.put(:title, "selected product b")
-            )]
+            end)]
           )
   {:ok, "CON Welcome\n1)Product A\n2)Product B"}
 ```
@@ -207,17 +207,17 @@ ExUssd.Menu.render(
               name: "Product A",
               handler: fn menu, _api_parameters, _should_handle ->
                 menu |> Map.put(:title, "selected product a")
-            ),
+            end),
             Menu.render(
               name: "Product B",
               handler: fn menu, _api_parameters, _should_handle ->
                 menu |> Map.put(:title, "selected product b")
-            ),
+            end),
             Menu.render(
               name: "Product C",
               handler: fn menu, _api_parameters, _should_handle ->
                 menu |> Map.put(:title, "selected product c")
-            )]
+            end)]
           )
   {:ok, "CON Welcome\n1:Product A\n2:Product B\n98:MORE"}
   # simulate 98
@@ -266,7 +266,8 @@ ExUssd.Menu.render(
 
 - `error` - custom error message on failed validation/handling,
 - `success` - allows ExUssd to Render next menu on successful validation/handling
--`show_options` - hides menu list on false
+- `show_options` - hides menu list on false
+- `show_navigation` - set to false to hide navigation menu
 
 ## Render Menu
 

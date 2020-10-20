@@ -25,11 +25,11 @@ defmodule ExUssd.Utils do
     internal_routing = %{text: text, session_id: session_id, service_code: "*544#"}
 
     api_parameters = %{
-      sessionId: internal_routing.session_id,
-      phoneNumber: "254722000000",
-      networkCode: "Safaricom",
-      serviceCode: internal_routing.service_code,
-      text: internal_routing.text
+      "sessionId" => internal_routing.session_id,
+      "phoneNumber" => "254722000000",
+      "networkCode" => "Safaricom",
+      "serviceCode" => internal_routing.service_code,
+      "text" => internal_routing.text
     }
 
     route =
