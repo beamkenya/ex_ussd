@@ -2,7 +2,7 @@ alias ExUssd.Menu
 
 defmodule Example.Components.Exit do
   def exit_menu do
-    ExUssd.Menu.render(
+    Menu.render(
         name: "Exit",
         handler: fn menu, _api_parameters, _should_handle ->
           menu

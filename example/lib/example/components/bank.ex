@@ -2,7 +2,7 @@ alias Example.Domain.Client
 alias Example.Components.Bank
 alias Example.Components.ResetPin
 alias Example.Components.Branch
-alias
+alias Example.Components.Exit
 alias ExUssd.Menu
 
 defmodule Example.Components.Bank do
@@ -57,7 +57,7 @@ defmodule Example.Components.Bank do
               |> Map.put(:title, "New PIN should should not match with the previous 5 PIN's. Please keep your debit card with you for PIN reset.\nPress 1 to continue.")
               |> Map.put(:validation_menu, ResetPin.forgot_pin())
 
-            api_parameters.text == "5342" ->
+            api_parameters.text == "5555" ->
               menu
                 |> Map.put(:success, true)
                 |> Map.put(:show_navigation, false)
