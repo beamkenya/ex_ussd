@@ -59,12 +59,20 @@ defmodule ExUssd.Menu do
       name: name,
       handler: handler,
       callback: fn api_parameters, should_handle ->
-        handle(%ExUssd.Menu{name: name, handler: handler}, api_parameters, should_handle)
+        menu = %ExUssd.Menu{name: name, handler: handler}
+        menu.handler.(menu, api_parameters, should_handle)
       end
     }
   end
 
-  defp handle(menu, api_parameters, should_handle) do
-    menu.handler.(menu, api_parameters, should_handle)
+  def render(name: name, handler: handler, data: data) do
+    %ExUssd.Menu{
+      name: name,
+      handler: handler,
+      callback: fn api_parameters, should_handle ->
+        menu = %ExUssd.Menu{name: name, handler: handler, data: data}
+        menu.handler.(menu, api_parameters, should_handle)
+      end
+    }
   end
 end
