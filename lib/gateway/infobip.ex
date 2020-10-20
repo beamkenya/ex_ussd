@@ -25,11 +25,11 @@ defmodule Infobip do
       ...>    end
       ...>  ),
       ...>  api_parameters: %{
-      ...>      sessionId: "session_01",
-      ...>      phoneNumber: "254722000000",
-      ...>      networkCode: "Safaricom",
-      ...>      serviceCode: "*544#",
-      ...>      text: "1"
+      ...>      "sessionId" => "session_01",
+      ...>      "phoneNumber" => "254722000000",
+      ...>      "networkCode" => "Safaricom",
+      ...>      "serviceCode" => "*544#",
+      ...>      "text" => "*544#"
       ...>    }
       ...>  )
       {:ok,
@@ -66,5 +66,10 @@ defmodule Infobip do
   @impl true
   def end_session(session_id: session_id) do
     Registry.stop(session_id)
+  end
+
+  @impl true
+  def get_menu(session_id: session_id) do
+    ExUssd.State.Registry.get_menu(session_id)
   end
 end

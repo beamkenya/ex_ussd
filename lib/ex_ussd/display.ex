@@ -9,7 +9,8 @@ defmodule ExUssd.Display do
       next: next,
       previous: previous,
       should_close: should_close,
-      display_style: display_style
+      display_style: display_style,
+      show_navigation: show_navigation
     } = menu
 
     %{depth: page} = hd(routes)
@@ -77,10 +78,20 @@ defmodule ExUssd.Display do
 
     case menus do
       [] ->
-        "#{error}#{title}" <> previous_navigation <> next_navigation
+        case show_navigation do
+          true -> "#{error}#{title}" <> previous_navigation <> next_navigation
+          false -> "#{error}#{title}"
+        end
 
       _ ->
-        "#{error}#{title}\n" <> Enum.join(menus, "\n") <> previous_navigation <> next_navigation
+        case show_navigation do
+          true ->
+            "#{error}#{title}\n" <>
+              Enum.join(menus, "\n") <> previous_navigation <> next_navigation
+
+          false ->
+            "#{error}#{title}\n" <> Enum.join(menus, "\n")
+        end
     end
   end
 end

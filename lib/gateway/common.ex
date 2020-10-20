@@ -13,6 +13,10 @@ defmodule EXUssd.Common do
       ) do
     Registry.start(internal_routing.session_id)
 
+    ExUssd.State.Registry.set_menu(internal_routing.session_id, menu)
+
+    api_parameters = for {key, val} <- api_parameters, into: %{}, do: {String.to_atom(key), val}
+
     response = Utils.call_menu_callback(menu, api_parameters)
 
     current_menu =

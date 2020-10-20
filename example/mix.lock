@@ -1,0 +1,13 @@
+%{
+  "cowboy": {:hex, :cowboy, "2.8.0", "f3dc62e35797ecd9ac1b50db74611193c29815401e53bac9a5c0577bd7bc667d", [:rebar3], [{:cowlib, "~> 2.9.1", [hex: :cowlib, repo: "hexpm", optional: false]}, {:ranch, "~> 1.7.1", [hex: :ranch, repo: "hexpm", optional: false]}], "hexpm", "4643e4fba74ac96d4d152c75803de6fad0b3fa5df354c71afdd6cbeeb15fac8a"},
+  "cowlib": {:hex, :cowlib, "2.9.1", "61a6c7c50cf07fdd24b2f45b89500bb93b6686579b069a89f88cb211e1125c78", [:rebar3], [], "hexpm", "e4175dc240a70d996156160891e1c62238ede1729e45740bdd38064dad476170"},
+  "defnamed": {:hex, :defnamed, "0.1.3", "8d81c1e97be1c25ac71737b4ade32432fcea71eb59e0fe0dea8f5e2172a429bf", [:mix], [], "hexpm", "3198063d98aaaec920fe2a155bc011b43b794808e59579a5ca1e2426209bafcf"},
+  "ex_ussd": {:git, "https://github.com/beamkenya/ex_ussd.git", "b72616f8f5a3dcfec6f38eee2470a9ff5d52dbf2", [branch: "examples"]},
+  "jason": {:hex, :jason, "1.2.2", "ba43e3f2709fd1aa1dce90aaabfd039d000469c05c56f0b8e31978e03fa39052", [:mix], [{:decimal, "~> 1.0 or ~> 2.0", [hex: :decimal, repo: "hexpm", optional: true]}], "hexpm", "18a228f5f0058ee183f29f9eae0805c6e59d61c3b006760668d8d18ff0d12179"},
+  "mime": {:hex, :mime, "1.4.0", "5066f14944b470286146047d2f73518cf5cca82f8e4815cf35d196b58cf07c47", [:mix], [], "hexpm", "75fa42c4228ea9a23f70f123c74ba7cece6a03b1fd474fe13f6a7a85c6ea4ff6"},
+  "plug": {:hex, :plug, "1.10.4", "41eba7d1a2d671faaf531fa867645bd5a3dce0957d8e2a3f398ccff7d2ef017f", [:mix], [{:mime, "~> 1.0", [hex: :mime, repo: "hexpm", optional: false]}, {:plug_crypto, "~> 1.1.1 or ~> 1.2", [hex: :plug_crypto, repo: "hexpm", optional: false]}, {:telemetry, "~> 0.4", [hex: :telemetry, repo: "hexpm", optional: false]}], "hexpm", "ad1e233fe73d2eec56616568d260777b67f53148a999dc2d048f4eb9778fe4a0"},
+  "plug_cowboy": {:hex, :plug_cowboy, "2.1.3", "38999a3e85e39f0e6bdfdf820761abac61edde1632cfebbacc445cdcb6ae1333", [:mix], [{:cowboy, "~> 2.5", [hex: :cowboy, repo: "hexpm", optional: false]}, {:plug, "~> 1.7", [hex: :plug, repo: "hexpm", optional: false]}], "hexpm", "056f41f814dbb38ea44613e0f613b3b2b2f2c6afce64126e252837669eba84db"},
+  "plug_crypto": {:hex, :plug_crypto, "1.2.0", "1cb20793aa63a6c619dd18bb33d7a3aa94818e5fd39ad357051a67f26dfa2df6", [:mix], [], "hexpm", "a48b538ae8bf381ffac344520755f3007cc10bd8e90b240af98ea29b69683fc2"},
+  "ranch": {:hex, :ranch, "1.7.1", "6b1fab51b49196860b733a49c07604465a47bdb78aa10c1c16a3d199f7f8c881", [:rebar3], [], "hexpm", "451d8527787df716d99dc36162fca05934915db0b6141bbdac2ea8d3c7afc7d7"},
+  "telemetry": {:hex, :telemetry, "0.4.2", "2808c992455e08d6177322f14d3bdb6b625fbcfd233a73505870d8738a2f4599", [:rebar3], [], "hexpm", "2d1419bd9dda6a206d7b5852179511722e2b18812310d304620c7bd92a13fcef"},
+}

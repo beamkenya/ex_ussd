@@ -15,6 +15,7 @@ defmodule ExUssd.Menu do
             display_style: ":",
             parent: nil,
             validation_menu: nil,
+            show_navigation: true,
             default_error_message: "Invalid Choice\n"
 
   @doc """

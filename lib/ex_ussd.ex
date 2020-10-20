@@ -27,11 +27,11 @@ defmodule ExUssd do
       ...>    end
       ...>  ),
       ...>  api_parameters: %{
-      ...>      sessionId: "session_01",
-      ...>      phoneNumber: "254722000000",
-      ...>      networkCode: "Safaricom",
-      ...>      serviceCode: "*544#",
-      ...>      text: "1"
+      ...>      "sessionId" => "session_01",
+      ...>      "phoneNumber" => "254722000000",
+      ...>      "networkCode" => "Safaricom",
+      ...>      "serviceCode" => "*544#",
+      ...>      "text" => ""
       ...>    }
       ...>  )
       {:ok, "CON Home Page: Welcome"}
@@ -55,4 +55,6 @@ defmodule ExUssd do
       {:error, :not_found}
   """
   def end_session(session_id: session_id), do: @provider.end_session(session_id: session_id)
+
+  def get_menu(session_id: session_id), do: @provider.get_menu(session_id: session_id)
 end

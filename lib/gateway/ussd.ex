@@ -28,5 +28,8 @@ defmodule ExUssd.Ussd do
               menu: menu(),
               api_parameters: api_parameters()
             ) :: any()
+
   @callback end_session(session_id: String.t()) :: any()
+
+  @callback get_menu(session_id: String.t()) :: any()
 end

@@ -1,5 +1,4 @@
 defmodule AfricasTalking do
-  alias ExUssd.Routes
   alias ExUssd.State.Registry
 
   @behaviour ExUssd.Ussd
@@ -25,24 +24,36 @@ defmodule AfricasTalking do
       ...>    end
       ...>  ),
       ...>  api_parameters: %{
-      ...>      sessionId: "session_01",
-      ...>      phoneNumber: "254722000000",
-      ...>      networkCode: "Safaricom",
-      ...>      serviceCode: "*544#",
-      ...>      text: "1"
+      ...>      "sessionId" => "session_01",
+      ...>      "phoneNumber" => "254722000000",
+      ...>      "networkCode" => "Safaricom",
+      ...>      "serviceCode" => "*544#",
+      ...>      "text" => ""
       ...>    }
       ...>  )
       {:ok, "CON Home Page: Welcome"}
   """
   @impl true
   def goto(internal_routing: internal_routing, menu: menu, api_parameters: api_parameters) do
+    text_value = internal_routing.text |> String.replace("#", "")
+    service_code_value = internal_routing.service_code |> String.replace("#", "")
+
     text =
-      case internal_routing.text |> String.split("*") do
-        value when length(value) == 1 -> value |> hd
-        value -> Enum.reverse(value) |> hd
+      cond do
+        text_value == service_code_value ->
+          ""
+
+        text_value =~ service_code_value ->
+          text_value
+
+        true ->
+          case internal_routing.text |> String.split("*") do
+            value when length(value) == 1 -> value |> hd
+            value -> Enum.reverse(value) |> hd
+          end
       end
 
-    route = Routes.get_route(%{text: text, service_code: internal_routing.service_code})
+    route = ExUssd.Routes.get_route(%{text: text, service_code: internal_routing.service_code})
 
     %{menu: current_menu, display: menu_string} =
       EXUssd.Common.goto(
@@ -76,5 +87,10 @@ defmodule AfricasTalking do
   @impl true
   def end_session(session_id: _session_id) do
     {:error, :not_found}
+  end
+
+  @impl true
+  def get_menu(session_id: session_id) do
+    ExUssd.State.Registry.get_menu(session_id)
   end
 end
