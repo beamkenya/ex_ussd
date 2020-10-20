@@ -65,7 +65,7 @@ defmodule ExUssd.Menu do
     }
   end
 
-  def render(name: name, handler: handler, data: data) do
+  def render(name: name, data: data, handler: handler) do
     %ExUssd.Menu{
       name: name,
       handler: handler,
