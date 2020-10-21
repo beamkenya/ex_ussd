@@ -259,8 +259,6 @@ ExUssd.Menu.render(
             )
         end
       )
-    )
-
     {:ok, "CON Enter Pin Number"}
     ## simulate 5342
     {:ok, "END success, thank you."}
@@ -288,12 +286,17 @@ The `goto` function receives the following parameters.
         handler: fn menu, _api_parameters, _should_handle ->
           menu |> Map.put(:title, "Welcome")
         end
-        ),
-  iex> ExUssd.goto(
-        internal_routing: %{text: "*544#", session_id: "session_01", service_code: "*544#"},
-        menu: menu
-        api_parameters: %{ sessionId: "session_01", phoneNumber: "254722000000", networkCode:"Safaricom",serviceCode: "*544#", text: "1" }
         )
-
+  iex> ExUssd.goto(
+        internal_routing: %{text: "", session_id: "session_01", service_code: "*544#"},
+        menu: menu,
+       api_parameters: %{
+        "sessionId" => "session_01",
+        "phoneNumber" => "254722000000",
+        "networkCode" => "Safaricom",
+        "serviceCode" => "*544#",
+        "text" => ""
+        }
+      )
   {:ok, "CON Welcome"}
 ```
