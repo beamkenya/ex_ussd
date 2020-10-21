@@ -36,7 +36,7 @@ defmodule Example.Components.Branch do
         handler: fn menu, _api_parameters, _should_handle ->
           %{country_name: country_name, branch_name: branch_name} = menu.data
           menu
-          |> Map.put(:title, "Do you want to change your bank branch to #{branch_name} - #{country_name}\nPress 1 to confirm.")
+          |> Map.put(:title, "change your branch to Branch #{branch_name} - #{country_name}\nPress 1 to confirm.")
           |> Map.put(:handle, true)
           |> Map.put(:validation_menu, Branch.change_branch(%{branch_name: menu.name, country_name: country_name}))
       end)
@@ -60,7 +60,7 @@ defmodule Example.Components.Branch do
                 |> Map.put(:success, true)
                 |> Map.put(:handle, true)
                 |> Map.put(:should_close, true)
-                |> Map.put(:title, "Successful changed your branch to #{branch_name} - #{country_name}")
+                |> Map.put(:title, "Successful changed branch to #{branch_name} - #{country_name}")
               true ->
                 menu
                 |> Map.put(:error, "Invalid choice\n")

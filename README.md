@@ -5,9 +5,8 @@
 
 ## Introduction
 
-ExUssd was created out of a need to have a powerfully simple, flexible, and customizable Ussd interface
-without the need create or manage ussd session letting focus on implementing the Ussd Logic.
-Under the hood ExUssd is implemented using Elixir Registry as a local, decentralized and scalable key-value process storage for ussd session.
+> ExUssd lets you create simple, flexible, and customizable USSD interface.
+> Under the hood ExUssd uses Elixir Registry to create and route individual USSD session.
 
 ## Sections
 
@@ -108,6 +107,7 @@ ExUssd.Menu.render(
                 menu |> Map.put(:title, "selected product b")
             end)]
           )
+      end)
   {:ok, "CON Welcome\n1:Product A\n2:Product B"}
   # simulate 1
   {:ok, "CON selected product a\n0:BACK"}
@@ -135,6 +135,7 @@ ExUssd.Menu.render(
                 |> Map.put(:should_close, true)
             end)]
           )
+      end)
   {:ok, "CON Welcome\n1:Product A\n2:Product B"}
   # simulate 1
   {:ok, "END selected product a"}
@@ -162,6 +163,7 @@ ExUssd.Menu.render(
                 menu |> Map.put(:title, "selected product b")
             end)]
           )
+      end)
   {:ok, "CON Welcome\n1:Product A\n2:Product B"}
   # simulate 11
   {:ok, "CON Invalid selection, try again\nWelcome\n1:Product A\n2:Product B"}
@@ -189,6 +191,7 @@ ExUssd.Menu.render(
                 menu |> Map.put(:title, "selected product b")
             end)]
           )
+      end)
   {:ok, "CON Welcome\n1)Product A\n2)Product B"}
 ```
 
@@ -219,6 +222,7 @@ ExUssd.Menu.render(
                 menu |> Map.put(:title, "selected product c")
             end)]
           )
+      end)
   {:ok, "CON Welcome\n1:Product A\n2:Product B\n98:MORE"}
   # simulate 98
   {:ok, "CON Welcome\n3:Product C\n0:BACK"}
