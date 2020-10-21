@@ -60,7 +60,7 @@ defmodule Example.Components.Branch do
                 |> Map.put(:success, true)
                 |> Map.put(:handle, true)
                 |> Map.put(:should_close, true)
-                |> Map.put(:title, "Successful changed branch to #{branch_name} - #{country_name}")
+                |> Map.put(:title, "Successful changed branch to Branch #{branch_name} - #{country_name}")
               true ->
                 menu
                 |> Map.put(:error, "Invalid choice\n")
