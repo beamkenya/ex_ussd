@@ -8,17 +8,23 @@ defmodule ExUssd.Navigation do
     Registry.add_current_menu(session_id, results)
   end
 
-  def navigate(session_id, %{} = route, _menu, api_parameters) do
+  def navigate(session_id, %{} = route, menu, api_parameters) do
     parent_menu = Registry.get_current_menu(session_id)
     current_menu = handle_current_menu(session_id, route, parent_menu, api_parameters)
 
-    response =
-      case current_menu.parent do
-        nil -> %{current_menu | parent: fn -> parent_menu end}
-        _ -> current_menu
-      end
+    case current_menu do
+      nil ->
+        ExUssd.Navigation.navigate(session_id, route.routes, menu, api_parameters)
 
-    Registry.add_current_menu(session_id, response)
+      _ ->
+        response =
+          case current_menu.parent do
+            nil -> %{current_menu | parent: fn -> parent_menu end}
+            _ -> current_menu
+          end
+
+        Registry.add_current_menu(session_id, response)
+    end
   end
 
   def loop([_head | _tail] = routes, menu, _api_parameters)

@@ -35,6 +35,12 @@ defmodule AfricasTalking do
   """
   @impl true
   def goto(internal_routing: internal_routing, menu: menu, api_parameters: api_parameters) do
+    routes =
+      ExUssd.Routes.get_route(%{
+        text: "" <> "*" <> internal_routing.text,
+        service_code: internal_routing.service_code
+      })
+
     text_value = internal_routing.text |> String.replace("#", "")
     service_code_value = internal_routing.service_code |> String.replace("#", "")
 
@@ -60,7 +66,7 @@ defmodule AfricasTalking do
         internal_routing: internal_routing,
         menu: menu,
         api_parameters: api_parameters,
-        route: route
+        route: %{route | routes: routes}
       )
 
     %{should_close: should_close} = current_menu
