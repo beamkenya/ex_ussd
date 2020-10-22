@@ -13,8 +13,10 @@
 - [Installation](#Installation)
 - [Gateway Providers](#providers)
 - [Configuration](#Configuration)
-- [Create Ussd Menu](#Menu)
-- [Render Ussd Menu](#Render-Menu)
+- [Documentation](#Documentation)
+- [Contribution](#contribution)
+- [Contributors](#contributors)
+- [Licence](#licence)
 
 ## Installation
 
@@ -63,7 +65,7 @@ Add below config to dev.exs / prod.exs files
 config :ex_ussd, :gateway, Infobip
 ```
 
-## Menu
+## Documentation
 
 ExUssd supports Ussd customizations through `Menu` struct via the render function
 
@@ -300,3 +302,25 @@ The `goto` function receives the following parameters.
       )
   {:ok, "CON Welcome"}
 ```
+
+## Contribution
+
+If you'd like to contribute, start by searching through the [issues](https://github.com/beamkenya/ex_ussd/issues) and [pull requests](https://github.com/beamkenya/ex_ussd/pulls) to see whether someone else has raised a similar idea or question.
+If you don't see your idea listed, [Open an issue](https://github.com/beamkenya/ex_ussd/issues).
+
+Check the [Contribution guide](contributing.md) on how to contribute.
+
+## Contributors
+
+Auto-populated from:
+[contributors-img](https://contributors-img.firebaseapp.com/image?repo=beamkenya/ex_ussd)
+
+<a href="https://github.com/beamkenya/ex_ussd/graphs/contributors">
+  <img src="https://contributors-img.firebaseapp.com/image?repo=beamkenya/ex_ussd" />
+</a>
+
+## Licence
+
+ExPesa is released under [MIT License](https://github.com/appcues/exsentry/blob/master/LICENSE.txt)
+
+[![license](https://img.shields.io/github/license/mashape/apistatus.svg?style=for-the-badge)](#)
