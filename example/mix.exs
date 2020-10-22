@@ -22,13 +22,11 @@ defmodule Example.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ex_ussd, git: "https://github.com/beamkenya/ex_ussd.git", branch: "develop"},
+      {:ex_ussd, "~> 0.1.0"},
       {:plug, "~> 1.9"},
       {:cowboy, "~> 2.7"},
       {:plug_cowboy, "~> 2.1.2"},
       {:jason, "~> 1.1"}
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
   end
 end
