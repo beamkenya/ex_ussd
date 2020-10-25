@@ -252,6 +252,7 @@ ExUssd.Menu.render(
                       true ->
                         menu
                         |> Map.put(:title, "success, thank you.")
+                        |> Map.put(:should_close, true)
                         |> Map.put(:success, true)
 
                       _ ->
@@ -268,7 +269,7 @@ ExUssd.Menu.render(
       )
     {:ok, "CON Enter Pin Number"}
     ## simulate 5555
-    {:ok, "CON success, thank you."}
+    {:ok, "END success, thank you."}
     ## simulate 2342
     {:ok, "CON Wrong pin number\nEnter Pin Number"}
 ```

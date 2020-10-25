@@ -34,7 +34,7 @@ defmodule ExUssd.Utils do
         service_code: internal_routing.service_code
       })
 
-    %{menu: current_menu, display: menu_string} =
+    %{display: menu_string} =
       EXUssd.Common.goto(
         internal_routing: internal_routing,
         menu: menu,
@@ -42,15 +42,6 @@ defmodule ExUssd.Utils do
         route: route
       )
 
-    %{should_close: should_close} = current_menu
-
-    case should_close do
-      false ->
-        {:ok, menu_string}
-
-      true ->
-        ExUssd.State.Registry.stop(internal_routing.session_id)
-        {:ok, menu_string}
-    end
+    {:ok, menu_string}
   end
 end
