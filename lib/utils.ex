@@ -11,24 +11,20 @@ defmodule ExUssd.Utils do
   @doc """
   This a helper function that helps simulate ussd call
   ## Example
-      iex> ExUssd.Utils.simulate(text: "", session_id: "session_01",
-      ...>  menu:  ExUssd.Menu.render(
+      iex> ExUssd.Utils.simulate(menu: ExUssd.Menu.render(
       ...>  name: "Home",
       ...>  handler: fn menu, _api_parameters, _should_handle ->
       ...>    menu
       ...>    |> Map.put(:title, "Welcome")
       ...>  end
-      ...>))
+      ...>),
+      ...> text: "")
       {:ok, "Welcome"}
   """
-  def simulate(text: text, session_id: session_id, menu: menu) do
-    internal_routing = %{text: text, session_id: session_id, service_code: "*544#"}
+  def simulate(menu: menu, text: text) do
+    internal_routing = %{text: text, session_id: "session_01", service_code: "*544#"}
 
     api_parameters = %{
-      "sessionId" => internal_routing.session_id,
-      "phoneNumber" => "254722000000",
-      "networkCode" => "Safaricom",
-      "serviceCode" => internal_routing.service_code,
       "text" => internal_routing.text
     }
 

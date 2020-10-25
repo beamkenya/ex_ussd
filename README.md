@@ -273,7 +273,7 @@ ExUssd.Menu.render(
 - `show_options` - hides menu list on false
 - `show_navigation` - set to false to hide navigation menu
 
-## Render Menu
+### Render Menu
 
 ExUssd to render `Menu` struct for different ussd providers. ExUssd provides `goto` function that starts and manages the ussd sessions.
 The `goto` function receives the following parameters.
@@ -303,6 +303,20 @@ The `goto` function receives the following parameters.
   {:ok, "CON Welcome"}
 ```
 
+### Testing
+To test your USSD menu, ExUssd provides a `simulate` function that helps you test menu rendering and logic implemented by mimicking USSD gateway callback.
+
+```elixir
+  iex> menu = ExUssd.Menu.render(
+        name: "Home",
+        handler: fn menu, _api_parameters, _should_handle ->
+          menu |> Map.put(:title, "Welcome")
+        end
+        )
+  iex> ExUssd.simulate(menu: menu, text: "")
+
+  {:ok, "CON Welcome"}
+```
 ## Contribution
 
 If you'd like to contribute, start by searching through the [issues](https://github.com/beamkenya/ex_ussd/issues) and [pull requests](https://github.com/beamkenya/ex_ussd/pulls) to see whether someone else has raised a similar idea or question.

@@ -1,3 +1,4 @@
+alias ExUssd.Utils
 defmodule ExUssd do
   @moduledoc """
     USSD interation
@@ -57,4 +58,19 @@ defmodule ExUssd do
   def end_session(session_id: session_id), do: @provider.end_session(session_id: session_id)
 
   def get_menu(session_id: session_id), do: @provider.get_menu(session_id: session_id)
+
+  @doc """
+  This a helper function that helps simulate ussd call
+  ## Example
+      iex> ExUssd.simulate(menu: ExUssd.Menu.render(
+      ...>  name: "Home",
+      ...>  handler: fn menu, _api_parameters, _should_handle ->
+      ...>    menu
+      ...>    |> Map.put(:title, "Welcome")
+      ...>  end
+      ...>),
+      ...> text: "")
+      {:ok, "Welcome"}
+  """
+  def simulate(menu: menu, text: text), do: Utils.simulate(menu: menu, text: text)
 end
