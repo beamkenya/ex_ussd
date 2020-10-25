@@ -7,7 +7,7 @@ defmodule ExUssd.MixProject do
       version: "0.1.0",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
-      description: "A USSD Wrapper",
+      description: "ExUssd lets you create simple, flexible, and customizable USSD interface.",
       package: package(),
       deps: deps(),
       name: "ExUssd",
