@@ -206,8 +206,7 @@ defmodule ExUssd.NavigationTest do
 
     {:ok, _menu_string} = simulate(menu: menu, text: "")
 
-    {:ok, _menu_string} =
-      simulate(menu: menu, text: "98")
+    {:ok, _menu_string} = simulate(menu: menu, text: "98")
 
     {:ok, menu_string} = simulate(menu: menu, text: "0")
     assert menu_string == "Welcome\n1:child 1\n2:child 2\n98:MORE"
@@ -249,8 +248,7 @@ defmodule ExUssd.NavigationTest do
 
     {:ok, _menu_string} = simulate(menu: menu, text: "")
 
-    {:ok, menu_string} =
-      simulate(menu: menu, text: "5342")
+    {:ok, menu_string} = simulate(menu: menu, text: "5342")
 
     assert menu_string == "Welcome Back\n0:BACK"
   end

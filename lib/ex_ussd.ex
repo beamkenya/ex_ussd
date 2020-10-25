@@ -1,4 +1,5 @@
 alias ExUssd.Utils
+
 defmodule ExUssd do
   @moduledoc """
     USSD interation
