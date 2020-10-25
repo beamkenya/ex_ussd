@@ -14,7 +14,7 @@ defmodule ExUssd.Navigation do
 
     response =
       case current_menu.parent do
-        nil -> %{current_menu | parent: fn -> parent_menu end}
+        nil -> %{current_menu | parent: fn -> %{parent_menu | error: nil} end}
         _ -> current_menu
       end
 

@@ -239,32 +239,37 @@ ExUssd.Menu.render(
         name: "Home",
         handler: fn menu, _api_parameters, _should_handle ->
           menu
-            |> Map.put(:title, "Enter Pin Number")
-            |> Map.put(:handle, true)
-            |> Map.put(:validation_menu, Menu.render(
+          |> Map.put(:title, "Enter Pin Number")
+          |> Map.put(:handle, true)
+          |> Map.put(
+            :validation_menu,
+            ExUssd.Menu.render(
               name: "",
               handler: fn menu, api_parameters, should_handle ->
                 case should_handle do
                   true ->
-                    case api_parameters.text == "5342" do
+                    case api_parameters.text == "5555" do
                       true ->
                         menu
                         |> Map.put(:title, "success, thank you.")
                         |> Map.put(:success, true)
-                        |> Map.put(:should_close, true)
-                      _->
+
+                      _ ->
                         menu |> Map.put(:error, "Wrong pin number\n")
                     end
-                  false -> menu
+
+                  false ->
+                    menu
                 end
-              end)
+              end
             )
+          )
         end
       )
     {:ok, "CON Enter Pin Number"}
-    ## simulate 5342
-    {:ok, "END success, thank you."}
     ## simulate 5555
+    {:ok, "CON success, thank you."}
+    ## simulate 2342
     {:ok, "CON Wrong pin number\nEnter Pin Number"}
 ```
 
