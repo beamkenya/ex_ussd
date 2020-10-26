@@ -16,7 +16,6 @@ defmodule Example.Endpoints do
   # Africa talking callback URL
   post "africa-talking/ussd" do
     request = conn.params
-    IO.inspect request
     %{"text" => text, "sessionId" => session_id, "serviceCode" => service_code} = request
 
     menu = Bank.start_session()

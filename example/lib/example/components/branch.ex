@@ -90,7 +90,7 @@ defmodule Example.Components.Branch do
                 |> Map.put(:should_close, true)
                 |> Map.put(
                   :title,
-                  "Successful changed branch to Branch #{branch_name} - #{country_name}"
+                  "Successful changed branch to #{branch_name} - #{country_name}"
                 )
 
               true ->
