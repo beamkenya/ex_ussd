@@ -223,12 +223,13 @@ ExUssd.goto(
 To test your USSD menu, ExUssd provides a `simulate` function that helps you test menu rendering and logic implemented by mimicking USSD gateway callback.
 
 ```elixir
-  iex> menu = ExUssd.Menu.render(
-        name: "Home",
-        handler: fn menu, _api_parameters, _should_handle ->
+  iex> defmodule MyHomeHandler do
+        @behaviour ExUssd.Handler
+        def handle_menu(menu, api_parameters, should_handle) do
           menu |> Map.put(:title, "Welcome")
         end
-        )
+      end
+  iex> menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
   iex> ExUssd.simulate(menu: menu, text: "")
 
   {:ok, "CON Welcome"}

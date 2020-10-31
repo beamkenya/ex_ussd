@@ -3,6 +3,7 @@ defmodule EqutelGW do
 
   def xml_to_map(xml_request: xml) do
     xml_request = xml |> String.trim() |> String.split(~r{\n  *}, trim: true) |> Enum.join("")
+
     # "<USSDDynMenuRequest><requestId>$requestId</requestId><msisdn>$msisdn</msisdn><timeStamp>2018/01/24 08:23:28</timeStamp><starCode>*123#</starCode><keyWord>nhif</keyWord><dataSet><param><id>CIRCLEID</id><value>1</value></param><param><id>CIRCLE_ID</id><value>1</value></param><param><id>DIAL-CODE</id><value>*123#</value></param><param><id>SESSION_ID</id><value>$session_ID</value></param><param><id>TRAVERSAL-PATH</id><value>123</value></param></dataSet><userData>*123#</userData></USSDDynMenuRequest>"
     request_id = xml_request |> xpath(~x"//requestId/text()")
     msisdn = xml_request |> xpath(~x"//msisdn/text()")
@@ -39,13 +40,15 @@ defmodule EqutelGW do
     } = response
 
     rspFlag = unless should_close, do: 1, else: 2
-    rspTag = case is_bitstring(current_menu.title) do
-      true -> current_menu.title
-      _-> ""
-    end
+
+    rspTag =
+      case is_bitstring(current_menu.title) do
+        true -> current_menu.title
+        _ -> ""
+      end
 
     id = length(routes)
-    now = NaiveDateTime.add(NaiveDateTime.utc_now(), (3600 * 3)) |> NaiveDateTime.truncate(:second)
+    now = NaiveDateTime.add(NaiveDateTime.utc_now(), 3600 * 3) |> NaiveDateTime.truncate(:second)
     time = "#{now}" |> String.split(" ") |> tl |> hd
     date_string = "#{now.year}/#{now.month}/#{now.day} #{time}"
     "<USSDDynMenuResponse>
