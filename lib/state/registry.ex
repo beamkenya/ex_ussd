@@ -1,6 +1,6 @@
 defmodule ExUssd.State.Registry do
   use GenServer
-  def init(_opts), do: {:ok, %{routes: []}}
+  def init(_opts), do: {:ok, %{routes: [], current_menu: nil}}
 
   defp via_tuple(session_id), do: {:via, Registry, {:session_registry, session_id}}
 
@@ -35,8 +35,6 @@ defmodule ExUssd.State.Registry do
   def get(session), do: GenServer.call(via_tuple(session), {:get})
   def next(session), do: GenServer.call(via_tuple(session), {:next})
   def previous(session), do: GenServer.call(via_tuple(session), {:previous})
-
-  def sync(session), do: GenServer.call(via_tuple(session), {:previous})
   def add(session, data), do: GenServer.call(via_tuple(session), {:add, data})
 
   def handle_call({:get}, _from, state) do

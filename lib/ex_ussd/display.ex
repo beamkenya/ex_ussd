@@ -1,11 +1,75 @@
 defmodule ExUssd.Display do
+  @moduledoc """
+  Rendering of Menu Struct into response string
+  """
+
+  @doc """
+    Render's USSD string
+
+    ## Params
+  The function requires two keys as parameters
+    `:menu` - takes current menu struct
+    `:routes` - ExUssd.Routes routing list
+
+    Returns string.
+
+      ## Examples
+        iex> defmodule MyHomeHandler do
+        ...>   @behaviour ExUssd.Handler
+        ...>   def handle_menu(menu, api_parameters, should_handle) do
+        ...>     menu |> Map.put(:title, "Welcome")
+        ...>   end
+        ...> end
+
+        iex> initial_menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
+        iex> menu = ExUssd.Utils.call_menu_callback(initial_menu)
+        iex> routes = ExUssd.Routes.get_route(%{text: "", service_code: "*544#"})
+
+        iex> ExUssd.Display.generate(menu: menu, routes: routes)
+        {:ok, "Welcome"}
+
+
+        iex> defmodule ProductAHandler do
+        ...>   @behaviour ExUssd.Handler
+        ...>   def handle_menu(menu, api_parameters, should_handle) do
+        ...>     menu |> Map.put(:title, "selected product a")
+        ...>   end
+        ...> end
+
+        iex> defmodule ProductBHandler do
+        ...>   @behaviour ExUssd.Handler
+        ...>   def handle_menu(menu, api_parameters, should_handle) do
+        ...>     menu |> Map.put(:title, "selected product b")
+        ...>   end
+        ...> end
+
+        iex> defmodule MyHomeHandler do
+        ...>   @behaviour ExUssd.Handler
+        ...>   def handle_menu(menu, api_parameters, should_handle) do
+        ...>     menu
+        ...>     |> Map.put(:title, "Welcome")
+        ...>     |> Map.put(:menu_list,
+        ...>        [
+        ...>          ExUssd.Menu.render(name: "Product A", handler: ProductAHandler),
+        ...>          ExUssd.Menu.render(name: "Product B", handler: ProductBHandler)
+        ...>       ])
+        ...>   end
+        ...> end
+
+        iex> initial_menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
+        iex> menu = ExUssd.Utils.call_menu_callback(initial_menu)
+        iex> routes = ExUssd.Routes.get_route(%{text: "", service_code: "*544#"})
+
+        iex> ExUssd.Display.generate(menu: menu, routes: routes)
+        {:ok, "Welcome\\n1:Product A\\n2:Product B"}
+
+  """
   def generate(menu: menu, routes: routes) do
     %{
       title: title,
       error: error,
       split: split,
       menu_list: menu_list,
-      show_options: show_options,
       next: next,
       previous: previous,
       should_close: should_close,
@@ -15,13 +79,13 @@ defmodule ExUssd.Display do
 
     %{depth: page} = hd(routes)
 
-    {min, max} =
-      case show_options do
-        false -> {split * (page - 1) + 1_000_000, page * split + 1_000_000}
-        true -> {split * (page - 1), page * split - 1}
-      end
+    # {0, 6}
+    {min, max} = {split * (page - 1), page * split - 1}
 
+    # [0, 1, 2, 3, 4, 5, 6]
     selection = Enum.into(min..max, [])
+
+    # [{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}]
     positions = selection |> Enum.with_index()
 
     menus =
@@ -46,15 +110,9 @@ defmodule ExUssd.Display do
           end
 
         _ ->
-          case show_options do
-            false ->
-              ""
-
-            _ ->
-              case should_close do
-                false -> "\n" <> "#{previous}#{display_style}BACK"
-                true -> ""
-              end
+          case should_close do
+            false -> "\n" <> "#{previous}#{display_style}BACK"
+            true -> ""
           end
       end
 
@@ -64,34 +122,31 @@ defmodule ExUssd.Display do
           ""
 
         _ ->
-          case show_options do
-            false ->
-              ""
-
-            _ ->
-              case length(routes) do
-                1 -> "\n#{next}#{display_style}MORE"
-                _ -> " " <> "#{next}#{display_style}MORE"
-              end
+          case length(routes) do
+            1 -> "\n#{next}#{display_style}MORE"
+            _ -> " " <> "#{next}#{display_style}MORE"
           end
       end
 
-    case menus do
-      [] ->
-        case show_navigation do
-          true -> "#{error}#{title}" <> previous_navigation <> next_navigation
-          false -> "#{error}#{title}"
-        end
+    response =
+      case menus do
+        [] ->
+          case show_navigation do
+            true -> "#{error}#{title}" <> previous_navigation <> next_navigation
+            false -> "#{error}#{title}"
+          end
 
-      _ ->
-        case show_navigation do
-          true ->
-            "#{error}#{title}\n" <>
-              Enum.join(menus, "\n") <> previous_navigation <> next_navigation
+        _ ->
+          case show_navigation do
+            true ->
+              "#{error}#{title}\n" <>
+                Enum.join(menus, "\n") <> previous_navigation <> next_navigation
 
-          false ->
-            "#{error}#{title}\n" <> Enum.join(menus, "\n")
-        end
-    end
+            false ->
+              "#{error}#{title}\n" <> Enum.join(menus, "\n")
+          end
+      end
+
+    {:ok, response}
   end
 end

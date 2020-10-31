@@ -4,7 +4,4 @@ defmodule ExUssdTest do
   doctest AfricasTalking
   doctest Infobip
   doctest ExUssd.Utils
-  # test "greets the world" do
-  #   assert ExUssd.hello() == :world
-  # end
 end

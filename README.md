@@ -80,12 +80,12 @@ ExUssd supports Ussd customizations through `Menu` struct via the render functio
 - `title` - Outputs the ussd's title,
 
 ```elixir
-ExUssd.Menu.render(
-        name: "Home",
-        handler: fn menu, _api_parameters, _should_handle ->
-          menu |> Map.put(:title, "Welcome")
-        end
-        )
+defmodule MyHomeHandler do
+   @behaviour ExUssd.Handler
+  def handle_menu(menu, api_parameters, should_handle) do
+     menu |> Map.put(:title, "Welcome")
+   end
+end
 {:ok, "CON Welcome"}
 ```
 
