@@ -87,9 +87,11 @@ defmodule ExUssd.State.RegistryTest do
   test "stop" do
     assert true == Registry.stop("session_01")
   end
+
   test "get menu" do
     assert %{} == Registry.get_menu("session_01")
   end
+
   test "current get menu" do
     assert %{} == Registry.get_current_menu("session_01")
   end

@@ -69,15 +69,24 @@ config :ex_ussd, :gateway, Infobip
 
 ExUssd supports Ussd customizations through `Menu` struct via the render function
 
-- `handler` - This is a callback function that returns the menu struct, ussd api_parameters map and should_handle boolean.
+  - `name`: (Public) This is the value display when Menu is rendered as menu_list. check more on `menu_list`,
+  - `handler`: (Public) A callback that modifies the current menu struct. Implemented via ExUssd.Handler
+  - `callback`: (Internal) A callback function that takes the `handler` callback. This function is triggered when the client is at that menu position.
+  - `title`: (Public) Outputs the ussd's title,
+  - `menu_list`: (Public) Takes a list of Ussd Menu struct,
+  - `error`: (Public) A custom validation error message for `validation_menu`,
+  - `show_navigation`: (Public) set to false to hide navigation menu,
+  - `next`: (Public) navigate's the next menu chunk, default `"98"`,
+  - `previous`: (Public) navigate's the previous menu chunk or the previous menu struct default `"0"`,,
+  - `split`: (Public) This is used to set the chunk size value when rendering menu_list. default value size `7`,
+  - `should_close`: (Public) This triggers ExUssd to end the current registry session,
+  - `display_style`: (Public) This is used to change default's display style, default ":"
+  - `parent`: (Internal) saves the previous menu struct to the current menu in order to facilitate navigation,
+  - `validation_menu`: (Public) Its a special Menu struct that enables the developer to validate the client input,
+  - `data`: (Public) takes data as Props that will be attached to the children menu struct,
+  - `default_error_message`:(Public)  This the default error message shown on invalid input. default `"Invalid Choice\n"`
 
-  - menu - The menu struct is modified to produce ussd menu struct
-  - api_parameters - This a map of ussd response call
-  - should_handle - a check value, where ExUssd allows the developer to handle client input, more on `handle`, default is `false`
-
-- `name` - This is the value display when Menu is rendered as menu_list. check more on `menu_list`.
-
-- `title` - Outputs the ussd's title,
+### Ussd Menu with title Only
 
 ```elixir
 defmodule MyHomeHandler do
@@ -86,227 +95,128 @@ defmodule MyHomeHandler do
      menu |> Map.put(:title, "Welcome")
    end
 end
+menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
+ExUssd.goto(
+  internal_routing: %{text: "", session_id: "session_01", service_code: "*544#"},
+  menu: menu,
+  api_parameters: %{"sessionId" => "session_01", "phoneNumber" => "254722000000", "networkCode" =>,"Safaricom", "serviceCode" => "*544#", "text" => "" }
+  )
 {:ok, "CON Welcome"}
 ```
-
-- `menu_list` - Takes a list of Ussd Menu
+### Ussd Menu with title and menu_list
 
 ```elixir
-  ExUssd.Menu.render(
-          name: "Home",
-          handler: fn menu, _api_parameters, _should_handle ->
-            menu |> Map.put(:title, "Welcome")
-            |> Map.put(:menu_list,
-            [
-              Menu.render(
-              name: "Product A",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu |> Map.put(:title, "selected product a")
-            end),
-            Menu.render(
-              name: "Product B",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu |> Map.put(:title, "selected product b")
-            end)]
-          )
-      end)
-  {:ok, "CON Welcome\n1:Product A\n2:Product B"}
-  # simulate 1
-  {:ok, "CON selected product a\n0:BACK"}
+defmodule ProductAHandler do
+    @behaviour ExUssd.Handler
+    def handle_menu(menu, _api_parameters, _should_handle) do
+      menu |> Map.put(:title, "selected product a")
+    end
+  end
+
+defmodule ProductBHandler do
+  @behaviour ExUssd.Handler
+  def handle_menu(menu, _api_parameters, _should_handle) do
+    menu |> Map.put(:title, "selected product b")
+  end
+end
+
+defmodule ProductCHandler do
+  @behaviour ExUssd.Handler
+  def handle_menu(menu, _api_parameters, _should_handle) do
+    menu |> Map.put(:title, "selected product c")
+  end
+end
+
+defmodule MyHomeHandler do
+  @behaviour ExUssd.Handler
+  def handle_menu(menu, _api_parameters, _should_handle) do
+    menu
+    |> Map.put(:title, "Welcome")
+    |> Map.put(
+      :menu_list,
+      [
+        ExUssd.Menu.render(name: "Product A", handler: ProductAHandler),
+        ExUssd.Menu.render(name: "Product B", handler: ProductBHandler),
+        ExUssd.Menu.render(name: "Product C", handler: ProductCHandler)
+      ]
+    )
+  end
+end
+menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
+ExUssd.goto(
+  internal_routing: %{text: "", session_id: "session_01", service_code: "*544#"},
+  menu: menu,
+  api_parameters: %{"sessionId" => "session_01", "phoneNumber" => "254722000000", "networkCode" =>,"Safaricom", "serviceCode" => "*544#", "text" => "" }
+)
+
+{:ok, "CON Welcome\n1:Product A\n2:Product B"}
+# simulate 1
+menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
+ExUssd.goto(
+  internal_routing: %{text: "1", session_id: "session_01", service_code: "*544#"},
+  menu: menu,
+  api_parameters: %{"sessionId" => "session_01", "phoneNumber" => "254722000000", "networkCode" =>,"Safaricom", "serviceCode" => "*544#", "text" => "1" }
+  )
+{:ok, "CON selected product a\n0:BACK"}
 ```
-
-- `should_close` - This triggers ExUssd to end the current registry session and correct preffix the menu string
-
-```elixir
-  ExUssd.Menu.render(
-          name: "Home",
-          handler: fn menu, _api_parameters, _should_handle ->
-            menu |> Map.put(:title, "Welcome")
-            |> Map.put(:menu_list,
-            [
-              Menu.render(
-              name: "Product A",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu |> Map.put(:title, "selected product a")
-                |> Map.put(:should_close, true)
-            end),
-            Menu.render(
-              name: "Product B",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu |> Map.put(:title, "selected product b")
-                |> Map.put(:should_close, true)
-            end)]
-          )
-      end)
-  {:ok, "CON Welcome\n1:Product A\n2:Product B"}
-  # simulate 1
-  {:ok, "END selected product a"}
-```
-
-- `default_error_message` - This the default error message shown on invalid input. default `"Invalid Choice\n"`
+### Ussd validation Menu
 
 ```elixir
-  ExUssd.Menu.render(
-          name: "Home",
-          handler: fn menu, _api_parameters, _should_handle ->
+defmodule PinValidateHandler do
+  @behaviour ExUssd.Handler
+  def handle_menu(menu, api_parameters, should_handle) do
+    case should_handle do
+      true ->
+        case api_parameters.text == "5555" do
+          true ->
             menu
-            |> Map.put(:default_error_message, "Invalid selection, try again\n")
-            |> Map.put(:title, "Welcome")
-            |> Map.put(:menu_list,
-            [
-              Menu.render(
-              name: "Product A",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu |> Map.put(:title, "selected product a")
-            end),
-            Menu.render(
-              name: "Product B",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu |> Map.put(:title, "selected product b")
-            end)]
-          )
-      end)
-  {:ok, "CON Welcome\n1:Product A\n2:Product B"}
-  # simulate 11
-  {:ok, "CON Invalid selection, try again\nWelcome\n1:Product A\n2:Product B"}
-```
+            |> Map.put(:title, "success, thank you.")
+            |> Map.put(:should_close, true)
 
-- `display_style` - Used change the default's display style ":"
-
-```elixir
-  ExUssd.Menu.render(
-          name: "Home",
-          handler: fn menu, _api_parameters, _should_handle ->
-            menu
-            |> Map.put(:display_style, ")")
-            |> Map.put(:title, "Welcome")
-            |> Map.put(:menu_list,
-            [
-              Menu.render(
-              name: "Product A",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu |> Map.put(:title, "selected product a")
-            end),
-            Menu.render(
-              name: "Product B",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu |> Map.put(:title, "selected product b")
-            end)]
-          )
-      end)
-  {:ok, "CON Welcome\n1)Product A\n2)Product B"}
-```
-
-- `split` - This is used to set the chunk size value when rendering menu_list. default value size `7`
-
-```elixir
-  ExUssd.Menu.render(
-          name: "Home",
-          handler: fn menu, _api_parameters, _should_handle ->
-            menu
-            |> Map.put(:split, 2)
-            |> Map.put(:title, "Welcome")
-            |> Map.put(:menu_list,
-            [
-              Menu.render(
-              name: "Product A",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu |> Map.put(:title, "selected product a")
-            end),
-            Menu.render(
-              name: "Product B",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu |> Map.put(:title, "selected product b")
-            end),
-            Menu.render(
-              name: "Product C",
-              handler: fn menu, _api_parameters, _should_handle ->
-                menu |> Map.put(:title, "selected product c")
-            end)]
-          )
-      end)
-  {:ok, "CON Welcome\n1:Product A\n2:Product B\n98:MORE"}
-  # simulate 98
-  {:ok, "CON Welcome\n3:Product C\n0:BACK"}
-```
-
-- `next` - Used render the next menu chunk, default `"98"`
-- `previous` - Ussd to navigate to the previous menu, default "0"
-- `handle` - To let ExUssd allow the developer to validate the client input, before navigating to the next menu.
-
-```elixir
-  iex> ExUssd.Menu.render(
-        name: "Home",
-        handler: fn menu, _api_parameters, _should_handle ->
-          menu
-          |> Map.put(:title, "Enter Pin Number")
-          |> Map.put(:handle, true)
-          |> Map.put(
-            :validation_menu,
-            ExUssd.Menu.render(
-              name: "",
-              handler: fn menu, api_parameters, should_handle ->
-                case should_handle do
-                  true ->
-                    case api_parameters.text == "5555" do
-                      true ->
-                        menu
-                        |> Map.put(:title, "success, thank you.")
-                        |> Map.put(:should_close, true)
-                        |> Map.put(:success, true)
-
-                      _ ->
-                        menu |> Map.put(:error, "Wrong pin number\n")
-                    end
-
-                  false ->
-                    menu
-                end
-              end
-            )
-          )
+          _ ->
+            menu |> Map.put(:error, "Wrong pin number\n")
         end
-      )
-    {:ok, "CON Enter Pin Number"}
-    ## simulate 5555
-    {:ok, "END success, thank you."}
-    ## simulate 2342
-    {:ok, "CON Wrong pin number\nEnter Pin Number"}
-```
 
-- `error` - custom error message on failed validation/handling,
-- `success` - allows ExUssd to Render next menu on successful validation/handling
-- `show_options` - hides menu list on false
-- `show_navigation` - set to false to hide navigation menu
+      false ->
+        menu
+    end
+  end
+end
 
-### Render Menu
+defmodule MyHomeHandler do
+  @behaviour ExUssd.Handler
+  def handle_menu(menu, _api_parameters, _should_handle) do
+    menu
+    |> Map.put(:title, "Enter your pin number")
+    |> Map.put(:validation_menu, ExUssd.Menu.render(name: "", handler: PinValidateHandler))
+  end
+end
 
-ExUssd to render `Menu` struct for different ussd providers. ExUssd provides `goto` function that starts and manages the ussd sessions.
-The `goto` function receives the following parameters.
+menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
+ExUssd.goto(
+  internal_routing: %{text: "", session_id: "session_01", service_code: "*544#"},
+  menu: menu,
+  api_parameters: %{"sessionId" => "session_01", "phoneNumber" => "254722000000", "networkCode" =>,"Safaricom", "serviceCode" => "*544#", "text" => "" }
+)
+{:ok, "CON Enter your pin number"}
 
-- `internal_routing` - it takes a map with ussd text, session_id and serive_code
-- `menu` - Menu struct
-- `api_parameters` - api_parameters
+# simulate wrong pin
+menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
+ExUssd.goto(
+  internal_routing: %{text: "3339", session_id: "session_01", service_code: "*544#"},
+  menu: menu,
+  api_parameters: %{"sessionId" => "session_01", "phoneNumber" => "254722000000", "networkCode" =>,"Safaricom", "serviceCode" => "*544#", "text" => "3339" }
+)
+{:ok, "CON Wrong pin number\nEnter your pin number"}
 
-```elixir
-  iex> menu = ExUssd.Menu.render(
-        name: "Home",
-        handler: fn menu, _api_parameters, _should_handle ->
-          menu |> Map.put(:title, "Welcome")
-        end
-        )
-  iex> ExUssd.goto(
-        internal_routing: %{text: "", session_id: "session_01", service_code: "*544#"},
-        menu: menu,
-       api_parameters: %{
-        "sessionId" => "session_01",
-        "phoneNumber" => "254722000000",
-        "networkCode" => "Safaricom",
-        "serviceCode" => "*544#",
-        "text" => ""
-        }
-      )
-  {:ok, "CON Welcome"}
+# simulate correct pin
+menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
+ExUssd.goto(
+  internal_routing: %{text: "5555", session_id: "session_01", service_code: "*544#"},
+  menu: menu,
+  api_parameters: %{"sessionId" => "session_01", "phoneNumber" => "254722000000", "networkCode" =>,"Safaricom", "serviceCode" => "*544#", "text" => "5555" }
+)
+{:ok, "END success, thank you."}
 ```
 
 ### Testing

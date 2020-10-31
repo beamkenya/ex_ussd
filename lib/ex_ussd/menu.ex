@@ -110,7 +110,7 @@ defmodule ExUssd.Menu do
         %ExUssd.Menu{
         callback: #Function<2.57249658/2 in ExUssd.Menu.render/1>,
         data: nil,
-        default_error_message: "Invalid Choice\n",
+        default_error_message: "Invalid Choice\\n",
         display_style: ":",
         error: nil,
         handler: MyHomeHandler,

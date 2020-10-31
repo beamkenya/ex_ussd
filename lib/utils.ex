@@ -27,10 +27,19 @@ defmodule ExUssd.Utils do
 
     api_parameters = %{"text" => internal_routing.text}
 
-    route = ExUssd.Routes.get_route(%{text: internal_routing.text,service_code: internal_routing.service_code})
+    route =
+      ExUssd.Routes.get_route(%{
+        text: internal_routing.text,
+        service_code: internal_routing.service_code
+      })
 
     %{display: menu_string} =
-      EXUssd.Common.goto(internal_routing: internal_routing, menu: menu, api_parameters: api_parameters, route: route)
+      EXUssd.Common.goto(
+        internal_routing: internal_routing,
+        menu: menu,
+        api_parameters: api_parameters,
+        route: route
+      )
 
     {:ok, menu_string}
   end

@@ -13,7 +13,6 @@ defmodule ExUssd.NavigationValidationTest do
                 menu
                 |> Map.put(:title, "success, thank you.")
                 |> Map.put(:should_close, true)
-                |> Map.put(:success, true)
 
               _ ->
                 menu |> Map.put(:error, "Wrong pin number\n")

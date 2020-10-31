@@ -12,10 +12,12 @@ defmodule EXUssd.Common do
         route: route
       ) do
     Registry.start(internal_routing.session_id)
-    response = case ExUssd.State.Registry.get_current_menu(internal_routing.session_id) do
-      nil -> Utils.call_menu_callback(menu, api_parameters)
-      _-> ExUssd.State.Registry.get_current_menu(internal_routing.session_id)
-    end
+
+    response =
+      case ExUssd.State.Registry.get_current_menu(internal_routing.session_id) do
+        nil -> Utils.call_menu_callback(menu, api_parameters)
+        _ -> ExUssd.State.Registry.get_current_menu(internal_routing.session_id)
+      end
 
     ExUssd.State.Registry.add_current_menu(internal_routing.session_id, response)
     ExUssd.State.Registry.set_menu(internal_routing.session_id, response)
