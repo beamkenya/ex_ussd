@@ -86,7 +86,7 @@ ExUssd supports Ussd customizations through `Menu` struct via the render functio
   - `data`: (Public) takes data as Props that will be attached to the children menu struct,
   - `default_error_message`:(Public)  This the default error message shown on invalid input. default `"Invalid Choice\n"`
 
-### Ussd Menu with title Only
+#### ussd title only
 
 ```elixir
 defmodule MyHomeHandler do
@@ -103,7 +103,7 @@ ExUssd.goto(
   )
 {:ok, "CON Welcome"}
 ```
-### Ussd Menu with title and menu_list
+#### ussd menu_list
 
 ```elixir
 defmodule ProductAHandler do
@@ -159,7 +159,7 @@ ExUssd.goto(
   )
 {:ok, "CON selected product a\n0:BACK"}
 ```
-### Ussd validation Menu
+#### ussd validation menu
 
 ```elixir
 defmodule PinValidateHandler do
