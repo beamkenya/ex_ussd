@@ -187,6 +187,7 @@ defmodule MyHomeHandler do
 end
 
 menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
+
 ExUssd.goto(
   internal_routing: %{text: "", session_id: "session_01", service_code: "*544#"},
   menu: menu,
@@ -219,7 +220,7 @@ ExUssd.goto(
 defmodule MyHomeHandler do
   @behaviour ExUssd.Handler
  def handle_menu(menu, api_parameters) do
-   %{language: language} = Map.get(menu, data, nil)
+  %{language: language} = menu.data
   case language do
      "Swahili" -> menu |> Map.put(:title, "Karibu")
      _-> menu |> Map.put(:title, "Welcome")

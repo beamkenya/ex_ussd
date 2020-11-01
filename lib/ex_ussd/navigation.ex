@@ -50,7 +50,7 @@ defmodule ExUssd.Navigation do
 
   def navigate(session_id, [_hd | _tl] = routes, menu, api_parameters) do
     Registry.add(session_id, routes)
-    results = loop(routes, menu, api_parameters)
+    results = loop(session_id, routes, menu, api_parameters)
     Registry.add_current_menu(session_id, results)
   end
 
@@ -74,33 +74,38 @@ defmodule ExUssd.Navigation do
     end
   end
 
-  defp loop([_head | _tail] = routes, menu, _api_parameters)
+  defp loop(_session_id, [_head | _tail] = routes, menu, _api_parameters)
        when is_list(routes) and length(routes) == 1 do
     menu
   end
 
-  defp loop(routes, menu, _api_parameters) when is_list(routes) and length(routes) == 0 do
+  defp loop(_session_id, routes, menu, _api_parameters) when is_list(routes) and length(routes) == 0 do
     menu
   end
 
-  defp loop(routes, menu, api_parameters) when is_list(routes) and length(routes) > 1 do
+  defp loop(session_id, routes, menu, api_parameters) when is_list(routes) and length(routes) > 1 do
     [head | tail] = Enum.reverse(routes) |> tl
-    response = get_next_menu(menu, head, api_parameters)
-    response = %{response | parent: fn -> menu end}
-    loop(tail, response, api_parameters)
+    response = get_next_menu(session_id, menu, head, api_parameters)
+    %{error: error} = response
+    case error do
+      nil ->
+      response = %{response | parent: fn -> menu end}
+      loop(session_id, tail, response, api_parameters)
+      _-> response
+    end
   end
 
-  defp get_next_menu(parent_menu, state, api_parameters) do
+  defp get_next_menu(session_id, parent_menu, state, api_parameters) do
     %{menu_list: menu_list} = parent_menu
     depth = to_int(Integer.parse(state[:value]), parent_menu)
-
-    child_menu =
       case Enum.at(menu_list, depth - 1) do
-        nil -> parent_menu.validation_menu
-        _ -> Enum.at(menu_list, depth - 1)
+        nil ->
+          %{validation_menu: validation_menu} = parent_menu
+          can_handle?(parent_menu, api_parameters, state, session_id, validation_menu)
+        _ ->
+          child_menu = Enum.at(menu_list, depth - 1)
+          Utils.call_menu_callback(child_menu, api_parameters)
       end
-
-    Utils.call_menu_callback(child_menu, api_parameters)
   end
 
   defp handle_current_menu(session_id, state, parent_menu, api_parameters) do
