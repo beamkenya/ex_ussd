@@ -1,10 +1,29 @@
 defmodule EqutelGW do
   import SweetXml
 
+  @doc """
+  convert xml_to_map
+  ## Example
+      iex> xml = "<USSDDynMenuRequest><requestId>$requestId</requestId><msisdn>$msisdn</msisdn><timeStamp>2018/01/24 08:23:28</timeStamp><starCode>*123#</starCode><keyWord>nhif</keyWord><dataSet><param><id>CIRCLEID</id><value>1</value></param><param><id>CIRCLE_ID</id><value>1</value></param><param><id>DIAL-CODE</id><value>*123#</value></param><param><id>SESSION_ID</id><value>$session_ID</value></param><param><id>TRAVERSAL-PATH</id><value>123</value></param></dataSet><userData>*123#</userData></USSDDynMenuRequest>"
+      iex> EqutelGW.xml_to_map(xml_request: xml)
+      %{
+        "CIRCLEID" => "1",
+        "CIRCLE_ID" => "1",
+        "DIAL-CODE" => "*123#",
+        "SESSION_ID" => "$session_ID",
+        "TRAVERSAL-PATH" => "123",
+        "keyWord" => "nhif",
+        "msisdn" => "$msisdn",
+        "requestId" => "$requestId",
+        "starCode" => "*123#",
+        "text" => "*123#",
+        "timeStamp" => "2018/01/24 08:23:28"
+      }
+  """
+
   def xml_to_map(xml_request: xml) do
     xml_request = xml |> String.trim() |> String.split(~r{\n  *}, trim: true) |> Enum.join("")
 
-    # "<USSDDynMenuRequest><requestId>$requestId</requestId><msisdn>$msisdn</msisdn><timeStamp>2018/01/24 08:23:28</timeStamp><starCode>*123#</starCode><keyWord>nhif</keyWord><dataSet><param><id>CIRCLEID</id><value>1</value></param><param><id>CIRCLE_ID</id><value>1</value></param><param><id>DIAL-CODE</id><value>*123#</value></param><param><id>SESSION_ID</id><value>$session_ID</value></param><param><id>TRAVERSAL-PATH</id><value>123</value></param></dataSet><userData>*123#</userData></USSDDynMenuRequest>"
     request_id = xml_request |> xpath(~x"//requestId/text()")
     msisdn = xml_request |> xpath(~x"//msisdn/text()")
     timeStamp = xml_request |> xpath(~x"//timeStamp/text()")
@@ -27,6 +46,24 @@ defmodule EqutelGW do
     |> Map.put_new("text", "#{userData}")
   end
 
+  @doc """
+  convert map_to_xml
+  ## Example
+      iex> response = %{
+      ...>  msisdn: "254729363838",
+      ...>  requestId: "requestId",
+      ...>  starCode: "*544#",
+      ...>  should_close: false,
+      ...>  menu_string: "",
+      ...>  routes: [%{depth: 1, value: "555"}],
+      ...>  current_menu: %{title: ""},
+      ...>  url: "http://0.0.0.0"
+      ...>}
+      iex> import SweetXml
+      iex> xml = EqutelGW.map_to_xml(response)
+      iex> request_id = xml |> xpath(~x"//requestId/text()"s)
+      "requestId"
+  """
   def map_to_xml(response) do
     %{
       msisdn: msisdn,
@@ -51,7 +88,7 @@ defmodule EqutelGW do
     now = NaiveDateTime.add(NaiveDateTime.utc_now(), 3600 * 3) |> NaiveDateTime.truncate(:second)
     time = "#{now}" |> String.split(" ") |> tl |> hd
     date_string = "#{now.year}/#{now.month}/#{now.day} #{time}"
-    "<USSDDynMenuResponse>
+    xml = "<USSDDynMenuResponse>
       <requestId>#{requestId}</requestId>
       <msisdn>#{msisdn}</msisdn>
       <starCode>#{starCode}</starCode>
@@ -73,5 +110,6 @@ defmodule EqutelGW do
       <timeStamp>#{date_string}</timeStamp>
     </USSDDynMenuResponse>
     "
+    xml |> String.trim() |> String.split(~r{\n  *}, trim: true) |> Enum.join("")
   end
 end

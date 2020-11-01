@@ -213,6 +213,24 @@ ExUssd.goto(
 {:ok, "END success, thank you."}
 ```
 
+#### receive data as props
+
+```elixir
+defmodule MyHomeHandler do
+  @behaviour ExUssd.Handler
+ def handle_menu(menu, api_parameters) do
+   %{language: language} = Map.get(menu, data, nil)
+  case language do
+     "Swahili" -> menu |> Map.put(:title, "Karibu")
+     _-> menu |> Map.put(:title, "Welcome")
+    end
+   end
+end
+
+data = %{language: "Swahili"}
+ExUssd.Menu.render(name: "Home", data: data, handler: MyHomeHandler)
+```
+
 ### Testing
 To test your USSD menu, ExUssd provides a `simulate` function that helps you test menu rendering and logic implemented by mimicking USSD gateway callback.
 
@@ -226,7 +244,7 @@ To test your USSD menu, ExUssd provides a `simulate` function that helps you tes
   iex> menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
   iex> ExUssd.simulate(menu: menu, text: "")
 
-  {:ok, "CON Welcome"}
+  {:ok, "Welcome"}
 ```
 ## Contribution
 
