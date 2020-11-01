@@ -107,11 +107,11 @@ ExUssd.goto(
 
 ```elixir
 defmodule ProductAHandler do
-    @behaviour ExUssd.Handler
-    def handle_menu(menu, _api_parameters) do
-      menu |> Map.put(:title, "selected product a")
-    end
+  @behaviour ExUssd.Handler
+  def handle_menu(menu, _api_parameters) do
+    menu |> Map.put(:title, "selected product a")
   end
+end
 
 defmodule ProductBHandler do
   @behaviour ExUssd.Handler

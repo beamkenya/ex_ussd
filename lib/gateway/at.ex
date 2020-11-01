@@ -40,33 +40,39 @@ defmodule AfricasTalking do
     text_value = internal_routing.text |> String.replace("#", "")
     service_code_value = internal_routing.service_code |> String.replace("#", "")
 
-    text =
-      cond do
-        text_value == service_code_value ->
-          ""
-
-        text_value =~ service_code_value ->
-          text_value
-
-        true ->
-          case internal_routing.text |> String.split("*") do
-            value when length(value) == 1 -> value |> hd
-            value -> Enum.reverse(value) |> hd
-          end
-      end
-
     Registry.start(internal_routing.session_id)
 
     processed_text =
       case ExUssd.State.Registry.get_current_menu(internal_routing.session_id) do
         nil ->
-          case text do
-            "" -> text
-            _ -> service_code_value <> "*" <> internal_routing.text
+          case internal_routing.text do
+            "" ->
+              ""
+
+            _ ->
+              cond do
+                text_value =~ service_code_value ->
+                  text_value
+
+                true ->
+                  service_code_value <> "*" <> internal_routing.text
+              end
           end
 
         _ ->
-          text
+          cond do
+            text_value == service_code_value ->
+              ""
+
+            text_value =~ service_code_value ->
+              text_value
+
+            true ->
+              case internal_routing.text |> String.split("*") do
+                value when length(value) == 1 -> value |> hd
+                value -> Enum.reverse(value) |> hd
+              end
+          end
       end
 
     route =
