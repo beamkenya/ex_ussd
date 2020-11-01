@@ -56,16 +56,21 @@ defmodule AfricasTalking do
       end
 
     Registry.start(internal_routing.session_id)
-    processed_text = case ExUssd.State.Registry.get_current_menu(internal_routing.session_id) do
-      nil ->
-        case text do
-          "" -> text
-          _-> service_code_value <> "*" <> internal_routing.text
-        end
-      _ -> text
-    end
 
-    route = ExUssd.Routes.get_route(%{text: processed_text, service_code: internal_routing.service_code})
+    processed_text =
+      case ExUssd.State.Registry.get_current_menu(internal_routing.session_id) do
+        nil ->
+          case text do
+            "" -> text
+            _ -> service_code_value <> "*" <> internal_routing.text
+          end
+
+        _ ->
+          text
+      end
+
+    route =
+      ExUssd.Routes.get_route(%{text: processed_text, service_code: internal_routing.service_code})
 
     %{menu: current_menu, display: menu_string} =
       EXUssd.Common.goto(
