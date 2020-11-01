@@ -69,21 +69,21 @@ defmodule ExUssd.NavigationTest do
     assert 0 == length(menu.menu_list)
   end
 
+  test "navigate to the next layer", params do
+    %{initial_menu: initial_menu} = params
+
+    _menu = simulate("", initial_menu, params)
+    menu = simulate("98", initial_menu, params)
+    assert "Welcome" == menu.title
+    assert 3 == length(menu.menu_list)
+  end
+
   test "navigate back to initial menu", params do
     %{initial_menu: initial_menu} = params
 
     _menu = simulate("", initial_menu, params)
     _menu = simulate("1", initial_menu, params)
     menu = simulate("0", initial_menu, params)
-    assert "Welcome" == menu.title
-    assert 3 == length(menu.menu_list)
-  end
-
-  test "navigate to the next layer", params do
-    %{initial_menu: initial_menu} = params
-
-    _menu = simulate("", initial_menu, params)
-    menu = simulate("98", initial_menu, params)
     assert "Welcome" == menu.title
     assert 3 == length(menu.menu_list)
   end
