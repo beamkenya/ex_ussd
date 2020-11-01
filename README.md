@@ -91,7 +91,7 @@ ExUssd supports Ussd customizations through `Menu` struct via the render functio
 ```elixir
 defmodule MyHomeHandler do
    @behaviour ExUssd.Handler
-  def handle_menu(menu, api_parameters, should_handle) do
+  def handle_menu(menu, _api_parameters) do
      menu |> Map.put(:title, "Welcome")
    end
 end
@@ -108,28 +108,28 @@ ExUssd.goto(
 ```elixir
 defmodule ProductAHandler do
     @behaviour ExUssd.Handler
-    def handle_menu(menu, _api_parameters, _should_handle) do
+    def handle_menu(menu, _api_parameters) do
       menu |> Map.put(:title, "selected product a")
     end
   end
 
 defmodule ProductBHandler do
   @behaviour ExUssd.Handler
-  def handle_menu(menu, _api_parameters, _should_handle) do
+  def handle_menu(menu, _api_parameters) do
     menu |> Map.put(:title, "selected product b")
   end
 end
 
 defmodule ProductCHandler do
   @behaviour ExUssd.Handler
-  def handle_menu(menu, _api_parameters, _should_handle) do
+  def handle_menu(menu, _api_parameters) do
     menu |> Map.put(:title, "selected product c")
   end
 end
 
 defmodule MyHomeHandler do
   @behaviour ExUssd.Handler
-  def handle_menu(menu, _api_parameters, _should_handle) do
+  def handle_menu(menu, _api_parameters) do
     menu
     |> Map.put(:title, "Welcome")
     |> Map.put(
@@ -164,28 +164,22 @@ ExUssd.goto(
 ```elixir
 defmodule PinValidateHandler do
   @behaviour ExUssd.Handler
-  def handle_menu(menu, api_parameters, should_handle) do
-    case should_handle do
+  def handle_menu(menu, api_parameters) do
+    case api_parameters.text == "5555" do
       true ->
-        case api_parameters.text == "5555" do
-          true ->
-            menu
-            |> Map.put(:title, "success, thank you.")
-            |> Map.put(:should_close, true)
-
-          _ ->
-            menu |> Map.put(:error, "Wrong pin number\n")
-        end
-
-      false ->
         menu
+        |> Map.put(:title, "success, thank you.")
+        |> Map.put(:should_close, true)
+
+      _ ->
+        menu |> Map.put(:error, "Wrong pin number\n")
     end
   end
 end
 
 defmodule MyHomeHandler do
   @behaviour ExUssd.Handler
-  def handle_menu(menu, _api_parameters, _should_handle) do
+  def handle_menu(menu, _api_parameters) do
     menu
     |> Map.put(:title, "Enter your pin number")
     |> Map.put(:validation_menu, ExUssd.Menu.render(name: "", handler: PinValidateHandler))
@@ -225,7 +219,7 @@ To test your USSD menu, ExUssd provides a `simulate` function that helps you tes
 ```elixir
   iex> defmodule MyHomeHandler do
         @behaviour ExUssd.Handler
-        def handle_menu(menu, api_parameters, should_handle) do
+        def handle_menu(menu, _api_parameters) do
           menu |> Map.put(:title, "Welcome")
         end
       end

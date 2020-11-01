@@ -2,10 +2,9 @@ defmodule ExUssd.Utils do
   @doc false
   def call_menu_callback(
         %ExUssd.Menu{} = menu,
-        %{} = api_parameters \\ %{},
-        should_handle \\ false
+        %{} = api_parameters \\ %{}
       ) do
-    menu.callback.(api_parameters, should_handle)
+    menu.callback.(api_parameters)
   end
 
   @doc """
@@ -13,7 +12,7 @@ defmodule ExUssd.Utils do
   ## Example
       iex> defmodule MyHomeHandler do
       ...>  @behaviour ExUssd.Handler
-      ...>  def handle_menu(menu, _api_parameters, _should_handle) do
+      ...>  def handle_menu(menu, _api_parameters) do
       ...>      menu |> Map.put(:title, "Welcome")
       ...>  end
       ...> end

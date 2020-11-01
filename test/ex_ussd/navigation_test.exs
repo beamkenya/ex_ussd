@@ -2,31 +2,31 @@ defmodule ExUssd.NavigationTest do
   use ExUnit.Case, async: true
   alias ExUssd.State.Registry
 
-  setup_all do
+  setup do
     defmodule ProductAHandler do
       @behaviour ExUssd.Handler
-      def handle_menu(menu, _api_parameters, _should_handle) do
+      def handle_menu(menu, _api_parameters) do
         menu |> Map.put(:title, "selected product a")
       end
     end
 
     defmodule ProductBHandler do
       @behaviour ExUssd.Handler
-      def handle_menu(menu, _api_parameters, _should_handle) do
+      def handle_menu(menu, _api_parameters) do
         menu |> Map.put(:title, "selected product b")
       end
     end
 
     defmodule ProductCHandler do
       @behaviour ExUssd.Handler
-      def handle_menu(menu, _api_parameters, _should_handle) do
+      def handle_menu(menu, _api_parameters) do
         menu |> Map.put(:title, "selected product c")
       end
     end
 
     defmodule MyHomeHandler do
       @behaviour ExUssd.Handler
-      def handle_menu(menu, _api_parameters, _should_handle) do
+      def handle_menu(menu, _api_parameters) do
         menu
         |> Map.put(:title, "Welcome")
         |> Map.put(:split, 2)

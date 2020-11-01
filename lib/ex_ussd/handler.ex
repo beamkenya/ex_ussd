@@ -6,24 +6,22 @@ defmodule ExUssd.Handler do
   @doc ~S"""
   Callback for event handling.
 
-  This callback takes an menu struct, an api_parameters data and should_handle boolean as the input.
+  This callback takes an menu struct, and api_parameters data as the input.
 
   ## Examples
       defmodule MyHomeHandler do
         @behaviour ExUssd.Handler
-        def handle_menu(menu, api_parameters, should_handle) do
+        def handle_menu(menu, api_parameters) do
           menu |> Map.put(:title, "Welcome")
         end
       end
   """
   @type menu() :: ExUssd.Menu
   @type api_parameters() :: map()
-  @type should_handle() :: boolean()
 
   @callback handle_menu(
               menu :: menu(),
-              api_parameters :: api_parameters(),
-              should_handle :: should_handle()
+              api_parameters :: api_parameters()
             ) ::
               menu :: menu()
 end

@@ -21,7 +21,7 @@ defmodule ExUssd do
   ## Example
       iex> defmodule MyHomeHandler do
       ...>   @behaviour ExUssd.Handler
-      ...>  def handle_menu(menu, _api_parameters, _should_handle) do
+      ...>  def handle_menu(menu, _api_parameters) do
       ...>    menu |> Map.put(:title, "Welcome")
       ...>  end
       ...>end
@@ -66,7 +66,7 @@ defmodule ExUssd do
   ## Example
       iex> defmodule MyHomeHandler do
       ...>  @behaviour ExUssd.Handler
-      ...>  def handle_menu(menu, _api_parameters, _should_handle) do
+      ...>  def handle_menu(menu, _api_parameters) do
       ...>      menu |> Map.put(:title, "Welcome")
       ...>  end
       ...> end

@@ -72,7 +72,7 @@ defmodule ExUssd.Menu do
     ## Examples
         iex> defmodule MyHomeHandler do
         ...>   @behaviour ExUssd.Handler
-        ...>   def handle_menu(menu, api_parameters, should_handle) do
+        ...>   def handle_menu(menu, api_parameters) do
         ...>     menu |> Map.put(:title, "Welcome")
         ...>   end
         ...> end
@@ -97,7 +97,7 @@ defmodule ExUssd.Menu do
 
         iex> defmodule MyHomeHandler do
         ...>   @behaviour ExUssd.Handler
-        ...>   def handle_menu(menu, api_parameters, should_handle) do
+        ...>   def handle_menu(menu, api_parameters) do
         ...>    %{language: language} = Map.get(menu, data, nil)
         ...>     case language do
         ...>      "Swahili" -> menu |> Map.put(:title, "Karibu")
@@ -132,9 +132,9 @@ defmodule ExUssd.Menu do
     %ExUssd.Menu{
       name: name,
       handler: handler,
-      callback: fn api_parameters, should_handle ->
+      callback: fn api_parameters ->
         menu = %ExUssd.Menu{name: name, handler: handler}
-        menu.handler.handle_menu(menu, api_parameters, should_handle)
+        menu.handler.handle_menu(menu, api_parameters)
       end
     }
   end
@@ -143,9 +143,9 @@ defmodule ExUssd.Menu do
     %ExUssd.Menu{
       name: name,
       handler: handler,
-      callback: fn api_parameters, should_handle ->
+      callback: fn api_parameters ->
         menu = %ExUssd.Menu{name: name, handler: handler, data: data}
-        menu.handler.handle_menu(menu, api_parameters, should_handle)
+        menu.handler.handle_menu(menu, api_parameters)
       end
     }
   end

@@ -17,7 +17,7 @@ defmodule ExUssd.Navigation do
       ## Example
         iex> defmodule MyHomeHandler do
         ...>   @behaviour ExUssd.Handler
-        ...>   def handle_menu(menu, api_parameters, should_handle) do
+        ...>   def handle_menu(menu, api_parameters) do
         ...>     menu |> Map.put(:title, "Welcome")
         ...>   end
         ...> end
@@ -143,8 +143,7 @@ defmodule ExUssd.Navigation do
   end
 
   defp can_handle?(parent_menu, api_parameters, state, session_id, child_menu) do
-    current_menu =
-      Utils.call_menu_callback(child_menu, %{api_parameters | text: state.value}, true)
+    current_menu = Utils.call_menu_callback(child_menu, %{api_parameters | text: state.value})
 
     %{error: error} = current_menu
 

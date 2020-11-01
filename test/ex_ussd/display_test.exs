@@ -4,21 +4,21 @@ defmodule ExUssd.DisplayTest do
   setup do
     defmodule ProductAHandler do
       @behaviour ExUssd.Handler
-      def handle_menu(menu, _api_parameters, _should_handle) do
+      def handle_menu(menu, _api_parameters) do
         menu |> Map.put(:title, "selected product a")
       end
     end
 
     defmodule ProductBHandler do
       @behaviour ExUssd.Handler
-      def handle_menu(menu, _api_parameters, _should_handle) do
+      def handle_menu(menu, _api_parameters) do
         menu |> Map.put(:title, "selected product b")
       end
     end
 
     defmodule ProductCHandler do
       @behaviour ExUssd.Handler
-      def handle_menu(menu, _api_parameters, _should_handle) do
+      def handle_menu(menu, _api_parameters) do
         menu |> Map.put(:title, "selected product c")
       end
     end
@@ -27,7 +27,7 @@ defmodule ExUssd.DisplayTest do
   describe "generate menu with title only" do
     defmodule MyHomeHandler_1 do
       @behaviour ExUssd.Handler
-      def handle_menu(menu, _api_parameters, _should_handle) do
+      def handle_menu(menu, _api_parameters) do
         menu |> Map.put(:title, "Welcome")
       end
     end
@@ -42,7 +42,7 @@ defmodule ExUssd.DisplayTest do
   describe "generate menu with title and menu_list" do
     defmodule MyHomeHandler_2 do
       @behaviour ExUssd.Handler
-      def handle_menu(menu, _api_parameters, _should_handle) do
+      def handle_menu(menu, _api_parameters) do
         menu
         |> Map.put(:title, "Welcome")
         |> Map.put(
@@ -66,7 +66,7 @@ defmodule ExUssd.DisplayTest do
   describe "generate menu navigation menu on first menu" do
     defmodule MyHomeHandler_3 do
       @behaviour ExUssd.Handler
-      def handle_menu(menu, _api_parameters, _should_handle) do
+      def handle_menu(menu, _api_parameters) do
         menu
         |> Map.put(:title, "Welcome")
         |> Map.put(:split, 2)
@@ -92,7 +92,7 @@ defmodule ExUssd.DisplayTest do
   describe "generate menu navigation menu on second menu" do
     defmodule MyHomeHandler_4 do
       @behaviour ExUssd.Handler
-      def handle_menu(menu, _api_parameters, _should_handle) do
+      def handle_menu(menu, _api_parameters) do
         menu
         |> Map.put(:title, "Welcome")
         |> Map.put(:split, 2)
