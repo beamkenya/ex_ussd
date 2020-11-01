@@ -8,6 +8,8 @@ defmodule ExUssd.State.RegistryTest do
   setup do
     internal_routing = %{text: "1", session_id: "session_01", service_code: "*544#"}
     Registry.start(internal_routing.session_id)
+    Registry.set_menu(internal_routing.session_id, %{})
+    Registry.add_current_menu(internal_routing.session_id, %{})
   end
 
   test "add route path (level 1)" do
@@ -80,5 +82,17 @@ defmodule ExUssd.State.RegistryTest do
     Registry.add("session_01", route)
     Registry.previous("session_01")
     assert [%{depth: 1, value: "555"}] == Registry.get("session_01")
+  end
+
+  test "stop" do
+    assert true == Registry.stop("session_01")
+  end
+
+  test "get menu" do
+    assert %{} == Registry.get_menu("session_01")
+  end
+
+  test "current get menu" do
+    assert %{} == Registry.get_current_menu("session_01")
   end
 end

@@ -16,26 +16,28 @@ defmodule Infobip do
     ```
   ## Example
 
+      iex> defmodule HomeHandler do
+      ...>   @behaviour ExUssd.Handler
+      ...>  def handle_menu(menu, _api_parameters) do
+      ...>    menu |> Map.put(:title, "Welcome")
+      ...>  end
+      ...>end
+      iex> menu = ExUssd.Menu.render(name: "Home", handler: HomeHandler)
       iex> Infobip.goto(
       ...>  internal_routing: %{text: "", session_id: "session_01", service_code: "*544#"},
-      ...>  menu: ExUssd.Menu.render(
-      ...>    name: "Home",
-      ...>    handler: fn menu, _api_parameters, _should_handle ->
-      ...>      menu |> Map.put(:title, "Home Page: Welcome")
-      ...>    end
-      ...>  ),
+      ...>  menu: menu,
       ...>  api_parameters: %{
       ...>      "sessionId" => "session_01",
       ...>      "phoneNumber" => "254722000000",
       ...>      "networkCode" => "Safaricom",
       ...>      "serviceCode" => "*544#",
-      ...>      "text" => "*544#"
+      ...>      "text" => ""
       ...>    }
       ...>  )
       {:ok,
         %{
           shouldClose: false,
-          ussdMenu: "Home Page: Welcome",
+          ussdMenu: "Welcome",
           responseExitCode: 200,
           responseMessage: ""
         }

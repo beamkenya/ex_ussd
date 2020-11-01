@@ -13,18 +13,22 @@ defmodule EXUssd.Common do
       ) do
     Registry.start(internal_routing.session_id)
 
-    ExUssd.State.Registry.set_menu(internal_routing.session_id, menu)
+    response =
+      case ExUssd.State.Registry.get_current_menu(internal_routing.session_id) do
+        nil -> Utils.call_menu_callback(menu, api_parameters)
+        _ -> ExUssd.State.Registry.get_current_menu(internal_routing.session_id)
+      end
 
+    ExUssd.State.Registry.add_current_menu(internal_routing.session_id, response)
+    ExUssd.State.Registry.set_menu(internal_routing.session_id, response)
     api_parameters = for {key, val} <- api_parameters, into: %{}, do: {String.to_atom(key), val}
-
-    response = Utils.call_menu_callback(menu, api_parameters)
 
     current_menu =
       Navigation.navigate(internal_routing.session_id, route, response, api_parameters)
 
     current_routes = Registry.get(internal_routing.session_id)
 
-    menu_string = Display.generate(menu: current_menu, routes: current_routes)
+    {:ok, menu_string} = Display.generate(menu: current_menu, routes: current_routes)
 
     %{menu: current_menu, display: menu_string}
   end

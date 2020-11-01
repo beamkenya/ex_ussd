@@ -1,255 +1,99 @@
 defmodule ExUssd.NavigationTest do
   use ExUnit.Case, async: true
   alias ExUssd.State.Registry
-  alias ExUssd.Menu
-  import ExUssd.Utils
 
   setup do
+    defmodule ProductAHandler do
+      @behaviour ExUssd.Handler
+      def handle_menu(menu, _api_parameters) do
+        menu |> Map.put(:title, "selected product a")
+      end
+    end
+
+    defmodule ProductBHandler do
+      @behaviour ExUssd.Handler
+      def handle_menu(menu, _api_parameters) do
+        menu |> Map.put(:title, "selected product b")
+      end
+    end
+
+    defmodule ProductCHandler do
+      @behaviour ExUssd.Handler
+      def handle_menu(menu, _api_parameters) do
+        menu |> Map.put(:title, "selected product c")
+      end
+    end
+
+    defmodule MyHomeHandler do
+      @behaviour ExUssd.Handler
+      def handle_menu(menu, _api_parameters) do
+        menu
+        |> Map.put(:title, "Welcome")
+        |> Map.put(:split, 2)
+        |> Map.put(
+          :menu_list,
+          [
+            ExUssd.Menu.render(name: "Product A", handler: ProductAHandler),
+            ExUssd.Menu.render(name: "Product B", handler: ProductBHandler),
+            ExUssd.Menu.render(name: "Product C", handler: ProductCHandler)
+          ]
+        )
+      end
+    end
+
     internal_routing = %{session_id: "session_01", service_code: "*544#"}
     Registry.start(internal_routing.session_id)
+    initial_menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
+
+    %{
+      session_id: internal_routing.session_id,
+      api_parameters: %{text: ""},
+      initial_menu: initial_menu
+    }
   end
 
-  test "show the 1 layer" do
-    menu =
-      Menu.render(
-        name: "Home",
-        handler: fn menu, _api_parameters, _should_handle ->
-          menu
-          |> Map.put(:title, "Welcome")
-          |> Map.put(
-            :menu_list,
-            [
-              Menu.render(
-                name: "child 1",
-                handler: fn menu, _api_parameters, _should_handle ->
-                  menu
-                  |> Map.put(:title, "Welcome to child 1 page")
-                end
-              ),
-              Menu.render(
-                name: "child 2",
-                handler: fn menu, _api_parameters, _should_handle ->
-                  menu
-                  |> Map.put(:title, "Welcome to child 2 page")
-                end
-              )
-            ]
-          )
-        end
-      )
+  test "navigate to the initial menu", params do
+    %{initial_menu: initial_menu} = params
 
-    {:ok, menu_string} = simulate(menu: menu, text: "")
-    assert menu_string == "Welcome\n1:child 1\n2:child 2"
+    menu = simulate("", initial_menu, params)
+
+    assert length(menu.menu_list) == 3
   end
 
-  test "go to level 2" do
-    menu =
-      Menu.render(
-        name: "Home",
-        handler: fn menu, _api_parameters, _should_handle ->
-          menu
-          |> Map.put(:title, "Welcome")
-          |> Map.put(
-            :menu_list,
-            [
-              Menu.render(
-                name: "child 1",
-                handler: fn menu, _api_parameters, _should_handle ->
-                  menu
-                  |> Map.put(:title, "Welcome to child 1 page")
-                end
-              ),
-              Menu.render(
-                name: "child 2",
-                handler: fn menu, _api_parameters, _should_handle ->
-                  menu
-                  |> Map.put(:title, "Welcome to child 2 page")
-                end
-              )
-            ]
-          )
-        end
-      )
+  test "navigate to Product A", params do
+    %{initial_menu: initial_menu} = params
 
-    {:ok, _menu_string} = simulate(menu: menu, text: "")
-    {:ok, menu_string} = simulate(menu: menu, text: "1")
-    assert menu_string == "Welcome to child 1 page\n0:BACK"
+    _menu = simulate("", initial_menu, params)
+    menu = simulate("1", initial_menu, params)
+    assert "selected product a" == menu.title
+    assert 0 == length(menu.menu_list)
   end
 
-  test "go back 1 layer" do
-    menu =
-      Menu.render(
-        name: "Home",
-        handler: fn menu, _api_parameters, _should_handle ->
-          menu
-          |> Map.put(:title, "Welcome")
-          |> Map.put(
-            :menu_list,
-            [
-              Menu.render(
-                name: "child 1",
-                handler: fn menu, _api_parameters, _should_handle ->
-                  menu
-                  |> Map.put(:title, "Welcome to child 1 page")
-                end
-              ),
-              Menu.render(
-                name: "child 2",
-                handler: fn menu, _api_parameters, _should_handle ->
-                  menu
-                  |> Map.put(:title, "Welcome to child 2 page")
-                end
-              )
-            ]
-          )
-        end
-      )
+  test "navigate back to initial menu", params do
+    %{initial_menu: initial_menu} = params
 
-    {:ok, _menu_string} = simulate(menu: menu, text: "")
-    {:ok, _menu_string} = simulate(menu: menu, text: "1")
-    {:ok, menu_string} = simulate(menu: menu, text: "0")
-    assert menu_string == "Welcome\n1:child 1\n2:child 2"
+    _menu = simulate("", initial_menu, params)
+    _menu = simulate("1", initial_menu, params)
+    menu = simulate("0", initial_menu, params)
+    assert "Welcome" == menu.title
+    assert 3 == length(menu.menu_list)
   end
 
-  test "go 1 level in" do
-    menu =
-      Menu.render(
-        name: "Home",
-        handler: fn menu, _api_parameters, _should_handle ->
-          menu
-          |> Map.put(:split, 2)
-          |> Map.put(:title, "Welcome")
-          |> Map.put(
-            :menu_list,
-            [
-              Menu.render(
-                name: "child 1",
-                handler: fn menu, _api_parameters, _should_handle ->
-                  menu
-                  |> Map.put(:title, "Welcome to child 1 page")
-                end
-              ),
-              Menu.render(
-                name: "child 2",
-                handler: fn menu, _api_parameters, _should_handle ->
-                  menu
-                  |> Map.put(:title, "Welcome to child 2 page")
-                end
-              ),
-              Menu.render(
-                name: "child 3",
-                handler: fn menu, _api_parameters, _should_handle ->
-                  menu
-                  |> Map.put(:title, "Welcome to child 3 page")
-                end
-              ),
-              Menu.render(
-                name: "child 4",
-                handler: fn menu, _api_parameters, _should_handle ->
-                  menu
-                  |> Map.put(:title, "Welcome to child 4 page")
-                end
-              )
-            ]
-          )
-        end
-      )
+  test "navigate to the next layer", params do
+    %{initial_menu: initial_menu} = params
 
-    {:ok, _menu_string} = simulate(menu: menu, text: "")
-    {:ok, menu_string} = simulate(menu: menu, text: "98")
-    assert menu_string == "Welcome\n3:child 3\n4:child 4\n0:BACK"
+    _menu = simulate("", initial_menu, params)
+    menu = simulate("98", initial_menu, params)
+    assert "Welcome" == menu.title
+    assert 3 == length(menu.menu_list)
   end
 
-  test "go back 1 level" do
-    menu =
-      Menu.render(
-        name: "Home",
-        handler: fn menu, _api_parameters, _should_handle ->
-          menu
-          |> Map.put(:split, 2)
-          |> Map.put(:title, "Welcome")
-          |> Map.put(
-            :menu_list,
-            [
-              Menu.render(
-                name: "child 1",
-                handler: fn menu, _api_parameters, _should_handle ->
-                  menu
-                  |> Map.put(:title, "Welcome to child 1 page")
-                end
-              ),
-              Menu.render(
-                name: "child 2",
-                handler: fn menu, _api_parameters, _should_handle ->
-                  menu
-                  |> Map.put(:title, "Welcome to child 2 page")
-                end
-              ),
-              Menu.render(
-                name: "child 3",
-                handler: fn menu, _api_parameters, _should_handle ->
-                  menu
-                  |> Map.put(:title, "Welcome to child 3 page")
-                end
-              ),
-              Menu.render(
-                name: "child 4",
-                handler: fn menu, _api_parameters, _should_handle ->
-                  menu
-                  |> Map.put(:title, "Welcome to child 4 page")
-                end
-              )
-            ]
-          )
-        end
-      )
-
-    {:ok, _menu_string} = simulate(menu: menu, text: "")
-
-    {:ok, _menu_string} = simulate(menu: menu, text: "98")
-
-    {:ok, menu_string} = simulate(menu: menu, text: "0")
-    assert menu_string == "Welcome\n1:child 1\n2:child 2\n98:MORE"
-  end
-
-  test "validate client input" do
-    menu =
-      Menu.render(
-        name: "Home",
-        handler: fn menu, _api_parameters, _should_handle ->
-          menu
-          |> Map.put(:title, "Enter Pin Number")
-          |> Map.put(:handle, true)
-          |> Map.put(
-            :validation_menu,
-            Menu.render(
-              name: "",
-              handler: fn menu, api_parameters, should_handle ->
-                case should_handle do
-                  true ->
-                    case api_parameters.text == "5342" do
-                      true ->
-                        menu
-                        |> Map.put(:title, "Welcome Back")
-                        |> Map.put(:success, true)
-
-                      _ ->
-                        menu |> Map.put(:error, "Invalid Pin Number")
-                    end
-
-                  false ->
-                    menu
-                end
-              end
-            )
-          )
-        end
-      )
-
-    {:ok, _menu_string} = simulate(menu: menu, text: "")
-
-    {:ok, menu_string} = simulate(menu: menu, text: "5342")
-
-    assert menu_string == "Welcome Back\n0:BACK"
+  def simulate(text, initial_menu, %{
+        session_id: session_id,
+        api_parameters: api_parameters
+      }) do
+    routes = ExUssd.Routes.get_route(%{text: text, service_code: "*544#"})
+    menu = ExUssd.Utils.call_menu_callback(initial_menu)
+    ExUssd.Navigation.navigate(session_id, routes, menu, api_parameters)
   end
 end

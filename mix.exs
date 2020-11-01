@@ -56,7 +56,8 @@ defmodule ExUssd.MixProject do
       {:defnamed, "~> 0.1"},
       {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
-      {:excoveralls, "~> 0.10", only: :test}
+      {:excoveralls, "~> 0.10", only: :test},
+      {:sweet_xml, "~> 0.6.6"}
     ]
   end
 end
