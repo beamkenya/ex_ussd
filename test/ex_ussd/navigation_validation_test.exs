@@ -2,7 +2,7 @@ defmodule ExUssd.NavigationValidationTest do
   use ExUnit.Case, async: true
   alias ExUssd.State.Registry
 
-  setup_all do
+  setup do
     defmodule PinValidateHandler do
       @behaviour ExUssd.Handler
       def handle_menu(menu, api_parameters) do
