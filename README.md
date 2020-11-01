@@ -99,7 +99,7 @@ menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
 ExUssd.goto(
   internal_routing: %{text: "", session_id: "session_01", service_code: "*544#"},
   menu: menu,
-  api_parameters: %{"sessionId" => "session_01", "phoneNumber" => "254722000000", "networkCode" =>,"Safaricom", "serviceCode" => "*544#", "text" => "" }
+  api_parameters: %{"sessionId" => "session_01", "phoneNumber" => "254722000000", "networkCode" => "Safaricom", "serviceCode" => "*544#", "text" => "" }
   )
 {:ok, "CON Welcome"}
 ```
@@ -146,7 +146,7 @@ menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
 ExUssd.goto(
   internal_routing: %{text: "", session_id: "session_01", service_code: "*544#"},
   menu: menu,
-  api_parameters: %{"sessionId" => "session_01", "phoneNumber" => "254722000000", "networkCode" =>,"Safaricom", "serviceCode" => "*544#", "text" => "" }
+  api_parameters: %{"sessionId" => "session_01", "phoneNumber" => "254722000000", "networkCode" => "Safaricom", "serviceCode" => "*544#", "text" => "" }
 )
 
 {:ok, "CON Welcome\n1:Product A\n2:Product B"}
@@ -155,7 +155,7 @@ menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
 ExUssd.goto(
   internal_routing: %{text: "1", session_id: "session_01", service_code: "*544#"},
   menu: menu,
-  api_parameters: %{"sessionId" => "session_01", "phoneNumber" => "254722000000", "networkCode" =>,"Safaricom", "serviceCode" => "*544#", "text" => "1" }
+  api_parameters: %{"sessionId" => "session_01", "phoneNumber" => "254722000000", "networkCode" => "Safaricom", "serviceCode" => "*544#", "text" => "1" }
   )
 {:ok, "CON selected product a\n0:BACK"}
 ```
@@ -190,7 +190,7 @@ menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
 ExUssd.goto(
   internal_routing: %{text: "", session_id: "session_01", service_code: "*544#"},
   menu: menu,
-  api_parameters: %{"sessionId" => "session_01", "phoneNumber" => "254722000000", "networkCode" =>,"Safaricom", "serviceCode" => "*544#", "text" => "" }
+  api_parameters: %{"sessionId" => "session_01", "phoneNumber" => "254722000000", "networkCode" => "Safaricom", "serviceCode" => "*544#", "text" => "" }
 )
 {:ok, "CON Enter your pin number"}
 
@@ -199,7 +199,7 @@ menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
 ExUssd.goto(
   internal_routing: %{text: "3339", session_id: "session_01", service_code: "*544#"},
   menu: menu,
-  api_parameters: %{"sessionId" => "session_01", "phoneNumber" => "254722000000", "networkCode" =>,"Safaricom", "serviceCode" => "*544#", "text" => "3339" }
+  api_parameters: %{"sessionId" => "session_01", "phoneNumber" => "254722000000", "networkCode" => "Safaricom", "serviceCode" => "*544#", "text" => "3339" }
 )
 {:ok, "CON Wrong pin number\nEnter your pin number"}
 
@@ -208,7 +208,7 @@ menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
 ExUssd.goto(
   internal_routing: %{text: "5555", session_id: "session_01", service_code: "*544#"},
   menu: menu,
-  api_parameters: %{"sessionId" => "session_01", "phoneNumber" => "254722000000", "networkCode" =>,"Safaricom", "serviceCode" => "*544#", "text" => "5555" }
+  api_parameters: %{"sessionId" => "session_01", "phoneNumber" => "254722000000", "networkCode" => "Safaricom", "serviceCode" => "*544#", "text" => "5555" }
 )
 {:ok, "END success, thank you."}
 ```
@@ -244,7 +244,7 @@ To test your USSD menu, ExUssd provides a `simulate` function that helps you tes
   iex> menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
   iex> ExUssd.simulate(menu: menu, text: "")
 
-  {:ok, "Welcome"}
+  {:ok, %{menu_string: "Welcome", should_close: false}}
 ```
 ## Contribution
 

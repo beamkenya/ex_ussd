@@ -72,7 +72,7 @@ defmodule ExUssd do
       ...> end
       iex> menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
       iex> ExUssd.Utils.simulate(menu: menu, text: "")
-      {:ok, "Welcome"}
+      {:ok, %{menu_string: "Welcome", should_close: false}}
   """
   def simulate(menu: menu, text: text), do: Utils.simulate(menu: menu, text: text)
 end

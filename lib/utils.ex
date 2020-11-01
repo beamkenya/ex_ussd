@@ -18,7 +18,7 @@ defmodule ExUssd.Utils do
       ...> end
       iex> menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
       iex> ExUssd.Utils.simulate(menu: menu, text: "")
-      {:ok, "Welcome"}
+      {:ok, %{menu_string: "Welcome", should_close: false}}
   """
 
   def simulate(menu: menu, text: text) do
@@ -32,7 +32,7 @@ defmodule ExUssd.Utils do
         service_code: internal_routing.service_code
       })
 
-    %{display: menu_string} =
+    %{display: menu_string, menu: %{should_close: should_close}} =
       EXUssd.Common.goto(
         internal_routing: internal_routing,
         menu: menu,
@@ -40,6 +40,6 @@ defmodule ExUssd.Utils do
         route: route
       )
 
-    {:ok, menu_string}
+    {:ok, %{menu_string: menu_string, should_close: should_close}}
   end
 end
