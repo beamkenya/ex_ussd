@@ -59,7 +59,7 @@ defmodule ExUssd.Navigation do
 
     case parent_menu do
       nil ->
-        {:error, "Not Properly started"}
+        raise(ArgumentError, "Not Properly started")
 
       _ ->
         current_menu = handle_current_menu(session_id, route, parent_menu, api_parameters)
@@ -107,7 +107,15 @@ defmodule ExUssd.Navigation do
     case Enum.at(menu_list, depth - 1) do
       nil ->
         %{validation_menu: validation_menu} = parent_menu
-        can_handle?(parent_menu, api_parameters, state, session_id, validation_menu)
+
+        case validation_menu do
+          nil ->
+            Registry.previous(session_id)
+            parent_menu |> Map.put(:error, parent_menu.default_error_message)
+
+          _ ->
+            can_handle?(parent_menu, api_parameters, state, session_id, validation_menu)
+        end
 
       _ ->
         child_menu = Enum.at(menu_list, depth - 1)
@@ -178,7 +186,7 @@ defmodule ExUssd.Navigation do
   end
 
   defp to_int({value, ""}, menu) do
-    %{next: next, previous: previous} = menu
+    %{next: %{input_match: next}, previous: %{input_match: previous}} = menu
     text = Integer.to_string(value)
 
     case text do

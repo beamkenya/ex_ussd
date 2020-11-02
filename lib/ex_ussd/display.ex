@@ -70,8 +70,12 @@ defmodule ExUssd.Display do
       error: error,
       split: split,
       menu_list: menu_list,
-      next: next,
-      previous: previous,
+      next: %{name: next_name, input_match: next, display_style: next_display_style},
+      previous: %{
+        name: previous_name,
+        input_match: previous,
+        display_style: previous_display_style
+      },
       should_close: should_close,
       display_style: display_style,
       show_navigation: show_navigation
@@ -106,12 +110,12 @@ defmodule ExUssd.Display do
         1 ->
           case page do
             1 -> ""
-            _ -> "\n" <> "#{previous}#{display_style}BACK"
+            _ -> "\n" <> "#{previous}#{previous_display_style}#{previous_name}"
           end
 
         _ ->
           case should_close do
-            false -> "\n" <> "#{previous}#{display_style}BACK"
+            false -> "\n" <> "#{previous}#{previous_display_style}#{previous_name}"
             true -> ""
           end
       end
@@ -123,8 +127,8 @@ defmodule ExUssd.Display do
 
         _ ->
           case length(routes) do
-            1 -> "\n#{next}#{display_style}MORE"
-            _ -> " " <> "#{next}#{display_style}MORE"
+            1 -> "\n#{next}#{next_display_style}#{next_name}"
+            _ -> " " <> "#{next}#{next_display_style}#{next_name}"
           end
       end
 

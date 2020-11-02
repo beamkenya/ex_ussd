@@ -76,8 +76,8 @@ ExUssd supports Ussd customizations through `Menu` struct via the render functio
   - `menu_list`: (Public) Takes a list of Ussd Menu struct,
   - `error`: (Public) A custom validation error message for `validation_menu`,
   - `show_navigation`: (Public) set to false to hide navigation menu,
-  - `next`: (Public) navigate's the next menu chunk, default `"98"`,
-  - `previous`: (Public) navigate's the previous menu chunk or the previous menu struct default `"0"`,,
+  - `next`: (Public) navigate's the next menu chunk, default `%{name: "MORE", input_match: "98", display_style: ":"}`,
+  - `previous`: (Public) navigate's the previous menu chunk or the previous menu struct default `%{name: "BACK", input_match: "0", display_style: ":"}`,
   - `split`: (Public) This is used to set the chunk size value when rendering menu_list. default value size `7`,
   - `should_close`: (Public) This triggers ExUssd to end the current registry session,
   - `display_style`: (Public) This is used to change default's display style, default ":"
