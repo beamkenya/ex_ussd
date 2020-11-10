@@ -1,6 +1,6 @@
 defmodule ExUssd.Ussd do
   @typedoc "Menu Struct"
-  @type menu() :: ExUssd.Menu
+  @type menu() :: map()
   @typedoc """
   A map value carrying api parameters, e.g
   %{

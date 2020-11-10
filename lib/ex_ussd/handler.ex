@@ -16,7 +16,7 @@ defmodule ExUssd.Handler do
         end
       end
   """
-  @type menu() :: any()
+  @type menu() :: map()
   @type api_parameters() :: map()
 
   @callback handle_menu(
