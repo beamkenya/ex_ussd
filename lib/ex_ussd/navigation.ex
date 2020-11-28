@@ -64,14 +64,18 @@ defmodule ExUssd.Navigation do
       _ ->
         current_menu = handle_current_menu(session_id, route, parent_menu, api_parameters)
         current_routes = Registry.get(session_id)
-        response = case length(current_routes) == 1 && current_menu.validation_menu == nil do
-          true -> ExUssd.State.Registry.get_home_menu(session_id)
-          _->
-            case current_menu.parent do
-              nil -> %{current_menu | parent: fn -> %{parent_menu | error: nil} end}
-              _ -> current_menu
-            end
-        end
+
+        response =
+          case length(current_routes) == 1 && current_menu.validation_menu == nil do
+            true ->
+              ExUssd.State.Registry.get_home_menu(session_id)
+
+            _ ->
+              case current_menu.parent do
+                nil -> %{current_menu | parent: fn -> %{parent_menu | error: nil} end}
+                _ -> current_menu
+              end
+          end
 
         Registry.set_current_menu(session_id, response)
     end

@@ -37,10 +37,9 @@ defmodule AfricasTalking do
   """
   @impl true
   def goto(internal_routing: internal_routing, menu: menu, api_parameters: api_parameters) do
-
     Registry.start(internal_routing.session_id)
 
-    processed_text =  process_text(internal_routing)
+    processed_text = process_text(internal_routing)
 
     route =
       ExUssd.Routes.get_route(%{text: processed_text, service_code: internal_routing.service_code})
@@ -75,6 +74,7 @@ defmodule AfricasTalking do
   def process_text(internal_routing) do
     text_value = internal_routing.text |> String.replace("#", "")
     service_code_value = internal_routing.service_code |> String.replace("#", "")
+
     case ExUssd.State.Registry.get_current_menu(internal_routing.session_id) do
       nil ->
         case internal_routing.text do

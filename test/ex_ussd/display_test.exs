@@ -116,7 +116,6 @@ defmodule ExUssd.DisplayTest do
   end
 
   describe "Hide navigation with menu_list" do
-
     defmodule MyHomeHandler_5 do
       @behaviour ExUssd.Handler
       def handle_menu(menu, _api_parameters) do
@@ -144,7 +143,6 @@ defmodule ExUssd.DisplayTest do
   end
 
   describe "hide navigation menu on second menu" do
-
     defmodule ProductAHandler do
       @behaviour ExUssd.Handler
       def handle_menu(menu, _api_parameters) do
@@ -177,5 +175,4 @@ defmodule ExUssd.DisplayTest do
     response = {:ok, menu_string}
     assert {:ok, "selected product a"} == response
   end
-
 end

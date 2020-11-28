@@ -8,7 +8,7 @@ defmodule ExUssdTest do
   describe "test menu get menu" do
     defmodule MyHomeHandler do
       @behaviour ExUssd.Handler
-     def handle_menu(menu, _api_parameters) do
+      def handle_menu(menu, _api_parameters) do
         menu |> Map.put(:title, "Welcome")
       end
     end

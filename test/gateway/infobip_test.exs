@@ -6,7 +6,7 @@ defmodule ExUssd.Gateway.InfobipTest do
   describe "test end session" do
     defmodule MyHomeHandler do
       @behaviour ExUssd.Handler
-     def handle_menu(menu, _api_parameters) do
+      def handle_menu(menu, _api_parameters) do
         menu |> Map.put(:title, "Welcome")
       end
     end
@@ -18,18 +18,20 @@ defmodule ExUssd.Gateway.InfobipTest do
   describe "test menu get menu" do
     defmodule MyHomeHandler do
       @behaviour ExUssd.Handler
-     def handle_menu(menu, _api_parameters) do
+      def handle_menu(menu, _api_parameters) do
         menu |> Map.put(:title, "Welcome")
       end
     end
 
     menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
     session = "session_10003"
+
     Infobip.goto(
       internal_routing: %{text: "", session_id: session, service_code: "*544#"},
       menu: menu,
-      api_parameters: %{"text" => "" }
+      api_parameters: %{"text" => ""}
     )
+
     response_menu = ExUssd.State.Registry.get_menu(session)
     get_menu = Infobip.get_menu(session_id: session)
     assert response_menu == get_menu

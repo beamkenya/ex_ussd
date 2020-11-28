@@ -44,7 +44,6 @@ defmodule ExUssd.Utils do
   end
 
   def navigate(text, initial_menu, session_id \\ "session_02") do
-
     internal_routing = %{text: text, session_id: session_id, service_code: "*544#"}
 
     api_parameters = %{"text" => internal_routing.text}
@@ -55,11 +54,11 @@ defmodule ExUssd.Utils do
         service_code: internal_routing.service_code
       })
 
-      EXUssd.Common.goto(
-        internal_routing: internal_routing,
-        menu: initial_menu,
-        api_parameters: api_parameters,
-        route: route
-      )
+    EXUssd.Common.goto(
+      internal_routing: internal_routing,
+      menu: initial_menu,
+      api_parameters: api_parameters,
+      route: route
+    )
   end
 end

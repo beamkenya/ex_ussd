@@ -19,7 +19,9 @@ defmodule EXUssd.Common do
           home_menu = Utils.call_menu_callback(menu, api_parameters)
           ExUssd.State.Registry.set_home_menu(internal_routing.session_id, home_menu)
           home_menu
-        _ -> ExUssd.State.Registry.get_current_menu(internal_routing.session_id)
+
+        _ ->
+          ExUssd.State.Registry.get_current_menu(internal_routing.session_id)
       end
 
     ExUssd.State.Registry.set_current_menu(internal_routing.session_id, response)
