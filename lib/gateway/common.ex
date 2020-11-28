@@ -14,12 +14,15 @@ defmodule EXUssd.Common do
     Registry.start(internal_routing.session_id)
 
     response =
-      case ExUssd.State.Registry.get_current_menu(internal_routing.session_id) do
-        nil -> Utils.call_menu_callback(menu, api_parameters)
+      case ExUssd.State.Registry.get_home_menu(internal_routing.session_id) do
+        nil ->
+          home_menu = Utils.call_menu_callback(menu, api_parameters)
+          ExUssd.State.Registry.set_home_menu(internal_routing.session_id, home_menu)
+          home_menu
         _ -> ExUssd.State.Registry.get_current_menu(internal_routing.session_id)
       end
 
-    ExUssd.State.Registry.add_current_menu(internal_routing.session_id, response)
+    ExUssd.State.Registry.set_current_menu(internal_routing.session_id, response)
     ExUssd.State.Registry.set_menu(internal_routing.session_id, response)
     api_parameters = for {key, val} <- api_parameters, into: %{}, do: {String.to_atom(key), val}
 

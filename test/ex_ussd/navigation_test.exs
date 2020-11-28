@@ -89,11 +89,26 @@ defmodule ExUssd.NavigationTest do
   end
 
   def simulate(text, initial_menu, %{
-        session_id: session_id,
-        api_parameters: api_parameters
+        session_id: session_id
       }) do
-    routes = ExUssd.Routes.get_route(%{text: text, service_code: "*544#"})
-    menu = ExUssd.Utils.call_menu_callback(initial_menu)
-    ExUssd.Navigation.navigate(session_id, routes, menu, api_parameters)
+
+      internal_routing = %{text: text, session_id: session_id, service_code: "*544#"}
+
+      api_parameters = %{"text" => internal_routing.text}
+
+      route =
+        ExUssd.Routes.get_route(%{
+          text: internal_routing.text,
+          service_code: internal_routing.service_code
+        })
+
+      %{menu: menu} =
+        EXUssd.Common.goto(
+          internal_routing: internal_routing,
+          menu: initial_menu,
+          api_parameters: api_parameters,
+          route: route
+        )
+    menu
   end
 end

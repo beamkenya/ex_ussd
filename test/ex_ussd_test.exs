@@ -4,5 +4,4 @@ defmodule ExUssdTest do
   doctest AfricasTalking
   doctest Infobip
   doctest ExUssd.Utils
-  doctest EqutelGW
 end

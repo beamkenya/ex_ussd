@@ -1,6 +1,6 @@
 defmodule ExUssd.State.Registry do
   use GenServer
-  def init(_opts), do: {:ok, %{routes: [], current_menu: nil}}
+  def init(_opts), do: {:ok, %{routes: [], current_menu: nil, home_menu: nil}}
 
   defp via_tuple(session_id), do: {:via, Registry, {:session_registry, session_id}}
 
@@ -26,12 +26,18 @@ defmodule ExUssd.State.Registry do
 
   def set_menu(session, menu), do: GenServer.call(via_tuple(session), {:set_menu, menu})
 
-  def add_current_menu(session, current_menu),
-    do: GenServer.call(via_tuple(session), {:add_current_menu, current_menu})
+  def set_current_menu(session, current_menu),
+    do: GenServer.call(via_tuple(session), {:set_current_menu, current_menu})
+
+  def set_home_menu(session, home_menu),
+    do: GenServer.call(via_tuple(session), {:set_home_menu, home_menu})
 
   def get_menu(session), do: GenServer.call(via_tuple(session), {:get_menu})
 
   def get_current_menu(session), do: GenServer.call(via_tuple(session), {:get_current_menu})
+
+  def get_home_menu(session), do: GenServer.call(via_tuple(session), {:get_home_menu})
+
   def get(session), do: GenServer.call(via_tuple(session), {:get})
   def next(session), do: GenServer.call(via_tuple(session), {:next})
   def previous(session), do: GenServer.call(via_tuple(session), {:previous})
@@ -89,10 +95,16 @@ defmodule ExUssd.State.Registry do
     {:reply, new_state, new_state}
   end
 
-  def handle_call({:add_current_menu, current_menu}, _from, state) do
+  def handle_call({:set_current_menu, current_menu}, _from, state) do
     new_state = Map.put(state, :current_menu, current_menu)
     %{current_menu: current_menu} = new_state
     {:reply, current_menu, new_state}
+  end
+
+  def handle_call({:set_home_menu, home_menu}, _from, state) do
+    new_state = Map.put(state, :home_menu, home_menu)
+    %{home_menu: home_menu} = new_state
+    {:reply, home_menu, new_state}
   end
 
   def handle_call({:get_menu}, _from, state) do
@@ -103,5 +115,10 @@ defmodule ExUssd.State.Registry do
   def handle_call({:get_current_menu}, _from, state) do
     %{current_menu: current_menu} = state
     {:reply, current_menu, state}
+  end
+
+  def handle_call({:get_home_menu}, _from, state) do
+    %{home_menu: home_menu} = state
+    {:reply, home_menu, state}
   end
 end
