@@ -37,43 +37,10 @@ defmodule AfricasTalking do
   """
   @impl true
   def goto(internal_routing: internal_routing, menu: menu, api_parameters: api_parameters) do
-    text_value = internal_routing.text |> String.replace("#", "")
-    service_code_value = internal_routing.service_code |> String.replace("#", "")
 
     Registry.start(internal_routing.session_id)
 
-    processed_text =
-      case ExUssd.State.Registry.get_current_menu(internal_routing.session_id) do
-        nil ->
-          case internal_routing.text do
-            "" ->
-              ""
-
-            _ ->
-              cond do
-                text_value =~ service_code_value ->
-                  text_value
-
-                true ->
-                  service_code_value <> "*" <> internal_routing.text
-              end
-          end
-
-        _ ->
-          cond do
-            text_value == service_code_value ->
-              ""
-
-            text_value =~ service_code_value ->
-              text_value
-
-            true ->
-              case internal_routing.text |> String.split("*") do
-                value when length(value) == 1 -> value |> hd
-                value -> Enum.reverse(value) |> hd
-              end
-          end
-      end
+    processed_text =  process_text(internal_routing)
 
     route =
       ExUssd.Routes.get_route(%{text: processed_text, service_code: internal_routing.service_code})
@@ -86,19 +53,7 @@ defmodule AfricasTalking do
         route: route
       )
 
-    %{should_close: should_close} = current_menu
-
-    output =
-      case should_close do
-        false ->
-          "CON " <> menu_string
-
-        true ->
-          Registry.stop(internal_routing.session_id)
-          "END " <> menu_string
-      end
-
-    {:ok, output}
+    output(internal_routing, current_menu, menu_string)
   end
 
   @doc """
@@ -115,5 +70,57 @@ defmodule AfricasTalking do
   @impl true
   def get_menu(session_id: session_id) do
     ExUssd.State.Registry.get_menu(session_id)
+  end
+
+  def process_text(internal_routing) do
+    text_value = internal_routing.text |> String.replace("#", "")
+    service_code_value = internal_routing.service_code |> String.replace("#", "")
+    case ExUssd.State.Registry.get_current_menu(internal_routing.session_id) do
+      nil ->
+        case internal_routing.text do
+          "" ->
+            ""
+
+          _ ->
+            cond do
+              text_value =~ service_code_value ->
+                text_value
+
+              true ->
+                service_code_value <> "*" <> internal_routing.text
+            end
+        end
+
+      _ ->
+        cond do
+          text_value == service_code_value ->
+            ""
+
+          text_value =~ service_code_value ->
+            text_value
+
+          true ->
+            case internal_routing.text |> String.split("*") do
+              value when length(value) == 1 -> value |> hd
+              value -> Enum.reverse(value) |> hd
+            end
+        end
+    end
+  end
+
+  def output(internal_routing, current_menu, menu_string) do
+    %{should_close: should_close} = current_menu
+
+    output =
+      case should_close do
+        false ->
+          "CON " <> menu_string
+
+        true ->
+          Registry.stop(internal_routing.session_id)
+          "END " <> menu_string
+      end
+
+    {:ok, output}
   end
 end

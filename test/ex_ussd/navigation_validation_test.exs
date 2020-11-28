@@ -41,7 +41,7 @@ defmodule ExUssd.NavigationValidationTest do
   test "navigate to the initial menu", params do
     %{initial_menu: initial_menu} = params
 
-    menu = simulate("", initial_menu, params)
+    %{menu: menu} = ExUssd.Utils.navigate("", initial_menu, "session_006")
 
     assert menu.title == "Enter your pin number"
     assert menu.error == nil
@@ -50,8 +50,8 @@ defmodule ExUssd.NavigationValidationTest do
   test "enter wrong pin", params do
     %{initial_menu: initial_menu} = params
 
-    _menu = simulate("", initial_menu, params)
-    menu = simulate("9999", initial_menu, params)
+    %{menu: _menu} = ExUssd.Utils.navigate("", initial_menu, "session_007")
+    %{menu: menu} = ExUssd.Utils.navigate("9999", initial_menu, "session_007")
     assert menu.title == "Enter your pin number"
     assert menu.error == "Wrong pin number\n"
   end
@@ -59,31 +59,8 @@ defmodule ExUssd.NavigationValidationTest do
   test "enter correct pin", params do
     %{initial_menu: initial_menu} = params
 
-    _menu = simulate("", initial_menu, params)
-    menu = simulate("5555", initial_menu, params)
+    %{menu: _menu} = ExUssd.Utils.navigate("", initial_menu, "session_008")
+    %{menu: menu} = ExUssd.Utils.navigate("5555", initial_menu, "session_008")
     assert menu.title == "success, thank you."
-  end
-
-  def simulate(text, initial_menu, %{
-        session_id: session_id
-      }) do
-        internal_routing = %{text: text, session_id: session_id, service_code: "*544#"}
-
-        api_parameters = %{"text" => internal_routing.text}
-
-        route =
-          ExUssd.Routes.get_route(%{
-            text: internal_routing.text,
-            service_code: internal_routing.service_code
-          })
-
-        %{menu: menu} =
-          EXUssd.Common.goto(
-            internal_routing: internal_routing,
-            menu: initial_menu,
-            api_parameters: api_parameters,
-            route: route
-          )
-      menu
   end
 end
