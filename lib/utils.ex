@@ -24,27 +24,35 @@ defmodule ExUssd.Utils do
   def simulate(menu: menu, text: text) do
     internal_routing = %{text: text, session_id: "session_01", service_code: "*544#"}
 
-    api_parameters = %{"text" => internal_routing.text}
-
-    route =
-      ExUssd.Routes.get_route(%{
-        text: internal_routing.text,
-        service_code: internal_routing.service_code
-      })
-
-    %{display: menu_string, menu: %{should_close: should_close}} =
-      EXUssd.Common.goto(
-        internal_routing: internal_routing,
-        menu: menu,
-        api_parameters: api_parameters,
-        route: route
-      )
+    %{display: menu_string, menu: %{should_close: should_close}} =navigate(text, menu, internal_routing.session_id)
 
     {:ok, %{menu_string: menu_string, should_close: should_close}}
   end
 
-  def navigate(text, initial_menu, session_id \\ "session_02") do
-    internal_routing = %{text: text, session_id: session_id, service_code: "*544#"}
+   @doc """
+  This a helper function that helps simulate ussd call
+  ## Example
+      iex> defmodule MyHomeHandler do
+      ...>  @behaviour ExUssd.Handler
+      ...>  def handle_menu(menu, _api_parameters) do
+      ...>      menu |> Map.put(:title, "Welcome")
+      ...>  end
+      ...> end
+      iex> menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
+      iex> ExUssd.Utils.simulate(menu: menu, text: "", service_code: "*141#")
+      {:ok, %{menu_string: "Welcome", should_close: false}}
+  """
+
+  def simulate(menu: menu, text: text, service_code: service_code) do
+    internal_routing = %{text: text, session_id: "session_02", service_code: service_code}
+
+    %{display: menu_string, menu: %{should_close: should_close}} =navigate(text, menu, internal_routing.session_id, internal_routing.service_code)
+
+    {:ok, %{menu_string: menu_string, should_close: should_close}}
+  end
+
+  def navigate(text, menu, session_id \\ "session_03", service_code \\ "*544#") do
+    internal_routing = %{text: text, session_id: session_id, service_code: service_code}
 
     api_parameters = %{"text" => internal_routing.text}
 
@@ -56,7 +64,7 @@ defmodule ExUssd.Utils do
 
     EXUssd.Common.goto(
       internal_routing: internal_routing,
-      menu: initial_menu,
+      menu: menu,
       api_parameters: api_parameters,
       route: route
     )

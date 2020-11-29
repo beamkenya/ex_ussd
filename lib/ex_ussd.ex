@@ -75,4 +75,19 @@ defmodule ExUssd do
       {:ok, %{menu_string: "Welcome", should_close: false}}
   """
   def simulate(menu: menu, text: text), do: Utils.simulate(menu: menu, text: text)
+
+  @doc """
+  This a helper function that helps simulate ussd call
+  ## Example
+      iex> defmodule MyHomeHandler do
+      ...>  @behaviour ExUssd.Handler
+      ...>  def handle_menu(menu, _api_parameters) do
+      ...>      menu |> Map.put(:title, "Welcome")
+      ...>  end
+      ...> end
+      iex> menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
+      iex> ExUssd.Utils.simulate(menu: menu, text: "", service_code: "*141#")
+      {:ok, %{menu_string: "Welcome", should_close: false}}
+  """
+  def simulate(menu: menu, text: text, service_code: service_code), do: Utils.simulate(menu: menu, text: text, service_code: service_code)
 end

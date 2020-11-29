@@ -183,8 +183,8 @@ defmodule ExUssd.Navigation do
         response = %{parent_menu | error: error}
 
         go_back_menu =
-          case length(Registry.get(session_id)) do
-            1 -> parent_menu
+          case parent_menu.parent do
+            nil -> parent_menu
             _ -> parent_menu.parent.()
           end
 
