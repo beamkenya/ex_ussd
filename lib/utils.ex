@@ -24,12 +24,13 @@ defmodule ExUssd.Utils do
   def simulate(menu: menu, text: text) do
     internal_routing = %{text: text, session_id: "session_01", service_code: "*544#"}
 
-    %{display: menu_string, menu: %{should_close: should_close}} =navigate(text, menu, internal_routing.session_id)
+    %{display: menu_string, menu: %{should_close: should_close}} =
+      navigate(text, menu, internal_routing.session_id)
 
     {:ok, %{menu_string: menu_string, should_close: should_close}}
   end
 
-   @doc """
+  @doc """
   This a helper function that helps simulate ussd call
   ## Example
       iex> defmodule MyHomeHandler do
@@ -46,7 +47,8 @@ defmodule ExUssd.Utils do
   def simulate(menu: menu, text: text, service_code: service_code) do
     internal_routing = %{text: text, session_id: "session_02", service_code: service_code}
 
-    %{display: menu_string, menu: %{should_close: should_close}} =navigate(text, menu, internal_routing.session_id, internal_routing.service_code)
+    %{display: menu_string, menu: %{should_close: should_close}} =
+      navigate(text, menu, internal_routing.session_id, internal_routing.service_code)
 
     {:ok, %{menu_string: menu_string, should_close: should_close}}
   end

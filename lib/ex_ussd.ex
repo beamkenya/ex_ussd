@@ -89,5 +89,6 @@ defmodule ExUssd do
       iex> ExUssd.Utils.simulate(menu: menu, text: "", service_code: "*141#")
       {:ok, %{menu_string: "Welcome", should_close: false}}
   """
-  def simulate(menu: menu, text: text, service_code: service_code), do: Utils.simulate(menu: menu, text: text, service_code: service_code)
+  def simulate(menu: menu, text: text, service_code: service_code),
+    do: Utils.simulate(menu: menu, text: text, service_code: service_code)
 end
