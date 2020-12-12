@@ -50,6 +50,7 @@ defmodule ExUssd.Menu do
             show_navigation: true,
             next: %{name: "MORE", input_match: "98", display_style: ":"},
             previous: %{name: "BACK", input_match: "0", display_style: ":"},
+            home: %{name: "HOME", input_match: "00", display_style: ":", enable: false},
             split: 7,
             should_close: false,
             display_style: ":",

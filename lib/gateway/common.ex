@@ -19,7 +19,8 @@ defmodule EXUssd.Common do
       case ExUssd.State.Registry.get_home_menu(internal_routing.session_id) do
         nil ->
           home_menu = Utils.call_menu_callback(menu, api_parameters)
-          ExUssd.State.Registry.set_home_menu(internal_routing.session_id, home_menu)
+          current_menu = %{home_menu | parent: fn -> %{home_menu | error: nil} end}
+          ExUssd.State.Registry.set_home_menu(internal_routing.session_id, current_menu)
           home_menu
 
         _ ->

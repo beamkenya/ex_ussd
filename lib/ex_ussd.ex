@@ -86,7 +86,7 @@ defmodule ExUssd do
       ...>  end
       ...> end
       iex> menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
-      iex> ExUssd.Utils.simulate(menu: menu, text: "", service_code: "*141#")
+      iex> ExUssd.simulate(menu: menu, text: "", service_code: "*141#")
       {:ok, %{menu_string: "Welcome", should_close: false}}
   """
   def simulate(menu: menu, text: text, service_code: service_code),
