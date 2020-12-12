@@ -14,6 +14,7 @@
 - [Gateway Providers](#providers)
 - [Configuration](#Configuration)
 - [Documentation](#Documentation)
+- [Examples](#examples)
 - [Contribution](#contribution)
 - [Contributors](#contributors)
 - [Licence](#licence)
@@ -26,7 +27,7 @@ by adding `ex_ussd` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ex_ussd, "~> 0.1.1"}
+    {:ex_ussd, "~> 0.1.2"}
   ]
 end
 ```
@@ -247,6 +248,9 @@ To test your USSD menu, ExUssd provides a `simulate` function that helps you tes
 
   {:ok, %{menu_string: "Welcome", should_close: false}}
 ```
+
+## Examples
+[ussd examples](https://github.com/lenileiro/ussd_examples) using ExUssd
 ## Contribution
 
 If you'd like to contribute, start by searching through the [issues](https://github.com/beamkenya/ex_ussd/issues) and [pull requests](https://github.com/beamkenya/ex_ussd/pulls) to see whether someone else has raised a similar idea or question.
