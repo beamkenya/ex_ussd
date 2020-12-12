@@ -250,7 +250,7 @@ To test your USSD menu, ExUssd provides a `simulate` function that helps you tes
 ```
 
 ## Examples
-[ussd examples](https://github.com/lenileiro/ussd_examples) using ExUssd
+[ussd examples](https://github.com/lenileiro/ussd_examples) using ExUssd can be found here https://github.com/lenileiro/ussd_examples
 ## Contribution
 
 If you'd like to contribute, start by searching through the [issues](https://github.com/beamkenya/ex_ussd/issues) and [pull requests](https://github.com/beamkenya/ex_ussd/pulls) to see whether someone else has raised a similar idea or question.
