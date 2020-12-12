@@ -95,4 +95,9 @@ defmodule ExUssd.State.RegistryTest do
   test "current get menu" do
     assert %{} == Registry.get_current_menu("session_01")
   end
+
+  test "set route" do
+    routes = Registry.set("session_01", %{depth: 1, value: "555"})
+    assert [%{depth: 1, value: "555"}] == routes
+  end
 end

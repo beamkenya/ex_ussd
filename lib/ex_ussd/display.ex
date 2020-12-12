@@ -76,6 +76,12 @@ defmodule ExUssd.Display do
         input_match: previous,
         display_style: previous_display_style
       },
+      home: %{
+        name: home_name,
+        input_match: home,
+        display_style: home_display_style,
+        enable: is_home_enable
+      },
       should_close: should_close,
       display_style: display_style,
       show_navigation: show_navigation
@@ -105,18 +111,27 @@ defmodule ExUssd.Display do
       end)
       |> Enum.filter(fn value -> value != nil end)
 
+    home_navigation =
+      case is_home_enable do
+        true -> " #{home}#{home_display_style}#{home_name}"
+        false -> ""
+      end
+
     previous_navigation =
       case length(routes) do
         1 ->
           case page do
             1 -> ""
-            _ -> "\n" <> "#{previous}#{previous_display_style}#{previous_name}"
+            _ -> "\n" <> "#{previous}#{previous_display_style}#{previous_name}" <> home_navigation
           end
 
         _ ->
           case should_close do
-            false -> "\n" <> "#{previous}#{previous_display_style}#{previous_name}"
-            true -> ""
+            false ->
+              "\n" <> "#{previous}#{previous_display_style}#{previous_name}" <> home_navigation
+
+            true ->
+              ""
           end
       end
 

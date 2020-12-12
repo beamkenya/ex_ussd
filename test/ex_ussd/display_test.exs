@@ -175,4 +175,38 @@ defmodule ExUssd.DisplayTest do
     response = {:ok, menu_string}
     assert {:ok, "selected product a"} == response
   end
+
+  describe "Show Home navigation" do
+    defmodule ProductAHandler do
+      @behaviour ExUssd.Handler
+      def handle_menu(menu, _api_parameters) do
+        menu
+        |> Map.put(:home, %{name: "HOME", input_match: "00", display_style: ":", enable: true})
+        |> Map.put(:title, "selected product a")
+      end
+    end
+
+    defmodule MyHomeHandler_7 do
+      @behaviour ExUssd.Handler
+      def handle_menu(menu, _api_parameters) do
+        menu
+        |> Map.put(:title, "Welcome")
+        |> Map.put(:split, 2)
+        |> Map.put(
+          :menu_list,
+          [
+            ExUssd.Menu.render(name: "Product A", handler: ProductAHandler),
+            ExUssd.Menu.render(name: "Product B", handler: ProductBHandler),
+            ExUssd.Menu.render(name: "Product C", handler: ProductCHandler)
+          ]
+        )
+      end
+    end
+
+    initial_menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler_7)
+    _menu = ExUssd.Utils.navigate("", initial_menu, "session_021")
+    %{display: menu_string} = ExUssd.Utils.navigate("1", initial_menu, "session_021")
+    response = {:ok, menu_string}
+    assert {:ok, "selected product a\n0:BACK 00:HOME"} == response
+  end
 end

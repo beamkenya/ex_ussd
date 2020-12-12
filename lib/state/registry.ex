@@ -43,6 +43,8 @@ defmodule ExUssd.State.Registry do
   def previous(session), do: GenServer.call(via_tuple(session), {:previous})
   def add(session, data), do: GenServer.call(via_tuple(session), {:add, data})
 
+  def set(session, data), do: GenServer.call(via_tuple(session), {:set, data})
+
   def handle_call({:get}, _from, state) do
     %{routes: routes} = state
     {:reply, routes, state}
@@ -57,6 +59,11 @@ defmodule ExUssd.State.Registry do
     %{routes: routes} = state
     new_state = Map.put(state, :routes, [data | routes])
     {:reply, [data | routes], new_state}
+  end
+
+  def handle_call({:set, data}, _from, state) when is_map(data) do
+    new_state = Map.put(state, :routes, [data])
+    {:reply, [data], new_state}
   end
 
   def handle_call({:next}, _from, state) do

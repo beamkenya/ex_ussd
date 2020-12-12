@@ -17,6 +17,6 @@ defmodule ExUssdTest do
     session = "session_10001"
     %{menu: response_menu} = ExUssd.Utils.navigate("", menu, session)
     get_menu = ExUssd.get_menu(session_id: session)
-    assert response_menu == get_menu
+    assert response_menu.title == get_menu.title
   end
 end

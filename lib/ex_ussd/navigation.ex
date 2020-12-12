@@ -81,9 +81,10 @@ defmodule ExUssd.Navigation do
     end
   end
 
-  defp loop(_session_id, [_head | _tail] = routes, menu, _api_parameters)
+  defp loop(session_id, [_head | tail] = routes, response, api_parameters)
        when is_list(routes) and length(routes) == 1 do
-    menu
+    current_menu = %{response | parent: fn -> %{response | error: nil} end}
+    loop(session_id, tail, current_menu, api_parameters)
   end
 
   defp loop(_session_id, routes, menu, _api_parameters)
@@ -109,7 +110,7 @@ defmodule ExUssd.Navigation do
 
   defp get_next_menu(session_id, parent_menu, state, api_parameters) do
     %{menu_list: menu_list} = parent_menu
-    depth = to_int(Integer.parse(state[:value]), parent_menu)
+    depth = to_int(Integer.parse(state[:value]), parent_menu, state[:value])
 
     case Enum.at(menu_list, depth - 1) do
       nil ->
@@ -132,7 +133,7 @@ defmodule ExUssd.Navigation do
 
   defp handle_current_menu(session_id, state, parent_menu, api_parameters) do
     %{menu_list: menu_list} = parent_menu
-    depth = to_int(Integer.parse(state[:value]), parent_menu)
+    depth = to_int(Integer.parse(state[:value]), parent_menu, state[:value])
 
     case Enum.at(menu_list, depth - 1) do
       nil ->
@@ -149,6 +150,10 @@ defmodule ExUssd.Navigation do
           605_356_150_351_840_375_921_999_017_933 ->
             Registry.next(session_id)
             parent_menu
+
+          705_897_792_423_629_962_208_442_626_284 ->
+            Registry.set(session_id, %{depth: 1, value: "555"})
+            ExUssd.State.Registry.get_home_menu(session_id)
 
           _ ->
             %{validation_menu: validation_menu} = parent_menu
@@ -182,33 +187,45 @@ defmodule ExUssd.Navigation do
       _ ->
         response = %{parent_menu | error: error}
 
-        go_back_menu =
-          case parent_menu.parent do
-            nil -> parent_menu
-            _ -> parent_menu.parent.()
-          end
-
+        go_back_menu = parent_menu.parent.()
         %{response | parent: fn -> %{go_back_menu | error: nil} end}
     end
   end
 
-  defp to_int({value, ""}, menu) do
-    %{next: %{input_match: next}, previous: %{input_match: previous}} = menu
+  defp to_int({value, ""}, menu, input_value) do
+    %{
+      next: %{input_match: next},
+      previous: %{input_match: previous},
+      home: %{input_match: home, enable: is_home_enable}
+    } = menu
+
     text = Integer.to_string(value)
 
-    case text do
-      v when v == next ->
-        605_356_150_351_840_375_921_999_017_933
+    case input_value == home do
+      true ->
+        case is_home_enable do
+          true ->
+            705_897_792_423_629_962_208_442_626_284
 
-      v when v == previous ->
-        128_977_754_852_657_127_041_634_246_588
+          _ ->
+            value
+        end
 
       _ ->
-        value
+        case text do
+          v when v == next ->
+            605_356_150_351_840_375_921_999_017_933
+
+          v when v == previous ->
+            128_977_754_852_657_127_041_634_246_588
+
+          _ ->
+            value
+        end
     end
   end
 
-  defp to_int(:error, _menu), do: 999
+  defp to_int(:error, _menu, _input_value), do: 999
 
-  defp to_int({_value, _}, _menu), do: 999
+  defp to_int({_value, _}, _menu, _input_value), do: 999
 end
