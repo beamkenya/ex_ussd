@@ -56,11 +56,26 @@ defmodule ExUssd.NavigationValidationTest do
     assert menu.error == "Wrong pin number\n"
   end
 
+  test "enter wrong pin loop", params do
+    %{initial_menu: initial_menu} = params
+
+    %{menu: menu} = ExUssd.Utils.navigate("*141*9999#", initial_menu, "session_017", "*141#")
+    assert menu.title == "Enter your pin number"
+    assert menu.error == "Wrong pin number\n"
+  end
+
   test "enter correct pin", params do
     %{initial_menu: initial_menu} = params
 
     %{menu: _menu} = ExUssd.Utils.navigate("", initial_menu, "session_008")
     %{menu: menu} = ExUssd.Utils.navigate("5555", initial_menu, "session_008")
+    assert menu.title == "success, thank you."
+  end
+
+  test "enter correct pin loop", params do
+    %{initial_menu: initial_menu} = params
+
+    %{menu: menu} = ExUssd.Utils.navigate("*141*5555#", initial_menu, "session_018", "*141#")
     assert menu.title == "success, thank you."
   end
 end

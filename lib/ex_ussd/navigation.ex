@@ -187,7 +187,12 @@ defmodule ExUssd.Navigation do
       _ ->
         response = %{parent_menu | error: error}
 
-        go_back_menu = parent_menu.parent.()
+        go_back_menu =
+          case parent_menu.parent do
+           nil -> parent_menu
+           _-> parent_menu.parent.()
+        end
+
         %{response | parent: fn -> %{go_back_menu | error: nil} end}
     end
   end
