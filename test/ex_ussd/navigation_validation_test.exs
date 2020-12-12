@@ -41,7 +41,7 @@ defmodule ExUssd.NavigationValidationTest do
   test "navigate to the initial menu", params do
     %{initial_menu: initial_menu} = params
 
-    %{menu: menu} = ExUssd.Utils.navigate("", initial_menu, "session_006")
+    %{menu: menu} = ExUssd.Utils.navigate("", initial_menu, "session_036")
 
     assert menu.title == "Enter your pin number"
     assert menu.error == nil
@@ -50,8 +50,8 @@ defmodule ExUssd.NavigationValidationTest do
   test "enter wrong pin", params do
     %{initial_menu: initial_menu} = params
 
-    %{menu: _menu} = ExUssd.Utils.navigate("", initial_menu, "session_007")
-    %{menu: menu} = ExUssd.Utils.navigate("9999", initial_menu, "session_007")
+    %{menu: _menu} = ExUssd.Utils.navigate("", initial_menu, "session_037")
+    %{menu: menu} = ExUssd.Utils.navigate("9999", initial_menu, "session_037")
     assert menu.title == "Enter your pin number"
     assert menu.error == "Wrong pin number\n"
   end
@@ -59,7 +59,7 @@ defmodule ExUssd.NavigationValidationTest do
   test "enter wrong pin loop", params do
     %{initial_menu: initial_menu} = params
 
-    %{menu: menu} = ExUssd.Utils.navigate("*141*9999#", initial_menu, "session_017", "*141#")
+    %{menu: menu} = ExUssd.Utils.navigate("*141*9999#", initial_menu, "session_317", "*141#")
     assert menu.title == "Enter your pin number"
     assert menu.error == "Wrong pin number\n"
   end
@@ -67,15 +67,15 @@ defmodule ExUssd.NavigationValidationTest do
   test "enter correct pin", params do
     %{initial_menu: initial_menu} = params
 
-    %{menu: _menu} = ExUssd.Utils.navigate("", initial_menu, "session_008")
-    %{menu: menu} = ExUssd.Utils.navigate("5555", initial_menu, "session_008")
+    %{menu: _menu} = ExUssd.Utils.navigate("", initial_menu, "session_038")
+    %{menu: menu} = ExUssd.Utils.navigate("5555", initial_menu, "session_038")
     assert menu.title == "success, thank you."
   end
 
   test "enter correct pin loop", params do
     %{initial_menu: initial_menu} = params
 
-    %{menu: menu} = ExUssd.Utils.navigate("*141*5555#", initial_menu, "session_018", "*141#")
+    %{menu: menu} = ExUssd.Utils.navigate("*141*5555#", initial_menu, "session_318", "*141#")
     assert menu.title == "success, thank you."
   end
 end
