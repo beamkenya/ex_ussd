@@ -100,4 +100,9 @@ defmodule ExUssd.State.RegistryTest do
     routes = Registry.set("session_01", %{depth: 1, value: "555"})
     assert [%{depth: 1, value: "555"}] == routes
   end
+
+  test "set route list" do
+    routes = Registry.set("session_01", [%{depth: 1, value: "555"}])
+    assert [%{depth: 1, value: "555"}] == routes
+  end
 end

@@ -1,7 +1,6 @@
 defmodule ExUssd.Navigation do
   alias ExUssd.Utils
   alias ExUssd.State.Registry
-  import ExUssd.Utils
 
   @doc """
     Implements the navigation logic
@@ -149,23 +148,36 @@ defmodule ExUssd.Navigation do
 
     case page_menu do
       true ->
-        [current_route | current_routes] = Registry.get(session_id)
-        new_route =
-          case current_route do
-            %{depth: _, navigation_value: position, value: _} ->
-              [
-                current_route
-                |> Map.put(:navigation_value, depth)
-                |> Map.put(:position, position)
-                | current_routes
-              ]
+        case depth do
+          128_977_754_852_657_127_041_634_246_588 ->
+            route = Registry.previous(session_id) |> hd
+            %{depth: depth} = route
 
-            _ ->
-              [Map.put(current_route, :navigation_value, depth) |> Map.put(:position, 1) | current_routes]
-          end
+            case depth do
+              1 -> parent_menu.parent.()
+              _ -> parent_menu
+            end
 
-        Registry.set(session_id, new_route)
-        parent_menu
+          605_356_150_351_840_375_921_999_017_933 ->
+            Registry.next(session_id)
+            parent_menu
+
+          705_897_792_423_629_962_208_442_626_284 ->
+            Registry.set(session_id, %{depth: 1, value: "555"})
+            ExUssd.State.Registry.get_home_menu(session_id)
+
+          _ ->
+            [current_route | current_routes] = Registry.get(session_id)
+
+            new_route = [
+              current_route
+              |> Map.put(:depth, depth)
+              | current_routes
+            ]
+
+            Registry.set(session_id, new_route)
+            parent_menu
+        end
 
       _ ->
         case Enum.at(menu_list, depth - 1) do
@@ -230,4 +242,41 @@ defmodule ExUssd.Navigation do
         %{response | parent: fn -> %{go_back_menu | error: nil} end}
     end
   end
+
+  defp to_int({value, ""}, menu, input_value) do
+    %{
+      next: %{input_match: next},
+      previous: %{input_match: previous},
+      home: %{input_match: home, enable: is_home_enable}
+    } = menu
+
+    text = Integer.to_string(value)
+
+    case input_value == home do
+      true ->
+        case is_home_enable do
+          true ->
+            705_897_792_423_629_962_208_442_626_284
+
+          _ ->
+            value
+        end
+
+      _ ->
+        case text do
+          v when v == next ->
+            605_356_150_351_840_375_921_999_017_933
+
+          v when v == previous ->
+            128_977_754_852_657_127_041_634_246_588
+
+          _ ->
+            value
+        end
+    end
+  end
+
+  defp to_int(:error, _menu, _input_value), do: 999
+
+  defp to_int({_value, _}, _menu, _input_value), do: 999
 end

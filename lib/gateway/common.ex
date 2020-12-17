@@ -36,7 +36,11 @@ defmodule EXUssd.Common do
     current_routes = Registry.get(internal_routing.session_id)
 
     {:ok, menu_string} =
-      Display.generate(menu: current_menu, routes: current_routes, api_parameters: api_parameters, session_id: internal_routing.session_id)
+      Display.generate(
+        menu: current_menu,
+        routes: current_routes,
+        api_parameters: api_parameters
+      )
 
     %{menu: current_menu, display: menu_string}
   end
