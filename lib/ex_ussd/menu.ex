@@ -57,7 +57,10 @@ defmodule ExUssd.Menu do
             parent: nil,
             validation_menu: nil,
             data: nil,
-            default_error_message: "Invalid Choice\n"
+            default_error_message: "Invalid Choice\n",
+            page_menu: false,
+            top_navigation: "",
+            bottom_navigation: ""
 
   @doc """
     Render Function is used to create a ussd Menu.

@@ -1,6 +1,7 @@
 defmodule ExUssd.Navigation do
   alias ExUssd.Utils
   alias ExUssd.State.Registry
+  import ExUssd.Utils
 
   @doc """
     Implements the navigation logic
@@ -81,9 +82,14 @@ defmodule ExUssd.Navigation do
     end
   end
 
-  defp loop(session_id, [_head | tail] = routes, response, api_parameters)
+  defp loop(session_id, [_head | tail] = routes, menu, api_parameters)
        when is_list(routes) and length(routes) == 1 do
-    current_menu = %{response | parent: fn -> %{response | error: nil} end}
+    current_menu =
+      case menu.parent do
+        nil -> %{menu | parent: fn -> %{menu | error: nil} end}
+        _ -> menu
+      end
+
     loop(session_id, tail, current_menu, api_parameters)
   end
 
@@ -109,68 +115,96 @@ defmodule ExUssd.Navigation do
   end
 
   defp get_next_menu(session_id, parent_menu, state, api_parameters) do
-    %{menu_list: menu_list} = parent_menu
+    %{menu_list: menu_list, page_menu: page_menu} = parent_menu
     depth = to_int(Integer.parse(state[:value]), parent_menu, state[:value])
 
-    case Enum.at(menu_list, depth - 1) do
-      nil ->
-        %{validation_menu: validation_menu} = parent_menu
-
-        case validation_menu do
-          nil ->
-            Registry.previous(session_id)
-            parent_menu |> Map.put(:error, parent_menu.default_error_message)
-
-          _ ->
-            can_handle?(parent_menu, api_parameters, state, session_id, validation_menu)
-        end
+    case page_menu do
+      true ->
+        parent_menu
 
       _ ->
-        child_menu = Enum.at(menu_list, depth - 1)
-        Utils.call_menu_callback(child_menu, api_parameters)
-    end
-  end
-
-  defp handle_current_menu(session_id, state, parent_menu, api_parameters) do
-    %{menu_list: menu_list} = parent_menu
-    depth = to_int(Integer.parse(state[:value]), parent_menu, state[:value])
-
-    case Enum.at(menu_list, depth - 1) do
-      nil ->
-        case depth do
-          128_977_754_852_657_127_041_634_246_588 ->
-            route = Registry.previous(session_id) |> hd
-            %{depth: depth} = route
-
-            case depth do
-              1 -> parent_menu.parent.()
-              _ -> parent_menu
-            end
-
-          605_356_150_351_840_375_921_999_017_933 ->
-            Registry.next(session_id)
-            parent_menu
-
-          705_897_792_423_629_962_208_442_626_284 ->
-            Registry.set(session_id, %{depth: 1, value: "555"})
-            ExUssd.State.Registry.get_home_menu(session_id)
-
-          _ ->
+        case Enum.at(menu_list, depth - 1) do
+          nil ->
             %{validation_menu: validation_menu} = parent_menu
 
             case validation_menu do
               nil ->
+                Registry.previous(session_id)
                 parent_menu |> Map.put(:error, parent_menu.default_error_message)
 
               _ ->
                 can_handle?(parent_menu, api_parameters, state, session_id, validation_menu)
             end
+
+          _ ->
+            child_menu = Enum.at(menu_list, depth - 1)
+            Utils.call_menu_callback(child_menu, api_parameters)
         end
+    end
+  end
+
+  defp handle_current_menu(session_id, state, parent_menu, api_parameters) do
+    %{menu_list: menu_list, page_menu: page_menu} = parent_menu
+    depth = to_int(Integer.parse(state[:value]), parent_menu, state[:value])
+
+    case page_menu do
+      true ->
+        [current_route | current_routes] = Registry.get(session_id)
+        new_route =
+          case current_route do
+            %{depth: _, navigation_value: position, value: _} ->
+              [
+                current_route
+                |> Map.put(:navigation_value, depth)
+                |> Map.put(:position, position)
+                | current_routes
+              ]
+
+            _ ->
+              [Map.put(current_route, :navigation_value, depth) |> Map.put(:position, 1) | current_routes]
+          end
+
+        Registry.set(session_id, new_route)
+        parent_menu
 
       _ ->
-        Registry.add(session_id, state)
-        child_menu = Enum.at(menu_list, depth - 1)
-        Utils.call_menu_callback(child_menu, api_parameters)
+        case Enum.at(menu_list, depth - 1) do
+          nil ->
+            case depth do
+              128_977_754_852_657_127_041_634_246_588 ->
+                route = Registry.previous(session_id) |> hd
+                %{depth: depth} = route
+
+                case depth do
+                  1 -> parent_menu.parent.()
+                  _ -> parent_menu
+                end
+
+              605_356_150_351_840_375_921_999_017_933 ->
+                Registry.next(session_id)
+                parent_menu
+
+              705_897_792_423_629_962_208_442_626_284 ->
+                Registry.set(session_id, %{depth: 1, value: "555"})
+                ExUssd.State.Registry.get_home_menu(session_id)
+
+              _ ->
+                %{validation_menu: validation_menu} = parent_menu
+
+                case validation_menu do
+                  nil ->
+                    parent_menu |> Map.put(:error, parent_menu.default_error_message)
+
+                  _ ->
+                    can_handle?(parent_menu, api_parameters, state, session_id, validation_menu)
+                end
+            end
+
+          _ ->
+            Registry.add(session_id, state)
+            child_menu = Enum.at(menu_list, depth - 1)
+            Utils.call_menu_callback(child_menu, api_parameters)
+        end
     end
   end
 
@@ -196,41 +230,4 @@ defmodule ExUssd.Navigation do
         %{response | parent: fn -> %{go_back_menu | error: nil} end}
     end
   end
-
-  defp to_int({value, ""}, menu, input_value) do
-    %{
-      next: %{input_match: next},
-      previous: %{input_match: previous},
-      home: %{input_match: home, enable: is_home_enable}
-    } = menu
-
-    text = Integer.to_string(value)
-
-    case input_value == home do
-      true ->
-        case is_home_enable do
-          true ->
-            705_897_792_423_629_962_208_442_626_284
-
-          _ ->
-            value
-        end
-
-      _ ->
-        case text do
-          v when v == next ->
-            605_356_150_351_840_375_921_999_017_933
-
-          v when v == previous ->
-            128_977_754_852_657_127_041_634_246_588
-
-          _ ->
-            value
-        end
-    end
-  end
-
-  defp to_int(:error, _menu, _input_value), do: 999
-
-  defp to_int({_value, _}, _menu, _input_value), do: 999
 end

@@ -1,4 +1,5 @@
 defmodule ExUssd.Display do
+  alias ExUssd.State.Registry
   @moduledoc """
   Rendering of Menu Struct into response string
   """
@@ -65,6 +66,14 @@ defmodule ExUssd.Display do
 
   """
   def generate(menu: menu, routes: routes) do
+    builder(menu, routes, %{}, "")
+  end
+
+  def generate(menu: menu, routes: routes, api_parameters: api_parameters, session_id: session_id) do
+    builder(menu, routes, api_parameters, session_id)
+  end
+
+  defp builder(menu, routes, api_parameters, session_id) do
     %{
       title: title,
       error: error,
@@ -84,7 +93,10 @@ defmodule ExUssd.Display do
       },
       should_close: should_close,
       display_style: display_style,
-      show_navigation: show_navigation
+      show_navigation: show_navigation,
+      top_navigation: top_navigation,
+      bottom_navigation: bottom_navigation,
+      page_menu: page_menu
     } = menu
 
     %{depth: page} = hd(routes)
@@ -148,21 +160,123 @@ defmodule ExUssd.Display do
       end
 
     response =
-      case menus do
-        [] ->
-          case show_navigation do
-            true -> "#{error}#{title}" <> previous_navigation <> next_navigation
-            false -> "#{error}#{title}"
+      case page_menu do
+        true ->
+          [current_route | current_routes] = routes
+
+          case current_route do
+            %{depth: _, navigation_value: depth, value: _} ->
+              case Enum.at(menu_list, depth - 1) do
+                nil ->
+                  case depth do
+                    128_977_754_852_657_127_041_634_246_588 ->
+                      # # route = Registry.previous(session_id) |> hd
+                      # # %{depth: depth} = route
+
+                      # # case depth do
+                      # #   1 -> menu.parent.()
+                      # #   _ -> menu
+                      # # end
+
+                      new_route = [
+                        current_route
+                        |> Map.put(:navigation_value, current_route.position - 1)
+                        |> Map.put(:position, current_route.position - 1)
+                        | current_routes
+                      ]
+                      Registry.set(session_id, new_route)
+
+                      Enum.at(menu_list, current_route.position - 1 - 1)
+                      |> case do
+                        nil ->
+                          "Content Not Found" <> previous_navigation
+
+                        current_menu ->
+                          %{title: title} = current_menu.callback.(api_parameters)
+                          "#{top_navigation}#{title}" <> bottom_navigation
+                      end
+
+                    605_356_150_351_840_375_921_999_017_933 ->
+                      new_route = [
+                        current_route
+                        |> Map.put(:navigation_value, current_route.position + 1)
+                        |> Map.put(:position, current_route.position + 1)
+                        | current_routes
+                      ]
+                      Registry.set(session_id, new_route)
+
+                      Enum.at(menu_list, current_route.position - 1 + 1)
+                      |> case do
+                        nil ->
+                          "Content Not Found" <> previous_navigation
+
+                        current_menu ->
+                          %{title: title} = current_menu.callback.(api_parameters)
+                          "#{top_navigation}#{title}" <> bottom_navigation
+                      end
+
+                    705_897_792_423_629_962_208_442_626_284 ->
+                      # Registry.set(session_id, %{depth: 1, value: "555"})
+                      # ExUssd.State.Registry.get_home_menu(session_id)
+                      "Content Not Found" <> previous_navigation
+
+                    _ ->
+                      "Content Not Found" <> previous_navigation
+                  end
+
+                current_menu ->
+                  %{title: title} = current_menu.callback.(api_parameters)
+                  "#{top_navigation}#{title}" <> bottom_navigation
+              end
+
+            _ ->
+              Enum.at(menu_list, 0)
+              |> case do
+                nil ->
+                  "Content Not Found" <> previous_navigation
+
+                current_menu ->
+                  %{title: title} = current_menu.callback.(api_parameters)
+                  "#{top_navigation}#{title}" <> bottom_navigation
+              end
           end
 
-        _ ->
-          case show_navigation do
-            true ->
-              "#{error}#{title}\n" <>
-                Enum.join(menus, "\n") <> previous_navigation <> next_navigation
+        #   Integer.parse(navigation_value)
+        #   |> case do
+        #     {value, ""} ->
 
-            false ->
-              "#{error}#{title}\n" <> Enum.join(menus, "\n")
+        #     _ ->
+        #       "Content Not Found" <> previous_navigation
+        #   end
+
+        # _ ->
+        #   case Enum.at(menu_list, 0) do
+        #     nil ->
+        #       "Content Not Found" <> previous_navigation
+
+        # current_menu ->
+        #   %{title: title} = current_menu.callback.(api_parameters)
+        #   "#{error}#{top_navigation}#{title}" <> bottom_navigation
+        #   end
+
+        _ ->
+          case menus do
+            [] ->
+              case show_navigation do
+                true -> "#{error}#{title}" <> previous_navigation <> next_navigation
+                false -> "#{error}#{top_navigation}#{title}" <> bottom_navigation
+              end
+
+            _ ->
+              case show_navigation do
+                true ->
+                  "#{error}#{title}\n" <>
+                    Enum.join(menus, "\n") <> previous_navigation <> next_navigation
+
+                false ->
+                  "#{error}#{top_navigation}#{title}\n" <>
+                    Enum.join(menus, "\n") <> bottom_navigation
+              end
           end
       end
 

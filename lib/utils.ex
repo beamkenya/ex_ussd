@@ -71,4 +71,41 @@ defmodule ExUssd.Utils do
       route: route
     )
   end
+
+  def to_int({value, ""}, menu, input_value) do
+    %{
+      next: %{input_match: next},
+      previous: %{input_match: previous},
+      home: %{input_match: home, enable: is_home_enable}
+    } = menu
+
+    text = Integer.to_string(value)
+
+    case input_value == home do
+      true ->
+        case is_home_enable do
+          true ->
+            705_897_792_423_629_962_208_442_626_284
+
+          _ ->
+            value
+        end
+
+      _ ->
+        case text do
+          v when v == next ->
+            605_356_150_351_840_375_921_999_017_933
+
+          v when v == previous ->
+            128_977_754_852_657_127_041_634_246_588
+
+          _ ->
+            value
+        end
+    end
+  end
+
+  def to_int(:error, _menu, _input_value), do: 999
+
+  def to_int({_value, _}, _menu, _input_value), do: 999
 end
