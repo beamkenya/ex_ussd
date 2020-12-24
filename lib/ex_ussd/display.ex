@@ -170,8 +170,9 @@ defmodule ExUssd.Display do
               "#{error}" <> previous_navigation
 
             current_menu ->
-              %{title: title} = current_menu.callback.(api_parameters)
-              "#{top_navigation}#{title}" <> bottom_navigation
+              return_menu = current_menu.callback.(api_parameters)
+              %{title: title} = return_menu
+              {return_menu, "#{top_navigation}#{title}" <> bottom_navigation}
           end
 
         _ ->
@@ -194,7 +195,9 @@ defmodule ExUssd.Display do
               end
           end
       end
-
-    {:ok, response}
+    case response do
+      {return_menu, menu_string}-> {return_menu, menu_string}
+      menu_string -> {menu, menu_string}
+    end
   end
 end
