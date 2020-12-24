@@ -35,8 +35,8 @@ defmodule ExUssd.DisplayTest do
     initial_menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler_1)
     menu = ExUssd.Utils.call_menu_callback(initial_menu)
     routes = ExUssd.Routes.get_route(%{text: "*544#", service_code: "*544#"})
-
-    assert {:ok, "Welcome"} == ExUssd.Display.generate(menu: menu, routes: routes)
+    {_, menu_string} = ExUssd.Display.generate(menu: menu, routes: routes)
+    assert {:ok, "Welcome"} == {:ok, menu_string}
   end
 
   describe "generate menu with title and menu_list" do
@@ -58,9 +58,8 @@ defmodule ExUssd.DisplayTest do
     initial_menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler_2)
     menu = ExUssd.Utils.call_menu_callback(initial_menu)
     routes = ExUssd.Routes.get_route(%{text: "*544#", service_code: "*544#"})
-
-    assert {:ok, "Welcome\n1:Product A\n2:Product B"} ==
-             ExUssd.Display.generate(menu: menu, routes: routes)
+    {_, menu_string} = ExUssd.Display.generate(menu: menu, routes: routes)
+    assert {:ok, "Welcome\n1:Product A\n2:Product B"} == {:ok, menu_string}
   end
 
   describe "generate menu navigation menu on first menu" do
@@ -84,9 +83,8 @@ defmodule ExUssd.DisplayTest do
     initial_menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler_3)
     menu = ExUssd.Utils.call_menu_callback(initial_menu)
     routes = ExUssd.Routes.get_route(%{text: "*544#", service_code: "*544#"})
-
-    assert {:ok, "Welcome\n1:Product A\n2:Product B\n98:MORE"} ==
-             ExUssd.Display.generate(menu: menu, routes: routes)
+    {_, menu_string} = ExUssd.Display.generate(menu: menu, routes: routes)
+    assert {:ok, "Welcome\n1:Product A\n2:Product B\n98:MORE"} == {:ok, menu_string}
   end
 
   describe "generate menu navigation menu on second menu" do
@@ -110,9 +108,8 @@ defmodule ExUssd.DisplayTest do
     initial_menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler_4)
     menu = ExUssd.Utils.call_menu_callback(initial_menu)
     routes = ExUssd.Routes.get_route(%{text: "*544*2#", service_code: "*544#"})
-
-    assert {:ok, "Welcome\n1:Product A\n2:Product B\n0:BACK 98:MORE"} ==
-             ExUssd.Display.generate(menu: menu, routes: routes)
+    {_, menu_string} = ExUssd.Display.generate(menu: menu, routes: routes)
+    assert {:ok, "Welcome\n1:Product A\n2:Product B\n0:BACK 98:MORE"} == {:ok, menu_string}
   end
 
   describe "Hide navigation with menu_list" do
@@ -137,9 +134,8 @@ defmodule ExUssd.DisplayTest do
     initial_menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler_5)
     menu = ExUssd.Utils.call_menu_callback(initial_menu)
     routes = ExUssd.Routes.get_route(%{text: "*544#", service_code: "*544#"})
-
-    assert {:ok, "Welcome\n1:Product A\n2:Product B"} ==
-             ExUssd.Display.generate(menu: menu, routes: routes)
+    {_, menu_string} = ExUssd.Display.generate(menu: menu, routes: routes)
+    assert {:ok, "Welcome\n1:Product A\n2:Product B"} == {:ok, menu_string}
   end
 
   describe "hide navigation menu on second menu" do

@@ -1,4 +1,6 @@
 defmodule ExUssd.Display do
+  alias ExUssd.State.Registry
+
   @moduledoc """
   Rendering of Menu Struct into response string
   """
@@ -65,6 +67,14 @@ defmodule ExUssd.Display do
 
   """
   def generate(menu: menu, routes: routes) do
+    builder(menu, routes, %{}, "")
+  end
+
+  def generate(menu: menu, routes: routes, api_parameters: api_parameters, session_id: session_id) do
+    builder(menu, routes, api_parameters, session_id)
+  end
+
+  defp builder(menu, routes, api_parameters, session_id) do
     %{
       title: title,
       error: error,
@@ -84,7 +94,10 @@ defmodule ExUssd.Display do
       },
       should_close: should_close,
       display_style: display_style,
-      show_navigation: show_navigation
+      show_navigation: show_navigation,
+      top_navigation: top_navigation,
+      bottom_navigation: bottom_navigation,
+      page_menu: page_menu
     } = menu
 
     %{depth: page} = hd(routes)
@@ -148,24 +161,54 @@ defmodule ExUssd.Display do
       end
 
     response =
-      case menus do
-        [] ->
-          case show_navigation do
-            true -> "#{error}#{title}" <> previous_navigation <> next_navigation
-            false -> "#{error}#{title}"
+      case page_menu do
+        true ->
+          [current_route | _current_routes] = routes
+          %{depth: depth, value: _} = current_route
+
+          Enum.at(menu_list, depth - 1)
+          |> case do
+            nil ->
+              [route | routes] = Registry.get(session_id)
+              %{depth: _, value: value} = route
+              new_depth = length(menu_list) + 1
+
+              new_route = %{depth: new_depth, value: value}
+              new_routes = [new_route | routes]
+              Registry.set(session_id, new_routes)
+
+              "#{error}" <> previous_navigation
+
+            current_menu ->
+              return_menu = current_menu.callback.(api_parameters)
+              %{title: title} = return_menu
+              {return_menu, "#{top_navigation}#{title}" <> bottom_navigation}
           end
 
         _ ->
-          case show_navigation do
-            true ->
-              "#{error}#{title}\n" <>
-                Enum.join(menus, "\n") <> previous_navigation <> next_navigation
+          case menus do
+            [] ->
+              case show_navigation do
+                true -> "#{error}#{title}" <> previous_navigation <> next_navigation
+                false -> "#{error}#{top_navigation}#{title}" <> bottom_navigation
+              end
 
-            false ->
-              "#{error}#{title}\n" <> Enum.join(menus, "\n")
+            _ ->
+              case show_navigation do
+                true ->
+                  "#{error}#{title}\n" <>
+                    Enum.join(menus, "\n") <> previous_navigation <> next_navigation
+
+                false ->
+                  "#{error}#{top_navigation}#{title}\n" <>
+                    Enum.join(menus, "\n") <> bottom_navigation
+              end
           end
       end
 
-    {:ok, response}
+    case response do
+      {return_menu, menu_string} -> {return_menu, menu_string}
+      menu_string -> {menu, menu_string}
+    end
   end
 end
