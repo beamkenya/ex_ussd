@@ -136,20 +136,20 @@ defmodule ExUssd.MenuTest do
              ExUssd.simulate(menu: initial_menu, text: "3")
   end
 
-  test "navigate to the not found element", params do
-    %{initial_menu: initial_menu} = params
-    ExUssd.simulate(menu: initial_menu, text: "")
+  # test "navigate to the not found element", params do
+  #   %{initial_menu: initial_menu} = params
+  #   ExUssd.simulate(menu: initial_menu, text: "")
 
-    assert {:ok, %{menu_string: "Page not Found\n0:BACK", should_close: false}} =
-             ExUssd.simulate(menu: initial_menu, text: "21")
-  end
+  #   assert {:ok, %{menu_string: "Page not Found\n0:BACK", should_close: false}} =
+  #            ExUssd.simulate(menu: initial_menu, text: "21")
+  # end
 
-  test "recover from element not found", params do
-    %{initial_menu: initial_menu} = params
-    ExUssd.simulate(menu: initial_menu, text: "")
-    ExUssd.simulate(menu: initial_menu, text: "21")
+  # test "recover from element not found", params do
+  #   %{initial_menu: initial_menu} = params
+  #   ExUssd.simulate(menu: initial_menu, text: "")
+  #   ExUssd.simulate(menu: initial_menu, text: "21")
 
-    assert {:ok, %{menu_string: "selected product c", should_close: true}} =
-             ExUssd.simulate(menu: initial_menu, text: "0")
-  end
+  #   assert {:ok, %{menu_string: "selected product c", should_close: true}} =
+  #            ExUssd.simulate(menu: initial_menu, text: "0")
+  # end
 end
