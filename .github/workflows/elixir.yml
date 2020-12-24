@@ -14,10 +14,6 @@ jobs:
   check-lint-and-test:
 
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        otp: [21.3.8.10, 22.2]
-        elixir: [1.10, 1.9.4]
 
     steps:
     - uses: actions/checkout@v2
