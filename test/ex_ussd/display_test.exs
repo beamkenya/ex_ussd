@@ -135,7 +135,7 @@ defmodule ExUssd.DisplayTest do
     menu = ExUssd.Utils.call_menu_callback(initial_menu)
     routes = ExUssd.Routes.get_route(%{text: "*544#", service_code: "*544#"})
     {_, menu_string} = ExUssd.Display.generate(menu: menu, routes: routes)
-    assert {:ok, "Welcome\n1:Product A\n2:Product B"} =={:ok, menu_string}
+    assert {:ok, "Welcome\n1:Product A\n2:Product B"} == {:ok, menu_string}
   end
 
   describe "hide navigation menu on second menu" do

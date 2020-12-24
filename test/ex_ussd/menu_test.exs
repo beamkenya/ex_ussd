@@ -46,6 +46,7 @@ defmodule ExUssd.MenuTest do
     end
 
     initial_menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler11)
+
     %{
       initial_menu: initial_menu
     }
@@ -88,37 +89,49 @@ defmodule ExUssd.MenuTest do
 
   test "return the first element", params do
     %{initial_menu: initial_menu} = params
-    assert {:ok, %{menu_string: "selected product a", should_close: false}} = ExUssd.simulate(menu: initial_menu, text: "")
+
+    assert {:ok, %{menu_string: "selected product a", should_close: false}} =
+             ExUssd.simulate(menu: initial_menu, text: "")
   end
 
   test "navigate to the second element (98)", params do
     %{initial_menu: initial_menu} = params
     ExUssd.simulate(menu: initial_menu, text: "")
-    assert {:ok, %{menu_string: "selected product b", should_close: false}} = ExUssd.simulate(menu: initial_menu, text: "98")
+
+    assert {:ok, %{menu_string: "selected product b", should_close: false}} =
+             ExUssd.simulate(menu: initial_menu, text: "98")
   end
 
   test "navigate back to the first element (0)", params do
     %{initial_menu: initial_menu} = params
     ExUssd.simulate(menu: initial_menu, text: "")
     ExUssd.simulate(menu: initial_menu, text: "98")
-    assert {:ok, %{menu_string: "selected product a", should_close: false}} = ExUssd.simulate(menu: initial_menu, text: "0")
+
+    assert {:ok, %{menu_string: "selected product a", should_close: false}} =
+             ExUssd.simulate(menu: initial_menu, text: "0")
   end
 
   test "navigate to the first element (1)", params do
     %{initial_menu: initial_menu} = params
     ExUssd.simulate(menu: initial_menu, text: "")
-    assert {:ok, %{menu_string: "selected product a", should_close: false}} = ExUssd.simulate(menu: initial_menu, text: "1")
+
+    assert {:ok, %{menu_string: "selected product a", should_close: false}} =
+             ExUssd.simulate(menu: initial_menu, text: "1")
   end
 
   test "navigate to the second element (2)", params do
     %{initial_menu: initial_menu} = params
     ExUssd.simulate(menu: initial_menu, text: "")
-    assert {:ok, %{menu_string: "selected product b", should_close: false}} = ExUssd.simulate(menu: initial_menu, text: "2")
+
+    assert {:ok, %{menu_string: "selected product b", should_close: false}} =
+             ExUssd.simulate(menu: initial_menu, text: "2")
   end
 
   test "navigate to the third element (3)", params do
     %{initial_menu: initial_menu} = params
     ExUssd.simulate(menu: initial_menu, text: "")
-    assert {:ok, %{menu_string: "selected product c", should_close: true}} = ExUssd.simulate(menu: initial_menu, text: "3")
+
+    assert {:ok, %{menu_string: "selected product c", should_close: true}} =
+             ExUssd.simulate(menu: initial_menu, text: "3")
   end
 end

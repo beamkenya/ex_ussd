@@ -195,8 +195,9 @@ defmodule ExUssd.Display do
               end
           end
       end
+
     case response do
-      {return_menu, menu_string}-> {return_menu, menu_string}
+      {return_menu, menu_string} -> {return_menu, menu_string}
       menu_string -> {menu, menu_string}
     end
   end
