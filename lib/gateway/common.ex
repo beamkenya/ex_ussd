@@ -39,7 +39,8 @@ defmodule EXUssd.Common do
       Display.generate(
         menu: current_menu,
         routes: current_routes,
-        api_parameters: api_parameters
+        api_parameters: api_parameters,
+        session_id: internal_routing.session_id
       )
 
     %{menu: return_menu, display: menu_string}

@@ -1,4 +1,6 @@
 defmodule ExUssd.Display do
+  alias ExUssd.State.Registry
+
   @moduledoc """
   Rendering of Menu Struct into response string
   """
@@ -65,14 +67,14 @@ defmodule ExUssd.Display do
 
   """
   def generate(menu: menu, routes: routes) do
-    builder(menu, routes, %{})
+    builder(menu, routes, %{}, "")
   end
 
-  def generate(menu: menu, routes: routes, api_parameters: api_parameters) do
-    builder(menu, routes, api_parameters)
+  def generate(menu: menu, routes: routes, api_parameters: api_parameters, session_id: session_id) do
+    builder(menu, routes, api_parameters, session_id)
   end
 
-  defp builder(menu, routes, api_parameters) do
+  defp builder(menu, routes, api_parameters, session_id) do
     %{
       title: title,
       error: error,
@@ -167,6 +169,14 @@ defmodule ExUssd.Display do
           Enum.at(menu_list, depth - 1)
           |> case do
             nil ->
+              [route | routes] = Registry.get(session_id)
+              %{depth: _, value: value} = route
+              new_depth = length(menu_list) + 1
+
+              new_route = %{depth: new_depth, value: value}
+              new_routes = [new_route | routes]
+              Registry.set(session_id, new_routes)
+
               "#{error}" <> previous_navigation
 
             current_menu ->

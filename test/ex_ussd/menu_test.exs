@@ -34,6 +34,7 @@ defmodule ExUssd.MenuTest do
       def handle_menu(menu, _api_parameters) do
         menu
         |> Map.put(:page_menu, true)
+        |> Map.put(:error, "Page not Found")
         |> Map.put(
           :menu_list,
           [
@@ -133,5 +134,22 @@ defmodule ExUssd.MenuTest do
 
     assert {:ok, %{menu_string: "selected product c", should_close: true}} =
              ExUssd.simulate(menu: initial_menu, text: "3")
+  end
+
+  test "navigate to the not found element", params do
+    %{initial_menu: initial_menu} = params
+    ExUssd.simulate(menu: initial_menu, text: "")
+
+    assert {:ok, %{menu_string: "Page not Found\n0:BACK", should_close: false}} =
+             ExUssd.simulate(menu: initial_menu, text: "21")
+  end
+
+  test "recover from element not found", params do
+    %{initial_menu: initial_menu} = params
+    ExUssd.simulate(menu: initial_menu, text: "")
+    ExUssd.simulate(menu: initial_menu, text: "21")
+
+    assert {:ok, %{menu_string: "selected product c", should_close: true}} =
+             ExUssd.simulate(menu: initial_menu, text: "0")
   end
 end
