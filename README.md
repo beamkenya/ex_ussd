@@ -150,7 +150,7 @@ ExUssd.goto(
   api_parameters: %{"sessionId" => "session_01", "phoneNumber" => "254722000000", "networkCode" => "Safaricom", "serviceCode" => "*544#", "text" => "" }
 )
 
-{:ok, "CON Welcome\n1:Product A\n2:Product B"}
+{:ok, "CON Welcome\n1:Product A\n2:Product B\n3:Product C"}
 # simulate 1
 menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
 ExUssd.goto(
