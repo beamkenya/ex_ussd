@@ -99,7 +99,12 @@ defmodule ExUssd.Navigation do
 
   defp loop(session_id, routes, menu, api_parameters)
        when is_list(routes) and length(routes) > 1 do
-    [head | tail] = Enum.reverse(routes) |> tl
+    [head | tail] =
+      case menu.validation_menu do
+        nil -> Enum.reverse(routes) |> tl
+        _ -> Enum.reverse(routes)
+      end
+
     response = get_next_menu(session_id, menu, head, api_parameters)
     %{error: error} = response
 
