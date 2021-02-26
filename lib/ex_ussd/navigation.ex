@@ -226,7 +226,7 @@ defmodule ExUssd.Navigation do
   end
 
   defp can_handle?(parent_menu, api_parameters, state, session_id, child_menu) do
-    current_menu = Utils.call_menu_callback(child_menu, %{api_parameters | text: state.value})
+    current_menu = Utils.call_menu_callback(child_menu, api_parameters)
 
     %{error: error} = current_menu
 
