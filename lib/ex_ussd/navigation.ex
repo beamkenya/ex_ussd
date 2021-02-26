@@ -99,23 +99,37 @@ defmodule ExUssd.Navigation do
 
   defp loop(session_id, routes, menu, api_parameters)
        when is_list(routes) and length(routes) > 1 do
-    [head | tail] =
+
+    
       case menu.validation_menu do
-        nil -> Enum.reverse(routes) |> tl
-        _ -> Enum.reverse(routes)
+        nil -> 
+          [head | tail] = Enum.reverse(routes) |> tl
+          response = get_next_menu(session_id, menu, head, api_parameters)
+          %{error: error} = response
+      
+          case error do
+            nil ->
+              response = %{response | parent: fn -> menu end}
+              loop(session_id, tail, response, api_parameters)
+      
+            _ ->
+              response
+          end
+
+        _ -> 
+          [_head | tail] = Enum.reverse(routes)
+          response = get_next_menu(session_id, menu, hd(tail), api_parameters)
+          %{error: error} = response
+      
+          case error do
+            nil ->
+              response = %{response | parent: fn -> menu end}
+              loop(session_id, tail, response, api_parameters)
+      
+            _ ->
+              response
+          end
       end
-
-    response = get_next_menu(session_id, menu, head, api_parameters)
-    %{error: error} = response
-
-    case error do
-      nil ->
-        response = %{response | parent: fn -> menu end}
-        loop(session_id, tail, response, api_parameters)
-
-      _ ->
-        response
-    end
   end
 
   defp get_next_menu(session_id, parent_menu, state, api_parameters) do
@@ -226,7 +240,7 @@ defmodule ExUssd.Navigation do
   end
 
   defp can_handle?(parent_menu, api_parameters, state, session_id, child_menu) do
-    current_menu = Utils.call_menu_callback(child_menu, api_parameters)
+    current_menu = Utils.call_menu_callback(child_menu, api_parameters |> Map.put(:text, state.value))
 
     %{error: error} = current_menu
 
