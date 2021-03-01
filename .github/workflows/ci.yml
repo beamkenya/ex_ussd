@@ -1,0 +1,31 @@
+name: Continuous Integration
+
+on: push
+
+jobs:
+  build-and-test:
+  - name: Setup elixir
+    uses: actions/setup-elixir@v1
+    with:
+        otp-version: '22.2'
+        elixir-version: '1.10'
+    - uses: actions/checkout@v2
+    - name: Restore dependencies cache
+      uses: actions/cache@v2
+      id: mix-deps-cache
+      with:
+        path: deps
+        key: ${{ runner.os }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+        restore-keys: |
+          ${{ runner.os }}-mix-
+    - name: Install dependencies
+      if: steps.mix-deps-cache.outputs.cache-hit != 'true'
+      run: |
+        mix local.rebar --force
+        mix local.hex --force
+        mix deps.get
+    - name: Run tests
+      run: |
+        mix compile --warnings-as-errors
+        mix format --check-formatted
+        mix test

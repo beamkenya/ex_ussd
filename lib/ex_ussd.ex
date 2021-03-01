@@ -62,7 +62,13 @@ defmodule ExUssd do
   def get_menu(session_id: session_id), do: @provider.get_menu(session_id: session_id)
 
   @doc """
-  This a helper function that helps simulate ussd call
+  Simulates USSD call - takes /2 params
+
+  ## Parameters
+  attrs: - a list containing
+    - `menu` - USSD menu
+    - `text` - USSD text value
+
   ## Example
       iex> defmodule MyHomeHandler do
       ...>  @behaviour ExUssd.Handler
@@ -77,7 +83,14 @@ defmodule ExUssd do
   def simulate(menu: menu, text: text), do: Utils.simulate(menu: menu, text: text)
 
   @doc """
-  This a helper function that helps simulate ussd call
+  Simulates USSD call - takes /3 params
+
+  ## Parameters
+  attrs: - a list containing
+    - `menu` - USSD menu
+    - `text` - USSD text value
+    - `service_code` - USSD short code
+
   ## Example
       iex> defmodule MyHomeHandler do
       ...>  @behaviour ExUssd.Handler
