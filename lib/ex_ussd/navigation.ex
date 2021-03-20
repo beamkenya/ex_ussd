@@ -249,7 +249,23 @@ defmodule ExUssd.Navigation do
         current_menu
 
       _ ->
-        response = %{parent_menu | error: error}
+        title =
+          case current_menu.title do
+            nil -> parent_menu.title
+            _ -> current_menu.title
+          end
+
+        menu_list =
+          case current_menu.menu_list do
+            [] -> []
+            menu_list -> current_menu.menu_list
+          end
+
+        response =
+          parent_menu
+          |> Map.put(:error, error)
+          |> Map.put(:title, title)
+          |> Map.put(:menu_list, menu_list)
 
         go_back_menu =
           case parent_menu.parent do
