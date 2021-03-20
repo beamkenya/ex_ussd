@@ -255,17 +255,15 @@ defmodule ExUssd.Navigation do
             _ -> current_menu.title
           end
 
-        menu_list =
-          case current_menu.menu_list do
-            [] -> []
-            menu_list -> current_menu.menu_list
-          end
+        case current_menu.validation_menu do
+          nil -> nil
+          _ -> Registry.add(session_id, state)
+        end
 
         response =
           parent_menu
           |> Map.put(:error, error)
           |> Map.put(:title, title)
-          |> Map.put(:menu_list, menu_list)
 
         go_back_menu =
           case parent_menu.parent do
