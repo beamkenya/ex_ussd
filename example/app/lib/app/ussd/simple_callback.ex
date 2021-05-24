@@ -1,5 +1,6 @@
 defmodule App.SimpleCallback.MyHomeHandler do
   use ExUssd.Handler
+
   def init(menu, _api_parameters) do
     menu
     |> ExUssd.set(title: "Input 5555, for secret Menu")

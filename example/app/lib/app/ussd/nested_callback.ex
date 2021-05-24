@@ -1,5 +1,6 @@
 defmodule App.NestedCallback.PinHandler do
   use ExUssd.Handler
+
   def init(menu, _api_parameters) do
     menu
     |> ExUssd.set(title: "Enter your pin number\nhint: 4321")
@@ -13,6 +14,7 @@ defmodule App.NestedCallback.PinHandler do
         # |> ExUssd.navigate(data: %{name: "John"}, handler: MyHomeHandler)
         |> ExUssd.navigate(handler: App.SimpleCallback.MyHomeHandler)
         |> ExUssd.set(continue: true)
+
       _ ->
         menu
         |> ExUssd.set(error: "Wrong pin number\n")
@@ -21,6 +23,6 @@ defmodule App.NestedCallback.PinHandler do
   end
 
   def navigation_response(payload) do
-    IO.inspect payload
+    IO.inspect(payload)
   end
 end

@@ -12,12 +12,12 @@ defmodule App.Application do
       # Starts a worker by calling: App.Worker.start_link(arg)
       # {App.Worker, arg}
       Plug.Cowboy.child_spec(
-          scheme: :http,
-          plug: App.Endpoints,
-          options: [
-            port: 4000
-          ]
-        )
+        scheme: :http,
+        plug: App.Endpoints,
+        options: [
+          port: 4000
+        ]
+      )
     ]
 
     Logger.info("App Started on Port 4000")

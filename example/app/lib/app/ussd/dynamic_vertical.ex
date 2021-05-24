@@ -1,6 +1,7 @@
 defmodule App.Dymanic.Vertical.SubCountyHandler do
   use ExUssd.Handler
-  def init(%{data: %{name: name}}= menu, _api_parameters) do
+
+  def init(%{data: %{name: name}} = menu, _api_parameters) do
     # TODO: Fetch county sub locations by county_code
 
     # Make dynamic location menus for the county
@@ -12,6 +13,7 @@ end
 
 defmodule App.Dymanic.Vertical.CountyHandler do
   use ExUssd.Handler
+
   def init(menu, _api_parameters) do
     menus = [
       ExUssd.new(name: "Nairobi", data: %{county_code: 47, name: "Nairobi"}),
@@ -21,12 +23,17 @@ defmodule App.Dymanic.Vertical.CountyHandler do
 
     menu
     |> ExUssd.set(title: "List of Counties")
-    |> ExUssd.dynamic(menus: menus, handler: App.Dymanic.Vertical.SubCountyHandler, orientation: :vertical)
+    |> ExUssd.dynamic(
+      menus: menus,
+      handler: App.Dymanic.Vertical.SubCountyHandler,
+      orientation: :vertical
+    )
   end
 end
 
 defmodule App.Dymanic.Vertical.MyHomeHandler do
   use ExUssd.Handler
+
   def init(menu, _api_parameters) do
     menu
     |> ExUssd.set(title: "Dymanic Vertical")

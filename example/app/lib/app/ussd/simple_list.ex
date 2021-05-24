@@ -1,5 +1,6 @@
 defmodule App.SimpleList.ProductAHandler do
   use ExUssd.Handler
+
   def init(menu, _api_parameters) do
     menu |> ExUssd.set(title: "selected product a")
   end
@@ -7,6 +8,7 @@ end
 
 defmodule App.SimpleList.ProductBHandler do
   use ExUssd.Handler
+
   def init(menu, _api_parameters) do
     menu |> ExUssd.set(title: "selected product b")
   end
@@ -14,6 +16,7 @@ end
 
 defmodule App.SimpleList.ProductCHandler do
   use ExUssd.Handler
+
   def init(menu, _api_parameters) do
     menu
     |> ExUssd.set(title: "selected product c")
@@ -22,6 +25,7 @@ end
 
 defmodule App.SimpleList.MyHomeHandler do
   use ExUssd.Handler
+
   def init(menu, _api_parameters) do
     menu
     |> ExUssd.set(title: "Simple Menu List")
@@ -31,6 +35,6 @@ defmodule App.SimpleList.MyHomeHandler do
   end
 
   def navigation_response(payload) do
-    IO.inspect payload
+    IO.inspect(payload)
   end
 end

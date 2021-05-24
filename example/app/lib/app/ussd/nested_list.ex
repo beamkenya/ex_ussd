@@ -1,5 +1,6 @@
 defmodule App.NestedList.ProductCHandler do
   use ExUssd.Handler
+
   def init(menu, _api_parameters) do
     menu
     |> ExUssd.set(title: "product c")
@@ -8,6 +9,7 @@ end
 
 defmodule App.NestedList.ProductBHandler do
   use ExUssd.Handler
+
   def init(menu, _api_parameters) do
     menu
     |> ExUssd.set(title: "product b")
@@ -17,6 +19,7 @@ end
 
 defmodule App.NestedList.ProductAHandler do
   use ExUssd.Handler
+
   def init(menu, _api_parameters) do
     menu
     |> ExUssd.set(title: "product a")
@@ -26,6 +29,7 @@ end
 
 defmodule App.NestedList.MyHomeHandler do
   use ExUssd.Handler
+
   def init(menu, _api_parameters) do
     menu
     |> ExUssd.set(title: "Nested List")
