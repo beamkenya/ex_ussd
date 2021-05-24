@@ -1,10 +1,10 @@
-defmodule ExUssd.MixProject do
+defmodule App.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :ex_ussd,
-      version: "0.1.3",
+      app: :app,
+      version: "0.1.0",
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       deps: deps()
@@ -15,17 +15,18 @@ defmodule ExUssd.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {ExUssd.Application, []}
+      mod: {App.Application, []}
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
-  defp deps do
+  def deps do
     [
-      {:phoenix_live_view, "0.15.1"},
-      {:phoenix_live_reload, "~> 1.2", only: :dev}
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      {:ex_ussd, git: "https://github.com/lenileiro/ex_ussd.git", branch: "main"},
+      {:plug, "~> 1.9"},
+      {:cowboy, "~> 2.7"},
+      {:plug_cowboy, "~> 2.2"},
+      {:jason, "~> 1.2"}
     ]
   end
 end
