@@ -1,107 +1,114 @@
-alias ExUssd.Utils
-
 defmodule ExUssd do
-  @moduledoc """
-    USSD interation
-  """
+  alias __MODULE__
 
-  @provider Application.get_env(:ex_ussd, :gateway) || AfricasTalking
+  @type t :: %__MODULE__{
+          name: String.t(),
+          handler: fun(),
+          title: {String.t(), boolean()},
+          menu_list: {[%__MODULE__{}], boolean()},
+          error: {String.t(), boolean()},
+          show_navigation: {boolean(), boolean()},
+          next: {map(), boolean()},
+          previous: {map(), boolean()},
+          split: {integer(), boolean()},
+          should_close: {boolean(), boolean()},
+          delimiter: {String.t(), boolean()},
+          parent: %__MODULE__{},
+          validation_menu: {%__MODULE__{}, boolean()},
+          data: map(),
+          id: String.t(),
+          default_error: String.t(),
+          continue: {boolean(), boolean()},
+          show_navigation: {boolean(), boolean()}
+        }
 
-  @doc """
-  Navigation
+  @derive {Inspect, only: [:name, :menu_list, :title, :validation_menu]}
+  defstruct name: nil,
+            handler: nil,
+            title: {nil, false},
+            menu_list: {[], false},
+            error: {nil, false},
+            handle: {false, false},
+            success: {false, false},
+            show_navigation: {true, false},
+            next: {%{name: "MORE", next: "98", delimiter: ":"}, false},
+            previous: {%{name: "BACK", previous: "0", delimiter: ":"}, false},
+            split: {7, false},
+            should_close: {false, false},
+            delimiter: {":", false},
+            parent: nil,
+            validation_menu: {nil, false},
+            data: nil,
+            id: nil,
+            init: nil,
+            continue: {nil, false},
+            orientation: :vertical,
+            default_error: "Invalid Choice\n"
 
-  ## Configuration
-  Add below config to dev.exs / prod.exs files
-
-  `config.exs`
-    ```elixir
-      config :ex_ussd :provider, AfricasTalking
-    ```
-
-  ## Example
-      iex> defmodule MyHomeHandler do
-      ...>   @behaviour ExUssd.Handler
-      ...>  def handle_menu(menu, _api_parameters) do
-      ...>    menu |> Map.put(:title, "Welcome")
-      ...>  end
-      ...>end
-      iex> menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
-      iex> ExUssd.goto(
-      ...>  internal_routing: %{text: "", session_id: "session_01", service_code: "*544#"},
-      ...>  menu: menu,
-      ...>  api_parameters: %{
-      ...>      "sessionId" => "session_01",
-      ...>      "phoneNumber" => "254722000000",
-      ...>      "networkCode" => "Safaricom",
-      ...>      "serviceCode" => "*544#",
-      ...>      "text" => ""
-      ...>    }
-      ...>  )
-      {:ok, "CON Welcome"}
-  """
-  @spec goto(
-          internal_routing: ExUssd.Ussd.internal_routing(),
-          menu: ExUssd.Ussd.menu(),
-          api_parameters: ExUssd.Ussd.api_parameters()
-        ) :: any()
-  def goto(internal_routing: internal_routing, menu: menu, api_parameters: api_parameters),
-    do:
-      @provider.goto(
-        internal_routing: internal_routing,
-        menu: menu,
-        api_parameters: api_parameters
-      )
-
-  @doc """
-  ## Example
-      iex> ExUssd.end_session(session_id: "session_01")
-      {:error, :not_found}
-  """
-  def end_session(session_id: session_id), do: @provider.end_session(session_id: session_id)
-
-  def get_menu(session_id: session_id), do: @provider.get_menu(session_id: session_id)
+  defdelegate new(opts), to: ExUssd.Op
+  defdelegate add(menu, opts), to: ExUssd.Op
+  defdelegate navigate(menu, opts), to: ExUssd.Op
+  defdelegate set(menu, opts), to: ExUssd.Op
+  defdelegate goto(opts), to: ExUssd.Op
+  defdelegate end_session(opts), to: ExUssd.Op
+  defdelegate dynamic(menu, opts), to: ExUssd.Op
 
   @doc """
-  Simulates USSD call - takes /2 params
+    defmodule MyAppWeb.Router do
+      use Phoenix.Router
+      import ExUssd
 
-  ## Parameters
-  attrs: - a list containing
-    - `menu` - USSD menu
-    - `text` - USSD text value
-
-  ## Example
-      iex> defmodule MyHomeHandler do
-      ...>  @behaviour ExUssd.Handler
-      ...>  def handle_menu(menu, _api_parameters) do
-      ...>      menu |> Map.put(:title, "Welcome")
-      ...>  end
-      ...> end
-      iex> menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
-      iex> ExUssd.Utils.simulate(menu: menu, text: "")
-      {:ok, %{menu_string: "Welcome", should_close: false}}
+      scope "/", MyAppWeb do
+        pipe_through [:browser]
+        simulate "/simulator",
+          menu: ExUssd.new(name: "Home", handler: MyHomeHandler),
+          phone_numbers: ["254700100100", "254700200200", "254700300300"]
+      end
+    end
   """
-  def simulate(menu: menu, text: text), do: Utils.simulate(menu: menu, text: text)
+  defmacro simulate(path, opts \\ []) do
+    quote bind_quoted: binding() do
+      scope path, alias: false, as: false do
+        import Phoenix.LiveView.Router, only: [live: 4]
+        opts = ExUssd.__options__(opts)
+        # All helpers are public contracts and cannot be changed
+        live("/", Phoenix.ExUssd.PageLive, :home, opts)
+      end
+    end
+  end
 
-  @doc """
-  Simulates USSD call - takes /3 params
+  def __options__(options) do
+    live_socket_path = Keyword.get(options, :live_socket_path, "/live")
 
-  ## Parameters
-  attrs: - a list containing
-    - `menu` - USSD menu
-    - `text` - USSD text value
-    - `service_code` - USSD short code
+    phone_numbers =
+      case options[:phone_numbers] do
+        nil ->
+          %{phone_numbers: []}
 
-  ## Example
-      iex> defmodule MyHomeHandler do
-      ...>  @behaviour ExUssd.Handler
-      ...>  def handle_menu(menu, _api_parameters) do
-      ...>      menu |> Map.put(:title, "Welcome")
-      ...>  end
-      ...> end
-      iex> menu = ExUssd.Menu.render(name: "Home", handler: MyHomeHandler)
-      iex> ExUssd.simulate(menu: menu, text: "", service_code: "*141#")
-      {:ok, %{menu_string: "Welcome", should_close: false}}
-  """
-  def simulate(menu: menu, text: text, service_code: service_code),
-    do: Utils.simulate(menu: menu, text: text, service_code: service_code)
+        phone_numbers ->
+          %{phone_numbers: phone_numbers}
+      end
+
+    menu =
+      case options[:menu] do
+        nil ->
+          %{menu: nil}
+
+        menu ->
+          %{menu: menu}
+      end
+
+    session_args = [phone_numbers, menu]
+
+    [
+      session: {__MODULE__, :__session__, session_args},
+      private: %{live_socket_path: live_socket_path},
+      layout: {Phoenix.ExUssd.LayoutView, :root},
+      as: :ex_ussd
+    ]
+  end
+
+  def __session__(_conn, %{phone_numbers: phone_numbers}, %{menu: menu}) do
+    %{"phone_numbers" => phone_numbers, "menu" => menu}
+  end
 end

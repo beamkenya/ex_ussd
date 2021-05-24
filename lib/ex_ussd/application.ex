@@ -5,10 +5,11 @@ defmodule ExUssd.Application do
 
   use Application
 
+  @impl true
   def start(_type, _args) do
-    # List all child processes to be supervised
     children = [
-      # A local, decentralized and scalable key-value process storage for Client Session
+      # Starts a worker by calling: ExUssd.Worker.start_link(arg)
+      # {ExUssd.Worker, arg}
       {Registry, keys: :unique, name: :session_registry}
     ]
 
