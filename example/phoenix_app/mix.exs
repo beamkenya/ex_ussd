@@ -33,7 +33,7 @@ defmodule PhoenixApp.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:ex_ussd, git: "https://github.com/beamkenya/ex_ussd.git", branch: "next"},
+      {:ex_ussd, git: "https://github.com/beamkenya/ex_ussd.git", branch: "main"},
       {:phoenix, "~> 1.5.8"},
       {:phoenix_live_view, "~> 0.15.1"},
       {:floki, ">= 0.27.0", only: :test},
