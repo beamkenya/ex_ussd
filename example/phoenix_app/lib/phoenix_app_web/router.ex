@@ -40,9 +40,10 @@ defmodule PhoenixAppWeb.Router do
       pipe_through :browser
       live_dashboard "/dashboard", metrics: PhoenixAppWeb.Telemetry
 
-      simulate "/simulator",
-      menu: ExUssd.new(name: "Home", handler:  PhoenixApp.MyHomeHandler),
-      phone_numbers: ["254700100100", "254700200200", "254700300300"]
+      simulate("/simulator",
+        menu: ExUssd.new(name: "Home", handler: PhoenixApp.MyHomeHandler),
+        phone_numbers: ["254700100100", "254700200200", "254700300300"]
+      )
     end
   end
 end
