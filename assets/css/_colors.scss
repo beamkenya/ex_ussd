@@ -1,0 +1,53 @@
+// base colors
+
+$surface: #d9dde2;
+$white: #d9dde2;
+
+
+
+// elevation (background) colors
+
+$elevations: (
+  0: 0%,
+  1: 5%,
+  2: 7%,
+  3: 8%,
+  4: 9%,
+  6: 11%,
+  8: 12%,
+  12: 14%,
+  16: 15%,
+  24: 16%,
+);
+
+@each $dp, $overlay in $elevations {
+  $color: mix($white, $surface, $overlay);
+
+  .elevation-#{$dp} {
+    background-color: #f5f6f7;
+  }
+
+  .text-elevation-#{$dp} {
+    color: $color;
+  }
+}
+// Border outline
+
+.outline {
+  border: 1px solid #ffffff;
+  border-radius: 4px;
+}
+
+// Text emphasis
+
+$emphasis: (
+  "high": 0.8,
+  "medium": 0.6,
+  "low": 0.38,
+);
+
+@each $type, $alpha in $emphasis {
+  .emphasis-#{$type} {
+    color: rgba(255, 255, 255, $alpha);
+  }
+}
