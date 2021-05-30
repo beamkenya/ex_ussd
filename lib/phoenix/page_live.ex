@@ -24,7 +24,7 @@ defmodule Phoenix.ExUssd.PageLive do
                 </div>
               </div>
               <%= if !@should_close do %>
-              <form phx-change="user_input" class="px-4">
+              <form phx-change="user_input" class="px-4" onsubmit="event.preventDefault();" phx-window-keyup="capture_keyup">
                 <input class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none id="username" name="user_input" type="text" autocomplete="off" value="<%= @user_input %>">
               </form>
               <div class="bg-gray-50 py-3 sm:flex">
@@ -170,6 +170,17 @@ defmodule Phoenix.ExUssd.PageLive do
   end
 
   @impl true
+  def handle_event("capture_keyup", %{"key" => "Enter"}, socket) do
+    send(self(), {:get_menu, %{user_input: socket.assigns.user_input}})
+    {:noreply, assign(socket, :user_input, "")}
+  end
+
+  @impl true
+  def handle_event("capture_keyup", _, socket) do
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_event("user_input", %{"user_input" => user_input}, socket) do
     {:noreply, assign(socket, user_input: user_input)}
   end
@@ -205,9 +216,12 @@ defmodule Phoenix.ExUssd.PageLive do
   @impl true
   def handle_event("call", _params, socket) do
     session_id = ExUssd.Utils.generate_id()
-    payload = process_dialer(socket.assigns.dialer)
-    send(self(), {:get_menu, Map.merge(payload, %{session_id: session_id})})
-    socket = assign(socket, session_id: session_id)
+
+    payload =
+      process_dialer(socket.assigns.dialer) |> Map.merge(%{session_id: session_id, start: true})
+
+    send(self(), {:get_menu, payload})
+    socket = assign(socket, Map.drop(payload, [:user_input]))
     {:noreply, update(socket, :show_modal, &(!&1))}
   end
 
@@ -221,6 +235,15 @@ defmodule Phoenix.ExUssd.PageLive do
   def handle_info({:end_session, %{session_id: session_id}}, socket) do
     ExUssd.end_session(session_id: session_id)
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info(
+        {:get_menu, %{user_input: user_input}},
+        %{assigns: %{session_id: session_id}} = socket
+      )
+      when user_input == "" and not is_nil(session_id) do
+    {:noreply, assign(socket, menu_string: "Input required, Try again", should_close: true)}
   end
 
   @impl true
@@ -241,6 +264,8 @@ defmodule Phoenix.ExUssd.PageLive do
 
     {:noreply, socket}
   end
+
+  defp process_dialer(""), do: %{dialer: "*555#", user_input: "*555#"}
 
   defp process_dialer(dialer) do
     processed_dialer = dialer |> String.replace("#", "") |> String.split("*")
