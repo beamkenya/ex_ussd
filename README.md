@@ -1,13 +1,14 @@
 # ExUssd
 
 [![Actions Status](https://github.com/beamkenya/ex_ussd/workflows/Elixir%20CI/badge.svg)](https://github.com/beamkenya/ex_ussd/actions) ![Hex.pm](https://img.shields.io/hexpm/v/ex_ussd) ![Hex.pm](https://img.shields.io/hexpm/dt/ex_ussd)
-[![Coverage Status](https://coveralls.io/repos/github/beamkenya/ex_ussd/badge.svg?branch=develop)](https://coveralls.io/github/beamkenya/ex_ussd?branch=develop)
 
 ## Introduction
 
 > ExUssd lets you create simple, flexible, and customizable USSD interface.
 > Under the hood ExUssd uses Elixir Registry to create and route individual USSD session.
 
+## Example 
+Checkout The example folder.
 
 ### Simple USSD menu
 Implement ExUssd `init/2` callback.
