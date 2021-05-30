@@ -161,7 +161,7 @@ defmodule Phoenix.ExUssd.PageLive do
   end
 
   @impl true
-  def handle_event("user_input", %{"user_input" => user_input} , socket) do
+  def handle_event("user_input", %{"user_input" => user_input}, socket) do
     {:noreply, assign(socket, user_input: user_input)}
   end
 
@@ -171,14 +171,16 @@ defmodule Phoenix.ExUssd.PageLive do
   end
 
   @impl true
-  def handle_event("cancel", _ , socket) do
+  def handle_event("cancel", _, socket) do
     send(self(), {:end_session, %{session_id: socket.assigns.session_id}})
-    {:noreply, assign(socket,
-    show_modal: false,
-    user_input: "",
-    session_id: nil,
-    dialer: ""
-    )}
+
+    {:noreply,
+     assign(socket,
+       show_modal: false,
+       user_input: "",
+       session_id: nil,
+       dialer: ""
+     )}
   end
 
   @impl true
@@ -201,7 +203,7 @@ defmodule Phoenix.ExUssd.PageLive do
   end
 
   @impl true
-  def handle_event("send", _ , socket) do
+  def handle_event("send", _, socket) do
     send(self(), {:get_menu, %{user_input: socket.assigns.user_input}})
     {:noreply, assign(socket, :user_input, "")}
   end
@@ -211,6 +213,7 @@ defmodule Phoenix.ExUssd.PageLive do
     ExUssd.end_session(session_id: session_id)
     {:noreply, socket}
   end
+
   @impl true
   def handle_info({:get_menu, payload}, socket) do
     api_parameters = %{
@@ -232,7 +235,10 @@ defmodule Phoenix.ExUssd.PageLive do
 
   defp process_dialer(dialer) do
     processed_dialer = dialer |> String.replace("#", "") |> String.split("*")
-    if length(processed_dialer) > 2, do: %{dialer: get_service_code(processed_dialer), user_input: dialer}, else: %{dialer: dialer, user_input: dialer}
+
+    if length(processed_dialer) > 2,
+      do: %{dialer: get_service_code(processed_dialer), user_input: dialer},
+      else: %{dialer: dialer, user_input: dialer}
   end
 
   def get_service_code(processed_dialer) do
