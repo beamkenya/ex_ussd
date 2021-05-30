@@ -23,6 +23,7 @@ defmodule Phoenix.ExUssd.PageLive do
                   </div>
                 </div>
               </div>
+              <%= if !@should_close do %>
               <form phx-change="user_input" class="px-4">
                 <input class="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none id="username" name="user_input" type="text" autocomplete="off" value="<%= @user_input %>">
               </form>
@@ -34,6 +35,13 @@ defmodule Phoenix.ExUssd.PageLive do
                   Send
                 </button>
               </div>
+              <% else %>
+              <div class="bg-gray-50 py-3 sm:flex">
+                <button phx-click="cancel" type="button" class=" bg-blue-500 text-base text-white hover:bg-blue-700 mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 text-base font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                  OK
+                </button>
+              </div>
+              <% end %>
             </div>
           </div>
         </div>
@@ -151,10 +159,10 @@ defmodule Phoenix.ExUssd.PageLive do
        show_modal: false,
        user_input: "",
        session_id: nil,
-       menu_string: ""
+       menu_string: "",
+       should_close: false
      )}
   end
-
   @impl true
   def handle_event("change_phone_number", %{"radio" => phone_number}, socket) do
     {:noreply, assign(socket, phone_number: phone_number)}
@@ -223,12 +231,12 @@ defmodule Phoenix.ExUssd.PageLive do
       "phone_number" => socket.assigns.phone_number
     }
 
-    {:ok, %{menu_string: menu_string, should_close: _should_close}} =
+    {:ok, %{menu_string: menu_string, should_close: should_close}} =
       ExUssd.goto(menu: socket.assigns.menu, api_parameters: api_parameters)
 
     socket =
       socket
-      |> assign(menu_string: menu_string)
+      |> assign(menu_string: menu_string, should_close: should_close)
 
     {:noreply, socket}
   end
