@@ -163,6 +163,7 @@ defmodule Phoenix.ExUssd.PageLive do
        should_close: false
      )}
   end
+
   @impl true
   def handle_event("change_phone_number", %{"radio" => phone_number}, socket) do
     {:noreply, assign(socket, phone_number: phone_number)}
