@@ -433,7 +433,7 @@ by adding `ex_ussd` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ex_ussd, git: "https://github.com/beamkenya/ex_ussd.git", branch: "main"}
+    {:ex_ussd, "0.1.3"}
   ]
 end
 ```

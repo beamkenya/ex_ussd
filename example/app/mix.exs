@@ -22,7 +22,7 @@ defmodule App.MixProject do
   # Run "mix help deps" to learn about dependencies.
   def deps do
     [
-      {:ex_ussd, git: "https://github.com/beamkenya/ex_ussd.git", branch: "develop"},
+      {:ex_ussd, "0.1.3"},
       {:plug, "~> 1.9"},
       {:cowboy, "~> 2.7"},
       {:plug_cowboy, "~> 2.2"},
