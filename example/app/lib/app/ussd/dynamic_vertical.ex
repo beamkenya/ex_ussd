@@ -11,15 +11,15 @@ defmodule App.Dymanic.Vertical.SubCountyHandler do
   end
 end
 
-defmodule App.Dymanic.Vertical.CountyHandler do
+defmodule App.Dymanic.Vertical.MyHomeHandler do
   use ExUssd.Handler
 
   def init(menu, _api_parameters) do
-    menus = [
-      ExUssd.new(name: "Nairobi", data: %{county_code: 47, name: "Nairobi"}),
-      ExUssd.new(name: "Mombasa", data: %{county_code: 01, name: "Mombasa"}),
-      ExUssd.new(name: "Kisumu", data: %{county_code: 42, name: "Kisumu"})
-    ]
+    menus =
+      fetch_api()
+      |> Enum.map(fn %{name: name} = data ->
+        ExUssd.new(name: name, data: data)
+      end)
 
     menu
     |> ExUssd.set(title: "List of Counties")
@@ -29,14 +29,12 @@ defmodule App.Dymanic.Vertical.CountyHandler do
       orientation: :vertical
     )
   end
-end
 
-defmodule App.Dymanic.Vertical.MyHomeHandler do
-  use ExUssd.Handler
-
-  def init(menu, _api_parameters) do
-    menu
-    |> ExUssd.set(title: "Dymanic Vertical")
-    |> ExUssd.add(ExUssd.new(name: "Counties List", handler: App.Dymanic.Vertical.CountyHandler))
+  def fetch_api do
+    [
+      %{county_code: 47, name: "Nairobi"},
+      %{county_code: 01, name: "Mombasa"},
+      %{county_code: 42, name: "Kisumu"}
+    ]
   end
 end
