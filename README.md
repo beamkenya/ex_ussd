@@ -7,6 +7,19 @@
 > ExUssd lets you create simple, flexible, and customizable USSD interface.
 > Under the hood ExUssd uses Elixir Registry to create and route individual USSD session.
 
+## Installation
+
+[available in Hex](https://hexdocs.pm/ex_ussd), the package can be installed
+by adding `ex_ussd` to your list of dependencies in `mix.exs`:
+
+```elixir
+def deps do
+  [
+    {:ex_ussd, "0.1.3"}
+  ]
+end
+```
+
 ## Example 
 Checkout The example folder.
 
@@ -417,6 +430,7 @@ Note: The name value is Truncated after 140 characters
    should_close: false
  }}
 ``` 
+
 ## Phoenix Simulator
 Update your router's configuration to forward requests to ExUssd Simlutate with a `menu` entry and `phone_numbers` list
 
@@ -434,19 +448,6 @@ if Mix.env() == :dev do
       menu: ExUssd.new(name: "Home", handler: MyHomeHandler),
       phone_numbers: ["254700100100", "254700200200", "254700300300"]
   end
-end
-```
-
-## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `ex_ussd` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:ex_ussd, "0.1.3"}
-  ]
 end
 ```
 
