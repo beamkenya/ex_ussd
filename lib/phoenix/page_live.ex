@@ -260,7 +260,7 @@ defmodule Phoenix.ExUssd.PageLive do
 
     socket =
       socket
-      |> assign(menu_string: menu_string, should_close: should_close)
+      |> assign(menu_string: menu_string, should_close: should_close, user_input: "")
 
     {:noreply, socket}
   end
