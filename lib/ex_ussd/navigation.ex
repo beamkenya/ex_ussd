@@ -138,8 +138,10 @@ defmodule ExUssd.Navigation do
 
     case current_menu do
       {:ok, _} -> current_menu
-      # Utils.invoke_after_route(menu, {:error, %{api_parameters: api_parameters}}) # TODO
-      {:error, _} -> current_menu
+      {:error, _} ->
+        # TODO
+        Utils.invoke_after_route(menu, {:error, api_parameters})
+        current_menu
     end
   end
 

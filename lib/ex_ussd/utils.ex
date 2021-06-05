@@ -75,8 +75,8 @@ defmodule ExUssd.Utils do
   end
 
   def invoke_before_route(%ExUssd{handler: handler} = menu, api_parameters) do
-    if function_exported?(handler, :callback, 2),
-      do: apply(handler, :callback, [menu, api_parameters]),
+    if function_exported?(handler, :before_route, 2),
+      do: apply(handler, :before_route, [menu, api_parameters]),
       else: nil
   end
 
@@ -91,7 +91,7 @@ defmodule ExUssd.Utils do
 
   def invoke_after_route(%ExUssd{handler: handler} = menu, {:error, api_parameters}) do
     if function_exported?(handler, :after_route, 1),
-      do: apply(handler, :after_route, [{:error, %{menu: menu, api_parameters: api_parameters}}]),
+      do: apply(handler, :after_route, [{:error, menu, api_parameters}]),
       else: nil
   end
 end

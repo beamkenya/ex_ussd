@@ -112,11 +112,12 @@ defmodule ExUssd.Op do
       menu
       |> Map.from_struct()
       |> Map.take(@allowed_fields)
+      |> Map.put(:parent, menu.parent)
 
     menu
     |> Map.put(
       :validation_menu,
-      {Map.merge(%ExUssd{name: "", handler: handler, data: data}, payload), true}
+      {Map.merge(new(%{name: "", handler: handler, data: data}), payload), true}
     )
   end
 
@@ -124,7 +125,7 @@ defmodule ExUssd.Op do
     menu
     |> Map.put(
       :validation_menu,
-      {%ExUssd{name: "", handler: handler, data: data}, true}
+      {new(%{name: "", handler: handler, data: data}) |> Map.put(:parent, menu.parent), true}
     )
   end
 
@@ -193,7 +194,21 @@ defmodule ExUssd.Op do
         {:error, :not_found} ->
           Registry.start(session_id)
           Registry.add(session_id, route)
-          current_menu = Ops.circle(Enum.reverse(route), menu, api_parameters)
+          current_menu =
+          case Ops.circle(Enum.reverse(route), menu, api_parameters) do
+            {:error, current_menu} ->
+              if function_exported?(menu.handler, :after_route, 1) do
+                menu =
+                menu.handler
+                |> apply(:after_route, [{:ok, menu, api_parameters}])
+                |> get_in([Access.key(:validation_menu), Access.elem(0)])
+                route = Route.get_route(%{text: api_parameters.text, service_code: api_parameters.service_code, session_id: "fake_session"})
+                Ops.circle(Enum.reverse(route), menu, api_parameters)
+              else
+                {:ok, current_menu}
+              end
+              current_menu -> current_menu
+          end
           Registry.set_current(session_id, current_menu)
           current_menu
 

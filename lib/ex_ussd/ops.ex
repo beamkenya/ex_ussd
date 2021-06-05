@@ -1,5 +1,6 @@
 defmodule ExUssd.Ops do
   alias ExUssd.Navigation
+  alias ExUssd.Route
 
   def circle([%{depth: 1, value: "555"}] = route, %ExUssd{} = menu, api_parameters) do
     head = List.first(route)
@@ -10,7 +11,7 @@ defmodule ExUssd.Ops do
     navigate(head, menu, api_parameters)
     |> case do
       {:ok, current_menu} -> circle(tail, current_menu, api_parameters)
-      {:error, current_menu} -> {:ok, current_menu}
+      {:error, current_menu} -> {:error, current_menu}
     end
   end
 
