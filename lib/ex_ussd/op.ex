@@ -12,7 +12,8 @@ defmodule ExUssd.Op do
     :delimiter_style,
     :continue,
     :default_error,
-    :show_navigation
+    :show_navigation,
+    :data
   ]
 
   def new(fields) when is_list(fields),
@@ -106,12 +107,33 @@ defmodule ExUssd.Op do
   def navigate(%ExUssd{} = menu, fields) when is_list(fields),
     do: navigate(menu, Enum.into(fields, %{data: Keyword.get(fields, :data)}))
 
+  def navigate(%ExUssd{data: data} = menu, %{handler: handler}) when not is_nil(data) do
+    payload =
+      menu
+      |> Map.from_struct()
+      |> Map.take(@allowed_fields)
+
+    menu
+    |> Map.put(
+      :validation_menu,
+      {Map.merge(%ExUssd{name: "", handler: handler, data: data}, payload), true}
+    )
+  end
+
   def navigate(%ExUssd{} = menu, %{handler: handler, data: data}) do
     menu
     |> Map.put(
       :validation_menu,
       {%ExUssd{name: "", handler: handler, data: data}, true}
     )
+  end
+
+  def set(%ExUssd{data: nil} = menu, [data: _data] = field) do
+    Map.merge(menu, Enum.into(field, %{}, fn {k, v} -> {k, v} end))
+  end
+
+  def set(%ExUssd{data: data} = menu, [data: _data] = field) do
+    Map.merge(menu, Enum.into(field, %{}, fn {k, v} -> {k, Map.merge(data, v)} end))
   end
 
   def set(%ExUssd{} = menu, fields) do
@@ -133,6 +155,20 @@ defmodule ExUssd.Op do
 
   def goto(fields) when is_list(fields),
     do: goto(Enum.into(fields, %{}))
+
+  def goto(%{
+        api_parameters: %{text: text, session_id: session_id, service_code: service_code},
+        menu: menu
+      }) do
+    goto(%{
+      api_parameters: %{
+        "text" => text,
+        "session_id" => session_id <> "123",
+        "service_code" => service_code
+      },
+      menu: menu
+    })
+  end
 
   def goto(%{
         api_parameters:

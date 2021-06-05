@@ -82,7 +82,12 @@ defmodule ExUssd.Navigation do
             _ -> {:ok, menu}
           end
 
-        Utils.navigation_response(menu, {:ok, api_parameters})
+        %{previous: {%{previous: previous}, _}} = current_menu
+
+        Utils.invoke_after_route(
+          current_menu,
+          {:ok, %{api_parameters: api_parameters, action: previous}}
+        )
 
         case current_menu.parent do
           nil ->
@@ -96,12 +101,13 @@ defmodule ExUssd.Navigation do
         end
 
       605_356_150_351_840_375_921_999_017_933 ->
-        Utils.navigation_response(menu, {:ok, api_parameters})
+        %{next: {%{next: next}, _}} = menu
+        Utils.invoke_after_route(menu, {:ok, %{api_parameters: api_parameters, action: next}})
         Registry.next(session_id)
         Registry.get_current(session_id)
 
       705_897_792_423_629_962_208_442_626_284 ->
-        Utils.navigation_response(menu, {:ok, api_parameters})
+        Utils.invoke_after_route(menu, {:ok, %{api_parameters: api_parameters, action: "HOME"}})
         Registry.set(session_id, %{depth: 1, value: "555"})
         Registry.get_home(session_id)
 
@@ -131,11 +137,10 @@ defmodule ExUssd.Navigation do
     current_menu = get_validation_menu(validation_menu, api_parameters, menu, route)
 
     case current_menu do
-      {:ok, _} -> Utils.navigation_response(menu, {:ok, api_parameters})
-      {:error, _} -> Utils.navigation_response(menu, {:error, api_parameters})
+      {:ok, _} -> current_menu
+      # Utils.invoke_after_route(menu, {:error, %{api_parameters: api_parameters}}) # TODO
+      {:error, _} -> current_menu
     end
-
-    current_menu
   end
 
   defp next_menu(depth, menus, nil, %{session_id: session_id} = api_parameters, menu, route)
@@ -143,7 +148,8 @@ defmodule ExUssd.Navigation do
     case Enum.at(menus, depth - 1) do
       nil ->
         parent = if length(Registry.get(session_id)) == 1, do: menu, else: menu.parent.()
-        Utils.navigation_response(menu, {:error, api_parameters})
+        # TODO
+        Utils.invoke_after_route(menu, {:error, api_parameters})
 
         {:error,
          Map.merge(menu, %{
@@ -153,7 +159,7 @@ defmodule ExUssd.Navigation do
 
       child_menu ->
         Registry.add(session_id, route)
-        Utils.navigation_response(menu, {:ok, api_parameters})
+        Utils.invoke_after_route(menu, {:ok, api_parameters})
 
         {:ok,
          Map.merge(Utils.invoke_init(child_menu, api_parameters), %{
@@ -170,7 +176,8 @@ defmodule ExUssd.Navigation do
     case get_validation_menu(validation_menu, api_parameters, menu, route) do
       {:error, current_menu} ->
         if Enum.at(menus, depth - 1) == nil do
-          Utils.navigation_response(menu, {:error, api_parameters})
+          # TODO
+          Utils.invoke_after_route(menu, {:error, api_parameters})
 
           {:error, Map.merge(current_menu, %{error: {Map.get(menu, :default_error), true}})}
         else
@@ -188,7 +195,7 @@ defmodule ExUssd.Navigation do
          menu,
          route
        ) do
-    Utils.invoke_callback(validation_menu, Map.put(api_parameters, :text, route.value))
+    Utils.invoke_before_route(validation_menu, Map.put(api_parameters, :text, route.value))
     |> case do
       nil ->
         {:error, Map.merge(menu, %{error: {Map.get(menu, :default_error), true}})}
@@ -235,7 +242,7 @@ defmodule ExUssd.Navigation do
               end
 
             {:error,
-             Map.merge(menu, %{
+             Map.merge(current_menu, %{
                error: {error, true},
                parent: fn -> %{go_back_menu | error: {nil, true}} end
              })}

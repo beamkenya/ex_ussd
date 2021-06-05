@@ -1,5 +1,5 @@
 defmodule ExUssd.Display do
-  alias ExUssd.{Registry, Utils}
+  alias ExUssd.Registry
 
   def new(fields) when is_list(fields),
     do: new(Enum.into(fields, %{}))
@@ -30,7 +30,7 @@ defmodule ExUssd.Display do
               }, _}
          } = menu,
          routes,
-         %{session_id: session_id} = api_parameters
+         %{session_id: session_id}
        ) do
     %{depth: depth} = List.first(routes)
     total_length = length(menu_list)
@@ -41,13 +41,11 @@ defmodule ExUssd.Display do
     menu =
       cond do
         depth > total_length ->
-          Utils.navigation_response(menu, {:error, api_parameters})
           Registry.depth(session_id, total_length + 1)
           menu_string = default_error <> previous_navigation
           %{menu_string: menu_string, should_close: false}
 
         depth < total_length ->
-          Utils.navigation_response(menu, {:ok, api_parameters})
           %{name: name} = Enum.at(menu_list, depth - 1)
 
           menu_string =
@@ -56,7 +54,6 @@ defmodule ExUssd.Display do
           %{menu_string: menu_string, should_close: false}
 
         depth == total_length ->
-          Utils.navigation_response(menu, {:ok, api_parameters})
           %{name: name} = Enum.at(menu_list, depth - 1)
           menu_string = "#{depth}/#{total_length}\n#{name}\n#{previous_navigation}"
           {should_close, _} = menu.should_close

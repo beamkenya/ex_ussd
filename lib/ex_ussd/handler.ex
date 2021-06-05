@@ -11,7 +11,7 @@ defmodule ExUssd.Handler do
           menu |> ExUssd.set(title: "Enter your pin number")
         end
 
-        def callback(menu, api_parameters) do
+        def before_route(menu, api_parameters) do
           case api_parameters.text == "5555" do
             true ->
               menu
@@ -27,26 +27,26 @@ defmodule ExUssd.Handler do
 
   @type menu() :: ExUssd.t()
   @type api_parameters() :: map()
+  @type payload_value() :: %{menu: menu(), api_parameters: api_parameters}
+  @type payload() :: {:ok, payload_value()} | {:error, payload_value()}
 
   @callback init(
               menu :: menu(),
               api_parameters :: api_parameters()
-            ) ::
-              menu :: menu()
+            ) :: menu()
 
-  @callback navigation_response(payload :: map()) :: payload :: any()
+  @callback callback(
+              menu :: menu() | map(),
+              api_parameters :: api_parameters()
+            ) :: menu()
+
+  @callback after_route(payload()) :: any()
+
+  @optional_callbacks callback: 2, after_route: 1
 
   defmacro __using__([]) do
     quote do
       @behaviour ExUssd.Handler
-
-      @impl ExUssd.Handler
-      def navigation_response(response), do: ExUssd.Handler.navigation_response(response)
-      defoverridable ExUssd.Handler
     end
-  end
-
-  def navigation_response(payload) do
-    payload
   end
 end
