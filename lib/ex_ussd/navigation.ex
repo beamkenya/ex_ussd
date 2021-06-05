@@ -137,7 +137,9 @@ defmodule ExUssd.Navigation do
     current_menu = get_validation_menu(validation_menu, api_parameters, menu, route)
 
     case current_menu do
-      {:ok, _} -> current_menu
+      {:ok, _} ->
+        current_menu
+
       {:error, _} ->
         # TODO
         Utils.invoke_after_route(menu, {:error, api_parameters})

@@ -194,21 +194,32 @@ defmodule ExUssd.Op do
         {:error, :not_found} ->
           Registry.start(session_id)
           Registry.add(session_id, route)
+
           current_menu =
-          case Ops.circle(Enum.reverse(route), menu, api_parameters) do
-            {:error, current_menu} ->
-              if function_exported?(menu.handler, :after_route, 1) do
-                menu =
-                menu.handler
-                |> apply(:after_route, [{:ok, menu, api_parameters}])
-                |> get_in([Access.key(:validation_menu), Access.elem(0)])
-                route = Route.get_route(%{text: api_parameters.text, service_code: api_parameters.service_code, session_id: "fake_session"})
-                Ops.circle(Enum.reverse(route), menu, api_parameters)
-              else
-                {:ok, current_menu}
-              end
-              current_menu -> current_menu
-          end
+            case Ops.circle(Enum.reverse(route), menu, api_parameters) do
+              {:error, current_menu} ->
+                if function_exported?(menu.handler, :after_route, 1) do
+                  menu =
+                    menu.handler
+                    |> apply(:after_route, [{:ok, menu, api_parameters}])
+                    |> get_in([Access.key(:validation_menu), Access.elem(0)])
+
+                  route =
+                    Route.get_route(%{
+                      text: api_parameters.text,
+                      service_code: api_parameters.service_code,
+                      session_id: "fake_session"
+                    })
+
+                  Ops.circle(Enum.reverse(route), menu, api_parameters)
+                else
+                  {:ok, current_menu}
+                end
+
+              current_menu ->
+                current_menu
+            end
+
           Registry.set_current(session_id, current_menu)
           current_menu
 
