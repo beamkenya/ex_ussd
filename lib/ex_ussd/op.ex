@@ -200,8 +200,8 @@ defmodule ExUssd.Op do
               {:error, current_menu} ->
                 if function_exported?(menu.handler, :after_route, 1) do
                   menu =
-                    menu.handler
-                    |> apply(:after_route, [{:error, menu, api_parameters}])
+                    menu
+                    |> Utils.invoke_after_route({:error, api_parameters})
                     |> get_in([Access.key(:validation_menu), Access.elem(0)])
 
                   route =
