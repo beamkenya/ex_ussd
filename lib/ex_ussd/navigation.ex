@@ -82,11 +82,11 @@ defmodule ExUssd.Navigation do
             _ -> {:ok, menu}
           end
 
-        %{previous: {%{previous: previous}, _}} = current_menu
+        %{previous: {%{name: name}, _}} = current_menu
 
         Utils.invoke_after_route(
           current_menu,
-          {:ok, %{api_parameters: api_parameters, action: previous}}
+          {:ok, %{api_parameters: api_parameters, action: name}}
         )
 
         case current_menu.parent do
@@ -101,8 +101,8 @@ defmodule ExUssd.Navigation do
         end
 
       605_356_150_351_840_375_921_999_017_933 ->
-        %{next: {%{next: next}, _}} = menu
-        Utils.invoke_after_route(menu, {:ok, %{api_parameters: api_parameters, action: next}})
+        %{next: {%{name: name}, _}} = menu
+        Utils.invoke_after_route(menu, {:ok, %{api_parameters: api_parameters, action: name}})
         Registry.next(session_id)
         Registry.get_current(session_id)
 
@@ -141,8 +141,7 @@ defmodule ExUssd.Navigation do
         current_menu
 
       {:error, _} ->
-        # TODO
-        Utils.invoke_after_route(menu, {:error, api_parameters})
+        Utils.invoke_after_route(menu, {:ok, %{api_parameters: api_parameters}})
         current_menu
     end
   end
@@ -152,8 +151,7 @@ defmodule ExUssd.Navigation do
     case Enum.at(menus, depth - 1) do
       nil ->
         parent = if length(Registry.get(session_id)) == 1, do: menu, else: menu.parent.()
-        # TODO
-        Utils.invoke_after_route(menu, {:error, api_parameters})
+        Utils.invoke_after_route(menu, {:ok, %{api_parameters: api_parameters}})
 
         {:error,
          Map.merge(menu, %{
@@ -163,7 +161,7 @@ defmodule ExUssd.Navigation do
 
       child_menu ->
         Registry.add(session_id, route)
-        Utils.invoke_after_route(menu, {:ok, api_parameters})
+        Utils.invoke_after_route(menu, {:ok, %{api_parameters: api_parameters}})
 
         {:ok,
          Map.merge(Utils.invoke_init(child_menu, api_parameters), %{
@@ -180,10 +178,20 @@ defmodule ExUssd.Navigation do
     case get_validation_menu(validation_menu, api_parameters, menu, route) do
       {:error, current_menu} ->
         if Enum.at(menus, depth - 1) == nil do
-          # TODO
-          Utils.invoke_after_route(menu, {:error, api_parameters})
+          if function_exported?(current_menu.handler, :after_route, 1) do
+            menu =
+              current_menu
+              |> Utils.invoke_after_route({:error, api_parameters})
+              |> get_in([Access.key(:validation_menu), Access.elem(0)])
 
-          {:error, Map.merge(current_menu, %{error: {Map.get(menu, :default_error), true}})}
+            if function_exported?(menu.handler, :before_route, 2) do
+              get_validation_menu(menu, api_parameters, current_menu, route)
+            else
+              {:ok, Utils.invoke_before_route(menu, api_parameters)}
+            end
+          else
+            {:error, Map.merge(current_menu, %{error: {Map.get(menu, :default_error), true}})}
+          end
         else
           next_menu(depth, menus, nil, api_parameters, menu, route)
         end
