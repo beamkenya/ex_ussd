@@ -134,16 +134,7 @@ defmodule ExUssd.Navigation do
   end
 
   defp next_menu(_depth, [], validation_menu, api_parameters, menu, route) do
-    current_menu = get_validation_menu(validation_menu, api_parameters, menu, route)
-
-    case current_menu do
-      {:ok, _} ->
-        current_menu
-
-      {:error, _} ->
-        Utils.invoke_after_route(menu, {:ok, %{api_parameters: api_parameters}})
-        current_menu
-    end
+    get_validation_menu(validation_menu, api_parameters, menu, route)
   end
 
   defp next_menu(depth, menus, nil, %{session_id: session_id} = api_parameters, menu, route)
@@ -178,20 +169,7 @@ defmodule ExUssd.Navigation do
     case get_validation_menu(validation_menu, api_parameters, menu, route) do
       {:error, current_menu} ->
         if Enum.at(menus, depth - 1) == nil do
-          if function_exported?(current_menu.handler, :after_route, 1) do
-            menu =
-              current_menu
-              |> Utils.invoke_after_route({:error, api_parameters})
-              |> get_in([Access.key(:validation_menu), Access.elem(0)])
-
-            if function_exported?(menu.handler, :before_route, 2) do
-              get_validation_menu(menu, api_parameters, current_menu, route)
-            else
-              {:ok, Utils.invoke_before_route(menu, api_parameters)}
-            end
-          else
-            {:error, Map.merge(current_menu, %{error: {Map.get(menu, :default_error), true}})}
-          end
+          after_route_handler(current_menu, api_parameters, route)
         else
           next_menu(depth, menus, nil, api_parameters, menu, route)
         end
@@ -259,6 +237,27 @@ defmodule ExUssd.Navigation do
                parent: fn -> %{go_back_menu | error: {nil, true}} end
              })}
         end
+    end
+  end
+
+  defp after_route_handler(%ExUssd{} = current_menu, api_parameters, route) do
+    if function_exported?(current_menu.handler, :after_route, 1) do
+      menu = Utils.invoke_after_route(current_menu, {:error, api_parameters})
+
+      validation_menu = get_in(menu, [Access.key(:validation_menu), Access.elem(0)])
+
+      if menu.handler == current_menu.handler do
+        {:ok, menu}
+      else
+        if function_exported?(validation_menu.handler, :before_route, 2) do
+          {_, menu} = get_validation_menu(menu, api_parameters, current_menu, route)
+          {:ok, Map.merge(menu, %{error: {nil, true}})}
+        else
+          {:ok, Utils.invoke_before_route(validation_menu, api_parameters)}
+        end
+      end
+    else
+      {:ok, Map.merge(current_menu, %{error: {Map.get(current_menu, :default_error), true}})}
     end
   end
 

@@ -22,7 +22,7 @@ defmodule ExUssd do
           show_navigation: {boolean(), boolean()}
         }
 
-  @derive {Inspect, only: [:name, :menu_list, :title, :validation_menu]}
+  # @derive {Inspect, only: [:name, :menu_list, :title, :validation_menu]}
   defstruct name: nil,
             handler: nil,
             title: {nil, false},

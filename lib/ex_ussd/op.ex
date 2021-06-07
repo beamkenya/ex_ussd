@@ -1,5 +1,5 @@
 defmodule ExUssd.Op do
-  alias ExUssd.{Utils, Registry, Ops, Display, Route}
+  alias ExUssd.{Utils, Registry, Ops, Display, Route, Error}
   require ExUssd.Utils
 
   @allowed_fields [
@@ -45,7 +45,7 @@ defmodule ExUssd.Op do
   end
 
   def add(%ExUssd{orientation: :horizontal}, _child) do
-    raise RuntimeError,
+    raise Error,
       message:
         "To use `ExUssd.add/2`,\ndrop `ExUssd.dynamic/2` with `orientation: :horizontal` from pipeline"
   end
@@ -68,7 +68,7 @@ defmodule ExUssd.Op do
         orientation: :vertical
       })
       when menus != [] do
-    raise RuntimeError,
+    raise Error,
       message: "Handler is required for `ExUssd.dynamic/2` with `orientation: :vertical` opt"
   end
 
@@ -77,8 +77,7 @@ defmodule ExUssd.Op do
         orientation: :horizontal,
         handler: _handler
       }) do
-    raise RuntimeError,
-      message: "Handler is not required"
+    raise(Error, message: "Handler is not required")
   end
 
   def dynamic(%ExUssd{menu_list: {[], _}} = menu, %{
@@ -90,9 +89,10 @@ defmodule ExUssd.Op do
   end
 
   def dynamic(_menu, %{menus: _menus, orientation: :horizontal}) do
-    raise RuntimeError,
+    raise(Error,
       message:
-        "To use `ExUssd.dynamic/2` with `orientation: :horizontal` opt,\ndrop `ExUssd.add/2` or `ExUssd.dynamic/2` with `orientation: :vertical` from pipeline"
+        "To use `ExUssd.dynamic/2` with `orientation: :horizontal` opt,\ndrop `ExUssd.add/2` or `ExUssd.dynamic/2` with `orientation: :vertical` from pipe"
+    )
   end
 
   def dynamic(_menu, %{
@@ -100,7 +100,7 @@ defmodule ExUssd.Op do
         orientation: _
       })
       when menus == [] do
-    raise RuntimeError,
+    raise Error,
       message: "Menus list is required"
   end
 
@@ -112,21 +112,27 @@ defmodule ExUssd.Op do
       menu
       |> Map.from_struct()
       |> Map.take(@allowed_fields)
-      |> Map.put(:parent, menu.parent)
+      |> Map.merge(%{parent: menu.parent, data: data})
 
-    menu
-    |> Map.put(
-      :validation_menu,
-      {Map.merge(new(%{name: "", handler: handler, data: data}), payload), true}
-    )
+    menu = ExUssd.set(menu, data: data)
+
+    Map.merge(menu, %{
+      handler: handler,
+      validation_menu: {Map.merge(new(%{name: "", handler: handler, data: data}), payload), true}
+    })
   end
 
   def navigate(%ExUssd{} = menu, %{handler: handler, data: data}) do
-    menu
-    |> Map.put(
-      :validation_menu,
-      {new(%{name: "", handler: handler, data: data}) |> Map.put(:parent, menu.parent), true}
-    )
+    payload =
+      menu
+      |> Map.from_struct()
+      |> Map.take(@allowed_fields)
+      |> Map.merge(%{parent: menu.parent, data: data})
+
+    Map.merge(menu, %{
+      handler: handler,
+      validation_menu: {Map.merge(new(%{name: "", handler: handler, data: data}), payload), true}
+    })
   end
 
   def set(%ExUssd{data: nil} = menu, [data: _data] = field) do
@@ -142,7 +148,7 @@ defmodule ExUssd.Op do
       menu
       |> Map.merge(Enum.into(fields, %{}, fn {k, v} -> {k, {v, true}} end))
     else
-      raise RuntimeError,
+      raise Error,
         message:
           "Expected field allowable fields #{inspect(@allowed_fields)} found #{
             inspect(Keyword.keys(fields))
@@ -242,7 +248,7 @@ defmodule ExUssd.Op do
           %{"session_id" => _session_id, "service_code" => _service_code} = api_parameters,
         menu: _menu
       }) do
-    raise RuntimeError,
+    raise Error,
       message: "'text' not found in api_parameters #{inspect(api_parameters)}"
   end
 
@@ -250,7 +256,7 @@ defmodule ExUssd.Op do
         api_parameters: %{"text" => _text, "service_code" => _service_code} = api_parameters,
         menu: _menu
       }) do
-    raise RuntimeError,
+    raise Error,
       message: "'session_id' not found in api_parameters #{inspect(api_parameters)}"
   end
 
@@ -258,7 +264,7 @@ defmodule ExUssd.Op do
         api_parameters: %{"text" => _text, "session_id" => _session_id} = api_parameters,
         menu: _menu
       }) do
-    raise RuntimeError,
+    raise Error,
       message: "'service_code' not found in api_parameters #{inspect(api_parameters)}"
   end
 
@@ -266,7 +272,7 @@ defmodule ExUssd.Op do
         api_parameters: api_parameters,
         menu: _menu
       }) do
-    raise RuntimeError,
+    raise Error,
       message:
         "'text', 'service_code', 'session_id',  not found in api_parameters #{
           inspect(api_parameters)

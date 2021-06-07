@@ -1,5 +1,5 @@
 defmodule ExUssd.Utils do
-  alias ExUssd.Op
+  alias ExUssd.{Error, Op, Registry}
 
   def generate_id() do
     min = String.to_integer("1000000000000", 36)
@@ -80,18 +80,63 @@ defmodule ExUssd.Utils do
       else: nil
   end
 
-  def invoke_after_route(%ExUssd{handler: handler} = menu, {:ok, payload}) do
+  def invoke_after_route(
+        %ExUssd{handler: handler} = menu,
+        {:ok, %{api_parameters: api_parameters} = payload}
+      ) do
     if function_exported?(handler, :after_route, 1) do
-      apply(handler, :after_route, [{:ok, payload}])
+      apply(handler, :after_route, [
+        {:ok, Map.put(payload, :metadata, get_metadata(menu, api_parameters))}
+      ])
+
       {:ok, menu}
     else
       {:ok, menu}
     end
   end
 
-  def invoke_after_route(%ExUssd{handler: handler} = menu, {:error, api_parameters}) do
-    if function_exported?(handler, :after_route, 1),
-      do: apply(handler, :after_route, [{:error, menu, api_parameters}]),
-      else: nil
+  def invoke_after_route(%ExUssd{handler: handler, data: data} = menu, {:error, api_parameters}) do
+    if function_exported?(handler, :after_route, 1) do
+      current_menu =
+        validate(
+          apply(handler, :after_route, [
+            {:error, %ExUssd{name: "", handler: handler, data: data},
+             %{api_parameters: api_parameters, metadata: get_metadata(menu, api_parameters)}}
+          ]),
+          handler
+        )
+
+      if current_menu == %ExUssd{name: "", handler: handler, data: data},
+        do: Map.merge(menu, %{error: {Map.get(menu, :default_error), true}}),
+        else: current_menu
+    else
+      menu
+    end
   end
+
+  def get_metadata(%ExUssd{name: name}, %{
+        service_code: service_code,
+        session_id: session_id,
+        text: text
+      }) do
+    route =
+      Registry.get(session_id)
+      |> Enum.reverse()
+      |> get_in([Access.all(), :value])
+      |> tl()
+      |> Enum.join("*")
+
+    service_code = String.replace(service_code, "#", "")
+    route = if route == "", do: service_code <> "#", else: service_code <> "*" <> route <> "#"
+
+    %{name: name, invoked_at: DateTime.utc_now(), route: route, text: text}
+  end
+
+  defp validate(%ExUssd{} = menu, _), do: menu
+
+  defp validate(v, handler),
+    do:
+      raise(Error,
+        message: "'after_route/2' on #{inspect(handler)} must return menu found #{inspect(v)}"
+      )
 end
