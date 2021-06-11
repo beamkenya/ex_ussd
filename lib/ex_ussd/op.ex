@@ -108,30 +108,40 @@ defmodule ExUssd.Op do
     do: navigate(menu, Enum.into(fields, %{data: Keyword.get(fields, :data)}))
 
   def navigate(%ExUssd{data: data} = menu, %{handler: handler}) when not is_nil(data) do
-    payload =
+    args =
       menu
       |> Map.from_struct()
       |> Map.take(@allowed_fields)
-      |> Map.merge(%{parent: menu.parent, data: data})
+      |> Map.merge(%{parent: menu.parent, data: data, handler: handler, name: ""})
+
+    validation_menu = struct(ExUssd, args)
 
     menu = ExUssd.set(menu, data: data)
 
+    handler =
+      if function_exported?(menu.handler, :after_route, 1), do: menu.handler, else: handler
+
     Map.merge(menu, %{
       handler: handler,
-      validation_menu: {Map.merge(new(%{name: "", handler: handler, data: data}), payload), true}
+      validation_menu: {validation_menu, true}
     })
   end
 
   def navigate(%ExUssd{} = menu, %{handler: handler, data: data}) do
-    payload =
+    args =
       menu
       |> Map.from_struct()
       |> Map.take(@allowed_fields)
-      |> Map.merge(%{parent: menu.parent, data: data})
+      |> Map.merge(%{parent: menu.parent, data: data, handler: handler, name: ""})
+
+    validation_menu = struct(ExUssd, args)
+
+    handler =
+      if function_exported?(menu.handler, :after_route, 1), do: menu.handler, else: handler
 
     Map.merge(menu, %{
       handler: handler,
-      validation_menu: {Map.merge(new(%{name: "", handler: handler, data: data}), payload), true}
+      validation_menu: {validation_menu, true}
     })
   end
 
