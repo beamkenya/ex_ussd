@@ -81,6 +81,11 @@ defmodule ExUssd.Utils do
       function_exported?(handler, :before_route, 2) ->
         apply(handler, :before_route, [menu, api_parameters])
 
+      function_exported?(handler, :callback, 2) ->
+        msg = "deprecated handler @callback, rename to @before_route callback"
+        IO.warn(msg, Macro.Env.stacktrace(__ENV__))
+        apply(handler, :callback, [menu, api_parameters])
+
       function_exported?(handler, :before_route, 3) ->
         apply(handler, :before_route, [menu, api_parameters, get_metadata(menu, api_parameters)])
 
@@ -137,6 +142,19 @@ defmodule ExUssd.Utils do
       end
     else
       {:ok, menu}
+    end
+  end
+
+  def invoke_after_route(%ExUssd{handler: handler} = menu, {state, payload}) do
+    api_parameters = Map.get(payload, :api_parameters, payload)
+
+    if function_exported?(handler, :navigation_response, 1) do
+      msg = "deprecated handler @navigation_response, rename to @after_route callback"
+      IO.warn(msg, Macro.Env.stacktrace(__ENV__))
+
+      apply(handler, :navigation_response, [
+        %{state: state, payload: Map.put(payload, :metadata, get_metadata(menu, api_parameters))}
+      ])
     end
   end
 

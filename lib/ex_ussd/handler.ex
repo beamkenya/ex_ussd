@@ -54,7 +54,7 @@ defmodule ExUssd.Handler do
 
   @callback after_route(payload()) :: any()
 
-  @optional_callbacks init: 3, before_route: 2, before_route: 3, after_route: 1
+  @optional_callbacks init: 2, init: 3, before_route: 2, before_route: 3, after_route: 1
 
   defmacro __using__([]) do
     quote do
