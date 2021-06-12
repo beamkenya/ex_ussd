@@ -55,29 +55,52 @@ defmodule ExUssd.Utils do
         api_parameters
       )
       when not is_nil(validation_menu) do
-    menu = apply(handler, :init, [menu, api_parameters])
+    menu =
+      cond do
+        function_exported?(handler, 2) ->
+          apply(handler, :init, [menu, api_parameters])
+
+        function_exported?(handler, 3) ->
+          apply(handler, :init, [menu, api_parameters, get_metadata(menu, api_parameters)])
+      end
 
     validation_handler =
       get_in(menu, [Access.key(:validation_menu), Access.elem(0), Access.key(:handler)])
 
-    if validation_handler == handler,
-      do: menu,
-      else:
-        apply(validation_handler, :init, [menu, api_parameters])
-        |> Map.put(
-          :validation_menu,
-          {Op.new(%{name: "", handler: handler, data: menu.data}), true}
-        )
+    if validation_handler == handler do
+      menu
+    else
+      menu = invoke_init(validation_handler, api_parameters)
+
+      Map.put(
+        menu,
+        :validation_menu,
+        {Op.new(%{name: "", handler: handler, data: menu.data}), true}
+      )
+    end
   end
 
   def invoke_init(%ExUssd{handler: handler} = menu, api_parameters) do
-    apply(handler, :init, [menu, api_parameters])
+    cond do
+      function_exported?(handler, 2) ->
+        apply(handler, :init, [menu, api_parameters])
+
+      function_exported?(handler, 3) ->
+        apply(handler, :init, [menu, api_parameters, get_metadata(menu, api_parameters)])
+    end
   end
 
   def invoke_before_route(%ExUssd{handler: handler} = menu, api_parameters) do
-    if function_exported?(handler, :before_route, 2),
-      do: apply(handler, :before_route, [menu, api_parameters]),
-      else: nil
+    cond do
+      function_exported?(handler, 2) ->
+        apply(handler, :before_route, [menu, api_parameters])
+
+      function_exported?(handler, 3) ->
+        apply(handler, :before_route, [menu, api_parameters, get_metadata(menu, api_parameters)])
+
+      true ->
+        nil
+    end
   end
 
   def invoke_after_route(
@@ -127,7 +150,7 @@ defmodule ExUssd.Utils do
     end
   end
 
-  def get_metadata(_, %{service_code: service_code, session_id: session_id, text: text}) do
+  def get_metadata(_, %{service_code: service_code, session_id: session_id}) do
     routes = Registry.get(session_id)
 
     route =
@@ -140,7 +163,7 @@ defmodule ExUssd.Utils do
     service_code = String.replace(service_code, "#", "")
     route = if route == "", do: service_code <> "#", else: service_code <> "*" <> route <> "#"
 
-    %{invoked_at: DateTime.utc_now(), route: route, text: text}
+    %{invoked_at: DateTime.utc_now(), route: route}
   end
 
   defp validate(%ExUssd{} = menu, _), do: menu

@@ -134,6 +134,10 @@ defmodule ExUssd.Navigation do
   end
 
   defp next_menu(_depth, [], validation_menu, api_parameters, menu, route) do
+    if function_exported?(validation_menu.handler, :after_route, 1) do
+      Utils.invoke_after_route(validation_menu, {:ok, %{api_parameters: api_parameters}})
+    end
+
     get_validation_menu(validation_menu, api_parameters, menu, route)
   end
 
@@ -210,8 +214,10 @@ defmodule ExUssd.Navigation do
              })}
 
           validation_menu != nil ->
-            if function_exported?(current_menu.handler, :after_route, 1) do
-              Utils.invoke_after_route(current_menu, {:ok, %{api_parameters: api_parameters}})
+            if menu.handler != current_menu.handler do
+              if function_exported?(current_menu.handler, :after_route, 1) do
+                Utils.invoke_after_route(current_menu, {:ok, %{api_parameters: api_parameters}})
+              end
             end
 
             Registry.add(session_id, route)
