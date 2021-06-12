@@ -127,26 +127,6 @@ defmodule ExUssd.Utils do
     end
   end
 
-  def invoke_after_route!(%ExUssd{handler: handler} = menu, {:error, api_parameters}) do
-    if function_exported?(handler, :after_route, 1) do
-      current_menu =
-        validate(
-          apply(handler, :after_route, [
-            {:error, menu,
-             %{
-               api_parameters: api_parameters,
-               metadata: get_metadata(menu, api_parameters)
-             }}
-          ]),
-          handler
-        )
-
-      {:error, current_menu}
-    else
-      {:ok, menu}
-    end
-  end
-
   def get_metadata(_, %{service_code: service_code, session_id: session_id, text: text}) do
     routes = Registry.get(session_id)
 

@@ -211,17 +211,25 @@ defmodule ExUssd.Navigation do
 
           validation_menu != nil ->
             if function_exported?(current_menu.handler, :after_route, 1) do
-              Utils.invoke_after_route!(current_menu, {:error, api_parameters})
-              |> case do
-                {:ok, menu} ->
-                  {:ok, menu}
-
-                {:error, _} ->
-                  {:ok, get_next_menu(validation_menu, api_parameters, current_menu, route)}
-              end
-            else
-              {:ok, get_next_menu(validation_menu, api_parameters, current_menu, route)}
+              Utils.invoke_after_route(current_menu, {:ok, %{api_parameters: api_parameters}})
             end
+
+            Registry.add(session_id, route)
+
+            {:ok,
+             Map.merge(
+               Utils.invoke_init(validation_menu, api_parameters),
+               %{
+                 parent: fn -> %{menu | error: {nil, true}} end,
+                 show_navigation: {false, true},
+                 validation_menu:
+                   {%ExUssd{
+                      name: "",
+                      data: validation_menu.data,
+                      handler: validation_menu.handler
+                    }, true}
+               }
+             )}
 
           true ->
             go_back_menu =
@@ -231,7 +239,7 @@ defmodule ExUssd.Navigation do
               end
 
             {:error,
-             Map.merge(current_menu, %{
+             Map.merge(menu, %{
                error: {error, true},
                parent: fn -> %{go_back_menu | error: {nil, true}} end,
                validation_menu:
@@ -243,27 +251,6 @@ defmodule ExUssd.Navigation do
              })}
         end
     end
-  end
-
-  def get_next_menu(
-        validation_menu,
-        %{session_id: session_id} = api_parameters,
-        current_menu,
-        route
-      ) do
-    Registry.add(session_id, route)
-    next_menu = Utils.invoke_init(validation_menu, api_parameters)
-
-    Map.merge(next_menu, %{
-      parent: fn -> %{current_menu | error: {nil, true}} end,
-      validation_menu:
-        {%ExUssd{
-           name: "",
-           data: validation_menu.data,
-           handler: validation_menu.handler
-         }, true},
-      show_navigation: {false, true}
-    })
   end
 
   defp after_route_handler(%ExUssd{} = current_menu, api_parameters, route) do
