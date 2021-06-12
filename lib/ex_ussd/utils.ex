@@ -1,5 +1,5 @@
 defmodule ExUssd.Utils do
-  alias ExUssd.{Error, Op, Registry}
+  alias ExUssd.{Op, Registry}
 
   def generate_id() do
     min = String.to_integer("1000000000000", 36)
@@ -55,22 +55,15 @@ defmodule ExUssd.Utils do
         api_parameters
       )
       when not is_nil(validation_menu) do
-    menu =
-      cond do
-        function_exported?(handler, 2) ->
-          apply(handler, :init, [menu, api_parameters])
+    menu = invoke_init_with_arity(menu, api_parameters)
 
-        function_exported?(handler, 3) ->
-          apply(handler, :init, [menu, api_parameters, get_metadata(menu, api_parameters)])
-      end
-
-    validation_handler =
-      get_in(menu, [Access.key(:validation_menu), Access.elem(0), Access.key(:handler)])
+    %ExUssd{handler: validation_handler} =
+      validation_menu = get_in(menu, [Access.key(:validation_menu), Access.elem(0)])
 
     if validation_handler == handler do
       menu
     else
-      menu = invoke_init(validation_handler, api_parameters)
+      menu = invoke_init_with_arity(validation_menu, api_parameters)
 
       Map.put(
         menu,
@@ -80,22 +73,15 @@ defmodule ExUssd.Utils do
     end
   end
 
-  def invoke_init(%ExUssd{handler: handler} = menu, api_parameters) do
-    cond do
-      function_exported?(handler, 2) ->
-        apply(handler, :init, [menu, api_parameters])
-
-      function_exported?(handler, 3) ->
-        apply(handler, :init, [menu, api_parameters, get_metadata(menu, api_parameters)])
-    end
-  end
+  def invoke_init(%ExUssd{} = menu, api_parameters),
+    do: invoke_init_with_arity(menu, api_parameters)
 
   def invoke_before_route(%ExUssd{handler: handler} = menu, api_parameters) do
     cond do
-      function_exported?(handler, 2) ->
+      function_exported?(handler, :before_route, 2) ->
         apply(handler, :before_route, [menu, api_parameters])
 
-      function_exported?(handler, 3) ->
+      function_exported?(handler, :before_route, 3) ->
         apply(handler, :before_route, [menu, api_parameters, get_metadata(menu, api_parameters)])
 
       true ->
@@ -109,7 +95,7 @@ defmodule ExUssd.Utils do
       ) do
     if function_exported?(handler, :after_route, 1) do
       apply(handler, :after_route, [
-        {:ok, Map.put(payload, :metadata, get_metadata(menu, api_parameters))}
+        %{state: :ok, payload: Map.put(payload, :metadata, get_metadata(menu, api_parameters))}
       ])
     end
   end
@@ -118,12 +104,16 @@ defmodule ExUssd.Utils do
     if function_exported?(handler, :after_route, 1) do
       current_menu =
         validate(
+          menu,
           apply(handler, :after_route, [
-            {:error, menu,
-             %{
-               api_parameters: api_parameters,
-               metadata: get_metadata(menu, api_parameters)
-             }}
+            %{
+              state: :error,
+              menu: menu,
+              payload: %{
+                api_parameters: api_parameters,
+                metadata: get_metadata(menu, api_parameters)
+              }
+            }
           ]),
           handler
         )
@@ -150,7 +140,7 @@ defmodule ExUssd.Utils do
     end
   end
 
-  def get_metadata(_, %{service_code: service_code, session_id: session_id}) do
+  defp get_metadata(_, %{service_code: service_code, session_id: session_id, text: text}) do
     routes = Registry.get(session_id)
 
     route =
@@ -162,15 +152,21 @@ defmodule ExUssd.Utils do
 
     service_code = String.replace(service_code, "#", "")
     route = if route == "", do: service_code <> "#", else: service_code <> "*" <> route <> "#"
-
-    %{invoked_at: DateTime.utc_now(), route: route}
+    invoked_at = DateTime.truncate(DateTime.utc_now(), :second)
+    %{invoked_at: invoked_at, route: route, text: text}
   end
 
-  defp validate(%ExUssd{} = menu, _), do: menu
+  defp invoke_init_with_arity(%ExUssd{handler: handler} = menu, api_parameters) do
+    cond do
+      function_exported?(handler, :init, 2) ->
+        apply(handler, :init, [menu, api_parameters])
 
-  defp validate(v, handler),
-    do:
-      raise(Error,
-        message: "'after_route/2' on #{inspect(handler)} must return menu found #{inspect(v)}"
-      )
+      function_exported?(handler, :init, 3) ->
+        apply(handler, :init, [menu, api_parameters, get_metadata(menu, api_parameters)])
+    end
+  end
+
+  defp validate(_, %ExUssd{} = menu, _), do: menu
+
+  defp validate(menu, _, _), do: menu
 end
