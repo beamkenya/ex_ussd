@@ -16,7 +16,6 @@ defmodule ExUssd do
           parent: %__MODULE__{},
           validation_menu: {%__MODULE__{}, boolean()},
           data: map(),
-          id: String.t(),
           default_error: String.t(),
           continue: {boolean(), boolean()},
           show_navigation: {boolean(), boolean()}
@@ -39,7 +38,6 @@ defmodule ExUssd do
             parent: nil,
             validation_menu: {nil, false},
             data: nil,
-            id: nil,
             init: nil,
             continue: {nil, false},
             orientation: :vertical,

@@ -134,11 +134,32 @@ defmodule ExUssd.Navigation do
   end
 
   defp next_menu(_depth, [], validation_menu, api_parameters, menu, route) do
+    case get_validation_menu(validation_menu, api_parameters, menu, route) do
+      {:ok, _} = response -> after_route(response, api_parameters, route)
+      {:error, _} = response -> after_route(response, api_parameters, route)
+    end
+  end
+
+  defp after_route({:ok, validation_menu}, api_parameters, _) do
     if function_exported?(validation_menu.handler, :after_route, 1) do
       Utils.invoke_after_route(validation_menu, {:ok, %{api_parameters: api_parameters}})
     end
 
-    get_validation_menu(validation_menu, api_parameters, menu, route)
+    {:ok, validation_menu}
+  end
+
+  defp after_route({:error, current_menu}, api_parameters, route) do
+    if function_exported?(current_menu.handler, :after_route, 1) do
+      case Utils.invoke_after_route(current_menu, {:error, api_parameters}) do
+        {:error, menu} ->
+          {:error, menu}
+
+        {:ok, validation_menu} ->
+          get_validation_menu(validation_menu, api_parameters, current_menu, route)
+      end
+    else
+      {:error, current_menu}
+    end
   end
 
   defp next_menu(depth, menus, nil, %{session_id: session_id} = api_parameters, menu, route)
@@ -156,13 +177,9 @@ defmodule ExUssd.Navigation do
 
       child_menu ->
         Registry.add(session_id, route)
-        # TODO
-        # IO.inspect(Utils.invoke_after_route(menu, {:ok, %{api_parameters: api_parameters}}))
-
-        {:ok,
-         Map.merge(Utils.invoke_init(child_menu, api_parameters), %{
-           parent: fn -> %{menu | error: {nil, true}} end
-         })}
+        current_menu = Utils.invoke_init(child_menu, api_parameters)
+        current_menu = Map.put(current_menu, :parent, fn -> %{menu | error: {nil, true}} end)
+        {:ok, current_menu}
     end
   end
 
@@ -190,8 +207,7 @@ defmodule ExUssd.Navigation do
          menu,
          route
        ) do
-    Utils.invoke_before_route(validation_menu, Map.put(api_parameters, :text, route.value))
-    |> case do
+    case Utils.invoke_before_route(validation_menu, Map.put(api_parameters, :text, route.value)) do
       nil ->
         {:error, Map.merge(menu, %{error: {Map.get(menu, :default_error), true}})}
 
@@ -261,8 +277,7 @@ defmodule ExUssd.Navigation do
 
   defp after_route_handler(%ExUssd{} = current_menu, api_parameters, route) do
     if function_exported?(current_menu.handler, :after_route, 1) do
-      Utils.invoke_after_route(current_menu, {:error, api_parameters})
-      |> case do
+      case Utils.invoke_after_route(current_menu, {:error, api_parameters}) do
         {:error, menu} ->
           {:error, menu}
 

@@ -20,34 +20,30 @@ defmodule ExUssd.Op do
     do: new(Enum.into(fields, %{data: Keyword.get(fields, :data)}))
 
   def new(%{name: name, handler: handler, data: data}) do
-    %ExUssd{
+    args = %{
       name: name,
       handler: handler,
-      id: Utils.generate_id(),
       data: data,
       validation_menu: {%ExUssd{name: "", handler: handler}, false}
     }
+
+    struct(ExUssd, args)
   end
 
   def new(%{name: name, data: data}) do
-    name = Utils.truncate(name, length: 140, omission: "...")
+    name = Utils.truncate(name, length: 145)
     new(%{name: name, handler: nil, data: data})
   end
 
   def add(%ExUssd{orientation: :vertical} = menu, %ExUssd{} = child) do
     {menu_list, _state} = Map.get(menu, :menu_list, {[], true})
 
-    menu
-    |> Map.put(
-      :menu_list,
-      {[child | menu_list], true}
-    )
+    Map.merge(menu, %{menu_list: {[child | menu_list], true}})
   end
 
   def add(%ExUssd{orientation: :horizontal}, _child) do
-    raise Error,
-      message:
-        "To use `ExUssd.add/2`,\ndrop `ExUssd.dynamic/2` with `orientation: :horizontal` from pipeline"
+    message = "the menu orientation is set to :vertical"
+    raise Error, message: message
   end
 
   def dynamic(%ExUssd{} = menu, fields) when is_list(fields),
@@ -63,21 +59,9 @@ defmodule ExUssd.Op do
     Map.merge(menu, %{menu_list: {Enum.reverse(menu_list), true}})
   end
 
-  def dynamic(_menu, %{
-        menus: menus,
-        orientation: :vertical
-      })
-      when menus != [] do
-    raise Error,
-      message: "Handler is required for `ExUssd.dynamic/2` with `orientation: :vertical` opt"
-  end
-
-  def dynamic(%ExUssd{menu_list: {[], _}}, %{
-        menus: _menus,
-        orientation: :horizontal,
-        handler: _handler
-      }) do
-    raise(Error, message: "Handler is not required")
+  def dynamic(_, %{menus: menus, orientation: :vertical}) when menus != [] do
+    message = "vertical menus: Handler not provided"
+    raise Error, message: message
   end
 
   def dynamic(%ExUssd{menu_list: {[], _}} = menu, %{
@@ -89,25 +73,32 @@ defmodule ExUssd.Op do
   end
 
   def dynamic(_menu, %{menus: _menus, orientation: :horizontal}) do
-    raise(Error,
-      message:
-        "To use `ExUssd.dynamic/2` with `orientation: :horizontal` opt,\ndrop `ExUssd.add/2` or `ExUssd.dynamic/2` with `orientation: :vertical` from pipe"
-    )
+    message = "the menu orientation is set to :vertical, comment out `ExUssd.add/2`"
+    raise Error, message: message
   end
 
-  def dynamic(_menu, %{
-        menus: menus,
-        orientation: _
-      })
-      when menus == [] do
-    raise Error,
-      message: "Menus list is required"
+  def dynamic(_menu, %{menus: menus, orientation: _}) when menus == [] do
+    message = "menus Cannot to an empty list"
+    raise Error, message: message
+  end
+
+  def dynamic(_menu, %{menus: menus, orientation: _}) when not is_list(menus) do
+    message = "menus should be a list of %ExUssd{} found #{menus}"
+    raise Error, message: message
   end
 
   def navigate(%ExUssd{} = menu, fields) when is_list(fields),
     do: navigate(menu, Enum.into(fields, %{data: Keyword.get(fields, :data)}))
 
   def navigate(%ExUssd{data: data} = menu, %{handler: handler}) when not is_nil(data) do
+    get_menu(menu, handler, data)
+  end
+
+  def navigate(%ExUssd{} = menu, %{handler: handler, data: data}) do
+    get_menu(menu, handler, data)
+  end
+
+  defp get_menu(menu, handler, data) do
     args =
       menu
       |> Map.from_struct()
@@ -117,24 +108,6 @@ defmodule ExUssd.Op do
     validation_menu = struct(ExUssd, args)
 
     menu = ExUssd.set(menu, data: data)
-
-    handler =
-      if function_exported?(menu.handler, :after_route, 1), do: menu.handler, else: handler
-
-    Map.merge(menu, %{
-      handler: handler,
-      validation_menu: {validation_menu, true}
-    })
-  end
-
-  def navigate(%ExUssd{} = menu, %{handler: handler, data: data}) do
-    args =
-      menu
-      |> Map.from_struct()
-      |> Map.take(@allowed_fields)
-      |> Map.merge(%{parent: menu.parent, data: data, handler: handler, name: ""})
-
-    validation_menu = struct(ExUssd, args)
 
     handler =
       if function_exported?(menu.handler, :after_route, 1), do: menu.handler, else: handler
@@ -155,8 +128,7 @@ defmodule ExUssd.Op do
 
   def set(%ExUssd{} = menu, fields) do
     if MapSet.subset?(MapSet.new(Keyword.keys(fields)), MapSet.new(@allowed_fields)) do
-      menu
-      |> Map.merge(Enum.into(fields, %{}, fn {k, v} -> {k, {v, true}} end))
+      Map.merge(menu, Enum.into(fields, %{}, fn {k, v} -> {k, {v, true}} end))
     else
       raise Error,
         message:
@@ -174,77 +146,16 @@ defmodule ExUssd.Op do
     do: goto(Enum.into(fields, %{}))
 
   def goto(%{
-        api_parameters: %{text: text, session_id: session_id, service_code: service_code},
-        menu: menu
-      }) do
-    goto(%{
-      api_parameters: %{
-        "text" => text,
-        "session_id" => session_id <> "123",
-        "service_code" => service_code
-      },
-      menu: menu
-    })
-  end
-
-  def goto(%{
         api_parameters:
           %{"text" => text, "session_id" => session_id, "service_code" => service_code} =
             api_parameters,
         menu: menu
       }) do
-    api_parameters =
-      for {key, val} <- api_parameters, into: %{} do
-        try do
-          {String.to_existing_atom(key), val}
-        rescue
-          _e in ArgumentError ->
-            {String.to_atom(key), val}
-        end
-      end
+    api_parameters = Utils.format_map(api_parameters)
 
     route = Route.get_route(%{text: text, service_code: service_code, session_id: session_id})
 
-    {_, current_menu} =
-      case Registry.lookup(session_id) do
-        {:error, :not_found} ->
-          Registry.start(session_id)
-          Registry.add(session_id, route)
-
-          current_menu =
-            case Ops.circle(Enum.reverse(route), menu, api_parameters) do
-              {:error, current_menu} ->
-                if function_exported?(menu.handler, :after_route, 1) do
-                  menu =
-                    menu
-                    |> Utils.invoke_after_route({:error, api_parameters})
-                    |> get_in([Access.key(:validation_menu), Access.elem(0)])
-
-                  route =
-                    Route.get_route(%{
-                      text: api_parameters.text,
-                      service_code: api_parameters.service_code,
-                      session_id: "fake_session"
-                    })
-
-                  Ops.circle(Enum.reverse(route), menu, api_parameters)
-                else
-                  {:ok, current_menu}
-                end
-
-              current_menu ->
-                current_menu
-            end
-
-          Registry.set_current(session_id, current_menu)
-          current_menu
-
-        {:ok, _pid} ->
-          {_, current_menu} = Registry.get_current(session_id)
-          current_menu = Ops.circle(route, current_menu, api_parameters, menu)
-          Registry.set_current(session_id, current_menu)
-          current_menu
-      end
+    {_, current_menu} = loop(menu, api_parameters, route)
 
     Display.new(
       menu: current_menu,
@@ -254,38 +165,84 @@ defmodule ExUssd.Op do
   end
 
   def goto(%{
-        api_parameters:
-          %{"session_id" => _session_id, "service_code" => _service_code} = api_parameters,
-        menu: _menu
+        api_parameters: %{text: text, session_id: session_id, service_code: service_code},
+        menu: menu
       }) do
-    raise Error,
-      message: "'text' not found in api_parameters #{inspect(api_parameters)}"
+    api_parameters = %{
+      "text" => text,
+      "session_id" => session_id,
+      "service_code" => service_code
+    }
+
+    goto(%{api_parameters: api_parameters, menu: menu})
   end
 
-  def goto(%{
-        api_parameters: %{"text" => _text, "service_code" => _service_code} = api_parameters,
-        menu: _menu
-      }) do
-    raise Error,
-      message: "'session_id' not found in api_parameters #{inspect(api_parameters)}"
+  defp loop(menu, %{session_id: session_id} = api_parameters, route) do
+    case Registry.lookup(session_id) do
+      {:error, :not_found} ->
+        Registry.start(session_id)
+        Registry.add(session_id, route)
+
+        current_menu =
+          case Ops.circle(Enum.reverse(route), menu, api_parameters) do
+            {:error, current_menu} ->
+              apply_effect(current_menu, menu, api_parameters)
+
+            current_menu ->
+              current_menu
+          end
+
+        Registry.set_current(session_id, current_menu)
+        current_menu
+
+      {:ok, _pid} ->
+        {_, current_menu} = Registry.get_current(session_id)
+        current_menu = Ops.circle(route, current_menu, api_parameters, menu)
+        Registry.set_current(session_id, current_menu)
+        current_menu
+    end
   end
 
-  def goto(%{
-        api_parameters: %{"text" => _text, "session_id" => _session_id} = api_parameters,
-        menu: _menu
-      }) do
-    raise Error,
-      message: "'service_code' not found in api_parameters #{inspect(api_parameters)}"
+  defp apply_effect(current_menu, menu, api_parameters) do
+    if function_exported?(menu.handler, :after_route, 1) do
+      menu =
+        menu
+        |> Utils.invoke_after_route({:error, api_parameters})
+        |> get_in([Access.key(:validation_menu), Access.elem(0)])
+
+      route =
+        Route.get_route(%{
+          text: api_parameters.text,
+          service_code: api_parameters.service_code
+        })
+
+      Ops.circle(Enum.reverse(route), menu, api_parameters)
+    else
+      {:ok, current_menu}
+    end
   end
 
-  def goto(%{
-        api_parameters: api_parameters,
-        menu: _menu
-      }) do
-    raise Error,
-      message:
-        "'text', 'service_code', 'session_id',  not found in api_parameters #{
-          inspect(api_parameters)
-        }"
+  def goto(%{api_parameters: %{"session_id" => _, "service_code" => _} = api_parameters, menu: _}) do
+    message = "'text' not found in api_parameters #{inspect(api_parameters)}"
+    raise Error, message: message
+  end
+
+  def goto(%{api_parameters: %{"text" => _, "service_code" => _} = api_parameters, menu: _}) do
+    message = "'session_id' not found in api_parameters #{inspect(api_parameters)}"
+    raise Error, message: message
+  end
+
+  def goto(%{api_parameters: %{"text" => _, "session_id" => _} = api_parameters, menu: _}) do
+    message = "'service_code' not found in api_parameters #{inspect(api_parameters)}"
+    raise Error, message: message
+  end
+
+  def goto(%{api_parameters: api_parameters, menu: _}) do
+    message =
+      "'text', 'service_code', 'session_id',  not found in api_parameters #{
+        inspect(api_parameters)
+      }"
+
+    raise Error, message: message
   end
 end
