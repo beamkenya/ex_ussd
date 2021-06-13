@@ -142,41 +142,6 @@ defmodule ExUssd.Op do
     Registry.stop(session_id)
   end
 
-  def goto(fields) when is_list(fields),
-    do: goto(Enum.into(fields, %{}))
-
-  def goto(%{
-        api_parameters:
-          %{"text" => text, "session_id" => session_id, "service_code" => service_code} =
-            api_parameters,
-        menu: menu
-      }) do
-    api_parameters = Utils.format_map(api_parameters)
-
-    route = Route.get_route(%{text: text, service_code: service_code, session_id: session_id})
-
-    {_, current_menu} = loop(menu, api_parameters, route)
-
-    Display.new(
-      menu: current_menu,
-      routes: Registry.get(session_id),
-      api_parameters: api_parameters
-    )
-  end
-
-  def goto(%{
-        api_parameters: %{text: text, session_id: session_id, service_code: service_code},
-        menu: menu
-      }) do
-    api_parameters = %{
-      "text" => text,
-      "session_id" => session_id,
-      "service_code" => service_code
-    }
-
-    goto(%{api_parameters: api_parameters, menu: menu})
-  end
-
   defp loop(menu, %{session_id: session_id} = api_parameters, route) do
     case Registry.lookup(session_id) do
       {:error, :not_found} ->
@@ -220,6 +185,41 @@ defmodule ExUssd.Op do
     else
       {:ok, current_menu}
     end
+  end
+
+  def goto(fields) when is_list(fields),
+    do: goto(Enum.into(fields, %{}))
+
+  def goto(%{
+        api_parameters:
+          %{"text" => text, "session_id" => session_id, "service_code" => service_code} =
+            api_parameters,
+        menu: menu
+      }) do
+    api_parameters = Utils.format_map(api_parameters)
+
+    route = Route.get_route(%{text: text, service_code: service_code, session_id: session_id})
+
+    {_, current_menu} = loop(menu, api_parameters, route)
+
+    Display.new(
+      menu: current_menu,
+      routes: Registry.get(session_id),
+      api_parameters: api_parameters
+    )
+  end
+
+  def goto(%{
+        api_parameters: %{text: text, session_id: session_id, service_code: service_code},
+        menu: menu
+      }) do
+    api_parameters = %{
+      "text" => text,
+      "session_id" => session_id,
+      "service_code" => service_code
+    }
+
+    goto(%{api_parameters: api_parameters, menu: menu})
   end
 
   def goto(%{api_parameters: %{"session_id" => _, "service_code" => _} = api_parameters, menu: _}) do

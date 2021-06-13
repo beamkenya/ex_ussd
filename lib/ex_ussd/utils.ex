@@ -1,6 +1,17 @@
 defmodule ExUssd.Utils do
   alias ExUssd.{Op, Registry}
 
+  def generate_id() do
+    min = String.to_integer("1000000000000", 36)
+    max = String.to_integer("ZZZZZZZZZZZZZZ", 36)
+
+    max
+    |> Kernel.-(min)
+    |> :rand.uniform()
+    |> Kernel.+(min)
+    |> Integer.to_string(36)
+  end
+
   def truncate(text, options \\ []) do
     len = options[:length] || 145
     omi = options[:omission] || "..."
@@ -35,17 +46,17 @@ defmodule ExUssd.Utils do
         api_parameters
       )
       when not is_nil(validation_menu) do
-    menu = apply_effect(menu, api_parameters)
+    current_menu = apply_effect(menu, api_parameters)
 
     %ExUssd{handler: validation_handler} =
-      validation_menu = get_in(menu, [Access.key(:validation_menu), Access.elem(0)])
+      validation_menu = get_in(current_menu, [Access.key(:validation_menu), Access.elem(0)])
 
     if validation_handler == handler do
-      menu
+      current_menu
     else
-      current_menu = apply_effect(validation_menu, api_parameters)
-      new_menu = Op.new(%{name: "", handler: handler, data: current_menu.data})
-      Map.put(current_menu, :validation_menu, {new_menu, true})
+      menu = apply_effect(validation_menu, api_parameters)
+      validation_menu = Op.new(%{name: "", handler: handler, data: menu.data})
+      Map.put(menu, :validation_menu, {validation_menu, true})
     end
   end
 
@@ -70,46 +81,44 @@ defmodule ExUssd.Utils do
     end
   end
 
-  def invoke_after_route(
-        %ExUssd{handler: handler} = menu,
-        {:ok, %{api_parameters: api_parameters} = payload}
-      ) do
-    if function_exported?(handler, :after_route, 1) do
-      apply(handler, :after_route, [
-        %{state: :ok, payload: Map.put(payload, :metadata, get_metadata(menu, api_parameters))}
-      ])
-    end
-  end
-
-  def invoke_after_route(%ExUssd{handler: handler} = menu, {:error, api_parameters}) do
-    if function_exported?(handler, :after_route, 1) do
-      msg = "deprecated handler @navigation_response, rename to @after_route callback"
-      IO.warn(msg, Macro.Env.stacktrace(__ENV__))
-
-      current_menu = apply_effect(handler, api_parameters, menu)
-
-      validation_handler =
-        get_in(current_menu, [Access.key(:validation_menu), Access.elem(0), Access.key(:handler)])
-
-      apply_effect(handler, validation_handler, current_menu, api_parameters)
-    else
-      {:ok, menu}
-    end
-  end
-
   def invoke_after_route(%ExUssd{handler: handler} = menu, {:ok, payload}) do
-    api_parameters = Map.get(payload, :api_parameters, payload)
-
-    if function_exported?(handler, :navigation_response, 1) do
-      msg = "deprecated handler @navigation_response, rename to @after_route callback"
-      IO.warn(msg, Macro.Env.stacktrace(__ENV__))
+    if function_exported?(handler, :after_route, 1) do
+      api_parameters = Map.get(payload, :api_parameters)
 
       args = %{
         state: :ok,
         payload: Map.put(payload, :metadata, get_metadata(menu, api_parameters))
       }
 
-      apply(handler, :navigation_response, [args])
+      apply(handler, :after_route, [args])
+    end
+  end
+
+  def invoke_after_route(%ExUssd{handler: handler} = menu, {:error, api_parameters}) do
+    if function_exported?(handler, :after_route, 1) do
+      args = %{
+        state: :error,
+        menu: menu,
+        payload: %{
+          api_parameters: api_parameters,
+          metadata: get_metadata(menu, api_parameters)
+        }
+      }
+
+      current_menu = validate(menu, apply(handler, :after_route, [args]), handler)
+
+      validation_handler =
+        get_in(current_menu, [Access.key(:validation_menu), Access.elem(0), Access.key(:handler)])
+
+      if validation_handler == handler do
+        {:error, current_menu}
+      else
+        menu = Op.new(%{name: "", handler: validation_handler, data: current_menu.data})
+        menu = Map.put(menu, :parent, fn -> %{current_menu | error: {nil, true}} end)
+        {:ok, apply_effect(menu, api_parameters)}
+      end
+    else
+      {:ok, menu}
     end
   end
 
@@ -123,36 +132,10 @@ defmodule ExUssd.Utils do
     end
   end
 
-  defp apply_effect(handler, api_parameters, menu) when is_map(api_parameters) do
-    args = %{
-      state: :error,
-      menu: menu,
-      payload: %{
-        api_parameters: api_parameters,
-        metadata: get_metadata(menu, api_parameters)
-      }
-    }
-
-    response = apply(handler, :after_route, [args])
-    validate(menu, response, handler)
-  end
-
-  defp apply_effect(handler, validation_handler, menu, api_parameters)
-       when validation_handler == handler do
-    {:error, menu}
-  end
-
-  defp apply_effect(handler, validation_handler, menu, api_parameters) do
-    new_menu = Op.new(%{name: "", handler: validation_handler, data: menu.data})
-    new_menu = Map.put(new_menu, :parent, fn -> %{menu | error: {nil, true}} end)
-    menu = apply(validation_handler, :init, [new_menu, api_parameters])
-    {:ok, menu}
-  end
-
   defp get_metadata(_, %{service_code: service_code, session_id: session_id, text: text}) do
     [_ | routes] = Registry.get(session_id) |> Enum.reverse() |> get_in([Access.all(), :value])
 
-    routes = Enum.join(routes, "*")
+    route = Enum.join(routes, "*")
 
     service_code = String.replace(service_code, "#", "")
     route = if route == "", do: service_code <> "#", else: service_code <> "*" <> route <> "#"
