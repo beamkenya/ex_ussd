@@ -24,7 +24,7 @@ end
 Checkout The example folder.
 
 ### Simple USSD menu
-Implement ExUssd `init/2` callback.
+Implement ExUssd `init/2` or `init/3` callback.
 Use `ExUssd.set/2` to set USSD value
 
 ```elixir
@@ -46,6 +46,24 @@ Use `ExUssd.set/2` to set USSD value
   defmodule MyHomeHandler do
     use ExUssd.Handler
     def init(menu, _api_parameters) do
+      menu 
+      |> ExUssd.set(title: "Welcome")
+    end
+  end
+
+  menu = ExUssd.new(name: "Home", handler: MyHomeHandler)
+
+  api_parameters = %{"service_code" => "*544#", "session_id" => "session_01", "text" => ""}
+
+  ExUssd.goto(menu: menu, api_parameters: api_parameters)
+
+  {:ok, %{menu_string: "Welcome", should_close: false}}
+```
+
+```elixir
+  defmodule MyHomeHandler do
+    use ExUssd.Handler
+    def init(menu, _api_parameters, _metadata) do
       menu 
       |> ExUssd.set(title: "Welcome")
     end
@@ -228,8 +246,8 @@ User passes in valid input, name navigated to next menu
   menu = ExUssd.new(name: "Home", handler: MyHomeHandler)
 ```
 
-### Using USSD `callback/2`
-Implement ExUssd `callback/2` in the event you need to validate the Users input 
+### Using USSD `callback`
+Implement ExUssd `callback/2` or `callback/3` in the event you need to validate the Users input 
 
 #### Simple validation menu
 
