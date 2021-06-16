@@ -181,8 +181,8 @@ Implement `after_route/1` function on your USSD handler module.
 
 #### Scenario  
 User passes in invalid
- - payload 
- %{
+  - payload 
+ ```elixir %{
     state: :error,
     menu: menu,
     payload: %{
@@ -190,16 +190,18 @@ User passes in invalid
       metadata: metadata
     }
   }
+```
 
 User passes in valid input, name navigated to next menu
  - payload 
- %{
+ ```elixir %{
     state: :ok,
     payload: %{
       api_parameters: api_parameters,
       metadata: metadata
     }
   }
+```
 
 ```elixir
   # ...
