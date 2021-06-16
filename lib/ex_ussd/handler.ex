@@ -27,6 +27,7 @@ defmodule ExUssd.Handler do
 
   @type menu() :: ExUssd.t()
   @type api_parameters() :: map()
+  @type metadata() :: map()
   @type payload_value() :: %{menu: menu(), api_parameters: api_parameters}
   @type payload() :: {:ok, payload_value()} | {:error, payload_value()}
 
@@ -34,15 +35,26 @@ defmodule ExUssd.Handler do
               menu :: menu(),
               api_parameters :: api_parameters()
             ) :: menu()
+  @callback init(
+              menu :: menu(),
+              api_parameters :: api_parameters(),
+              metadata :: map()
+            ) :: menu()
 
   @callback callback(
               menu :: menu() | map(),
               api_parameters :: api_parameters()
             ) :: menu()
 
+  @callback callback(
+              menu :: menu(),
+              api_parameters :: api_parameters(),
+              metadata :: metadata()
+            ) :: menu()
+
   @callback after_route(payload()) :: any()
 
-  @optional_callbacks callback: 2, after_route: 1
+  @optional_callbacks init: 2, init: 3, callback: 2, callback: 3, after_route: 1
 
   defmacro __using__([]) do
     quote do

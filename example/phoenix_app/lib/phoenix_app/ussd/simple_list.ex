@@ -34,7 +34,7 @@ defmodule App.SimpleList.MyHomeHandler do
     |> ExUssd.add(ExUssd.new(name: "Product C", handler: App.SimpleList.ProductCHandler))
   end
 
-  def navigation_response(payload) do
+  def after_route(payload) do
     IO.inspect(payload)
   end
 end

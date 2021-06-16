@@ -15,20 +15,21 @@ defmodule ExUssd.Route do
   alias ExUssd.Registry
 
   def get_route(%{text: text, service_code: service_code, session_id: session_id}) do
-    find_route_for_service_code(text, service_code, session_id)
+    get_route(text, service_code, session_id)
   end
 
-  # Private Funcs
-  defp clean(text), do: text |> String.replace("#", "") |> String.split("*")
+  def get_route(%{text: text, service_code: service_code}) do
+    get_route(text, service_code, "fake_session")
+  end
 
-  defp find_route_for_service_code(text, service_code, session_id) do
+  defp get_route(text, service_code, session_id) when is_binary(text) do
     text_value = text |> String.replace("#", "")
     service_code_value = service_code |> String.replace("#", "")
 
     cond do
       text_value == service_code_value -> [%{depth: 1, value: "555"}]
-      text_value =~ service_code_value -> take_range(clean(text), clean(service_code))
-      true -> get_route(clean(text), clean(service_code), session_id)
+      text_value =~ service_code_value -> take_range(split(text), split(service_code))
+      true -> get_route(split(text), split(service_code), session_id)
     end
   end
 
@@ -50,6 +51,8 @@ defmodule ExUssd.Route do
         %{depth: 1, value: List.last(route)}
     end
   end
+
+  defp split(text), do: text |> String.replace("#", "") |> String.split("*")
 
   defp take_range(positions, shortcode) do
     pos = length(positions)

@@ -22,7 +22,7 @@ defmodule App.NestedCallback.PinHandler do
     end
   end
 
-  def navigation_response(payload) do
+  def after_route(payload) do
     IO.inspect(payload)
   end
 end
