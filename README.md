@@ -175,16 +175,31 @@ Use `ExUssd.add/2` to add to USSD menu list on Individual USSD menu.
   menu = ExUssd.new(name: "Home", handler: MyHomeHandler)
 ```
 
-### Using USSD `navigation_response/1`
-Implement `navigation_response/1` function on your USSD handler module.
-`navigation_response/1` callback returns navigation status.
+### Using USSD `after_route/1`
+Implement `after_route/1` function on your USSD handler module.
+`after_route/1` callback returns navigation status.
 
 #### Scenario  
 User passes in invalid
- - payload {:error, api_parameters}
+ - payload 
+ %{
+    state: :error,
+    menu: menu,
+    payload: %{
+      api_parameters: api_parameters,
+      metadata: metadata
+    }
+  }
 
 User passes in valid input, name navigated to next menu
- - payload {:ok, api_parameters}
+ - payload 
+ %{
+    state: :ok,
+    payload: %{
+      api_parameters: api_parameters,
+      metadata: metadata
+    }
+  }
 
 ```elixir
   # ...
@@ -198,8 +213,13 @@ User passes in valid input, name navigated to next menu
       |> ExUssd.add(ExUssd.new(name: "Product C", handler: ProductCHandler))
     end
 
-    def navigation_response(payload) do
+    def after_route(%{state: :ok, payload: payload}) do
       IO.inspect payload
+    end
+
+    def after_route(%{state: :error, menu: menu, payload: payload}) do
+      IO.inspect payload
+      # menu |> ExUssd.set(title: "Max retry reached, account locked") |> ExUssd.set(should_close: true)
     end
   end
   

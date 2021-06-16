@@ -32,7 +32,7 @@ defmodule ExUssd.Op do
 
   def new(%{name: name, data: data}) do
     name = Utils.truncate(name, length: 145)
-    new(%{name: name, handler: nil, data: data})
+    struct(ExUssd, %{name: name, data: data})
   end
 
   def add(%ExUssd{orientation: :vertical} = menu, %ExUssd{} = child) do

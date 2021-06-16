@@ -65,16 +65,11 @@ defmodule ExUssd.Utils do
 
   def invoke_before_route(%ExUssd{handler: handler} = menu, api_parameters) do
     cond do
-      function_exported?(handler, :before_route, 2) ->
-        apply(handler, :before_route, [menu, api_parameters])
-
       function_exported?(handler, :callback, 2) ->
-        msg = "deprecated handler @callback, rename to @before_route callback"
-        IO.warn(msg, Macro.Env.stacktrace(__ENV__))
         apply(handler, :callback, [menu, api_parameters])
 
-      function_exported?(handler, :before_route, 3) ->
-        apply(handler, :before_route, [menu, api_parameters, get_metadata(menu, api_parameters)])
+      function_exported?(handler, :callback, 3) ->
+        apply(handler, :callback, [menu, api_parameters, get_metadata(menu, api_parameters)])
 
       true ->
         nil
