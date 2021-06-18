@@ -21,14 +21,12 @@ defmodule ExUssd do
           show_navigation: {boolean(), boolean()}
         }
 
-  # @derive {Inspect, only: [:name, :menu_list, :title, :validation_menu]}
   defstruct name: nil,
             handler: nil,
             title: {nil, false},
             menu_list: {[], false},
             error: {nil, false},
             handle: {false, false},
-            success: {false, false},
             show_navigation: {true, false},
             next: {%{name: "MORE", next: "98", delimiter: ":"}, false},
             previous: {%{name: "BACK", previous: "0", delimiter: ":"}, false},
@@ -38,7 +36,6 @@ defmodule ExUssd do
             parent: nil,
             validation_menu: {nil, false},
             data: nil,
-            init: nil,
             continue: {nil, false},
             orientation: :vertical,
             default_error: "Invalid Choice\n"

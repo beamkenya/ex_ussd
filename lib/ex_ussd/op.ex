@@ -20,11 +20,18 @@ defmodule ExUssd.Op do
     do: new(Enum.into(fields, %{data: Keyword.get(fields, :data)}))
 
   def new(%{name: name, handler: handler, data: data}) do
+    validation_menu =
+      if is_nil(Utils.can_invoke_before_route?(handler)) do
+        nil
+      else
+        %ExUssd{name: "", handler: handler}
+      end
+
     args = %{
       name: name,
       handler: handler,
       data: data,
-      validation_menu: {%ExUssd{name: "", handler: handler}, false}
+      validation_menu: {validation_menu, false}
     }
 
     struct(ExUssd, args)
@@ -109,13 +116,7 @@ defmodule ExUssd.Op do
 
     menu = ExUssd.set(menu, data: data)
 
-    handler =
-      if function_exported?(menu.handler, :after_route, 1), do: menu.handler, else: handler
-
-    Map.merge(menu, %{
-      handler: handler,
-      validation_menu: {validation_menu, true}
-    })
+    Map.merge(menu, %{validation_menu: {validation_menu, true}})
   end
 
   def set(%ExUssd{data: nil} = menu, [data: _data] = field) do
