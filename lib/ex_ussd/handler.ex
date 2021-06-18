@@ -11,7 +11,7 @@ defmodule ExUssd.Handler do
           menu |> ExUssd.set(title: "Enter your pin number")
         end
 
-        def before_route(menu, api_parameters) do
+        def callback(menu, api_parameters) do
           case api_parameters.text == "5555" do
             true ->
               menu

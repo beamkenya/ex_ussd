@@ -200,7 +200,8 @@ Implement `after_route/1` function on your USSD handler module.
 #### Scenario  
 User passes in invalid
   - payload 
- ```elixir %{
+ ```elixir 
+ %{
     state: :error,
     menu: menu,
     payload: %{
@@ -212,7 +213,8 @@ User passes in invalid
 
 User passes in valid input, name navigated to next menu
  - payload 
- ```elixir %{
+ ```elixir 
+ %{
     state: :ok,
     payload: %{
       api_parameters: api_parameters,

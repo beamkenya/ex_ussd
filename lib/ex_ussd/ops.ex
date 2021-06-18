@@ -1,6 +1,5 @@
 defmodule ExUssd.Ops do
   alias ExUssd.Navigation
-  alias ExUssd.Route
 
   def circle([%{depth: 1, value: "555"}] = route, %ExUssd{} = menu, api_parameters) do
     head = List.first(route)

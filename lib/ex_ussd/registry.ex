@@ -107,8 +107,7 @@ defmodule ExUssd.Registry do
     {:reply, route, new_state}
   end
 
-  def handle_call({:add, route}, _from, state) when is_map(route) do
-    %{routes: routes} = state
+  def handle_call({:add, route}, _from, %{routes: routes} = state) when is_map(route) do
     new_state = Map.put(state, :routes, [route | routes])
     {:reply, [route | routes], new_state}
   end

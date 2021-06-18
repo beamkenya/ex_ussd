@@ -41,27 +41,29 @@ defmodule ExUssd.Utils do
     end)
   end
 
-  def invoke_init(
-        %ExUssd{handler: handler, validation_menu: {validation_menu, _}} = menu,
-        api_parameters
-      )
+  def invoke_init(%ExUssd{validation_menu: {validation_menu, _}} = menu, api_parameters)
       when not is_nil(validation_menu) do
     current_menu = apply_effect(menu, api_parameters)
 
-    %ExUssd{handler: validation_handler} =
-      validation_menu = get_in(current_menu, [Access.key(:validation_menu), Access.elem(0)])
-
-    if validation_handler == handler do
-      current_menu
-    else
-      menu = apply_effect(validation_menu, api_parameters)
-      validation_menu = Op.new(%{name: "", handler: handler, data: menu.data})
-      Map.put(menu, :validation_menu, {validation_menu, true})
-    end
+    invoke_validation_handler(current_menu, api_parameters)
   end
 
   def invoke_init(%ExUssd{} = menu, api_parameters),
     do: apply_effect(menu, api_parameters)
+
+  defp invoke_validation_handler(%ExUssd{validation_menu: {validation_menu, _}} = menu, _)
+       when is_nil(validation_menu) do
+    menu
+  end
+
+  defp invoke_validation_handler(
+         %ExUssd{data: data, handler: handler, validation_menu: {validation_menu, _}},
+         api_parameters
+       ) do
+    menu = apply_effect(validation_menu, api_parameters)
+    validation_menu = Op.new(%{name: "", handler: handler, data: data})
+    Map.put(menu, :validation_menu, {validation_menu, true})
+  end
 
   def invoke_before_route(%ExUssd{handler: handler} = menu, api_parameters) do
     cond do
@@ -70,6 +72,19 @@ defmodule ExUssd.Utils do
 
       function_exported?(handler, :callback, 3) ->
         apply(handler, :callback, [menu, api_parameters, get_metadata(menu, api_parameters)])
+
+      true ->
+        nil
+    end
+  end
+
+  def can_invoke_before_route?(handler) do
+    cond do
+      function_exported?(handler, :callback, 2) ->
+        :ok
+
+      function_exported?(handler, :callback, 3) ->
+        :ok
 
       true ->
         nil
@@ -129,7 +144,6 @@ defmodule ExUssd.Utils do
 
   defp get_metadata(_, %{service_code: service_code, session_id: session_id, text: text}) do
     [_ | routes] = Registry.get(session_id) |> Enum.reverse() |> get_in([Access.all(), :value])
-
     route = Enum.join(routes, "*")
 
     service_code = String.replace(service_code, "#", "")
