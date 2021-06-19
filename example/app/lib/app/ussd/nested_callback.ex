@@ -13,12 +13,9 @@ defmodule App.NestedCallback.PinHandler do
         menu
         # |> ExUssd.navigate(data: %{name: "John"}, handler: MyHomeHandler)
         |> ExUssd.navigate(handler: App.SimpleCallback.MyHomeHandler)
-        |> ExUssd.set(continue: true)
-
       _ ->
         menu
         |> ExUssd.set(error: "Wrong pin number\n")
-        |> ExUssd.set(continue: false)
     end
   end
 

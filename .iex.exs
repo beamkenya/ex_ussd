@@ -45,12 +45,10 @@ end
         menu
         |> ExUssd.set(title: "success, Thank you.")
         |> ExUssd.set(should_close: true)
-        |> ExUssd.set(continue: true)
 
       _ ->
         menu
         |> ExUssd.set(error: "Wrong pin number\n")
-        |> ExUssd.set(continue: false)
     end
   end
 
@@ -72,7 +70,6 @@ defmodule LastNameHandler do
 
       menu
       |> ExUssd.set(title: "Your First Name: #{first_name}, Last Name: #{text}")
-      |> ExUssd.set(continue: true)
       |> ExUssd.set(should_close: true)
   end
 end
@@ -88,7 +85,6 @@ defmodule FirstNameHandler do
       IO.inspect("First Name: #{text}")
 
       menu
-      |> ExUssd.set(continue: true)
       |> ExUssd.navigate(data: %{first_name: text}, handler: LastNameHandler)
   end
 end

@@ -1,6 +1,5 @@
 defmodule ExUssd.Navigation do
-  alias ExUssd.Registry
-  alias ExUssd.Utils
+  alias ExUssd.{Op, Registry, Utils}
 
   @default_value 436_739_010_658_356_127_157_159_114_145
   def navigate(
@@ -173,7 +172,7 @@ defmodule ExUssd.Navigation do
   end
 
   defp get_validation_menu(
-         validation_menu,
+         %ExUssd{handler: handler} = validation_menu,
          %{session_id: session_id} = api_parameters,
          menu,
          route
@@ -184,32 +183,40 @@ defmodule ExUssd.Navigation do
 
       %ExUssd{
         error: {error, _},
-        continue: {continue, _},
-        title: {title, _},
-        validation_menu: {validation_menu, _}
+        validation_menu: {current_validation_menu, _}
       } = current_menu ->
         cond do
-          is_nil(error) and is_nil(title) and is_nil(validation_menu) and continue == true ->
-            {:error, Map.merge(menu, %{error: {Map.get(menu, :default_error), true}})}
-
-          is_nil(error) and is_nil(validation_menu) and not is_nil(title) and continue == true ->
-            Registry.add(session_id, route)
-
-            {:ok,
-             Map.merge(current_menu, %{
-               parent: fn -> %{menu | error: {nil, true}} end
-             })}
-
-          is_nil(error) and not is_nil(validation_menu) ->
+          is_nil(error) and not is_nil(validation_menu) and
+            current_validation_menu.handler == handler and current_menu != validation_menu ->
             Registry.add(session_id, route)
 
             {:ok, current_menu} |> after_route(api_parameters, route)
 
-            current_menu = Utils.invoke_init(validation_menu, api_parameters)
+            {:ok,
+             Map.merge(current_menu, %{
+               parent: fn -> %{menu | error: {nil, true}} end,
+               validation_menu: {nil, true}
+             })}
+
+          is_nil(error) and not is_nil(current_validation_menu) and
+              current_validation_menu.handler != handler ->
+            Registry.add(session_id, route)
+
+            {:ok, current_menu} |> after_route(api_parameters, route)
+
+            current_menu = Utils.invoke_init(current_validation_menu, api_parameters)
+
+            validation_menu =
+              if is_nil(Utils.can_invoke_before_route?(current_menu.handler)) do
+                nil
+              else
+                Op.new(%{name: "", handler: current_menu.handler, data: current_menu.data})
+              end
 
             {:ok,
              Map.merge(current_menu, %{
-               parent: fn -> %{menu | error: {nil, true}} end
+               parent: fn -> %{menu | error: {nil, true}} end,
+               validation_menu: {validation_menu, false}
              })}
 
           true ->
