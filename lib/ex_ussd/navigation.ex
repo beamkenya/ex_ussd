@@ -254,6 +254,8 @@ defmodule ExUssd.Navigation do
     end
   end
 
+  defp to_int({0, _}, menu, input_value), do: to_int({@default_value, ""}, menu, input_value)
+
   defp to_int({value, ""}, menu, input_value) do
     %{
       next: {%{next: next}, _},

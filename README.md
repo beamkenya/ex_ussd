@@ -33,6 +33,7 @@ Use `ExUssd.set/2` to set USSD value
     :title, # -> USSD menu title
     :next, # -> %{name: "MORE", next: "98", delimiter: ":"}
     :previous, # -> %{name: "BACK", previous: "0", delimiter: ":"}
+    :home, # -> %{name: "HOME", previous: "00", delimiter: ":"}
     :should_close, # -> Indicate Menu state, default `false`
     :split, # -> Set split menu list by,  default 7
     :delimiter, # -> Set delimiter style,  ":"
@@ -40,6 +41,20 @@ Use `ExUssd.set/2` to set USSD value
     :default_error, # -> Set default error message, "Invalid Choice\n", Used in the `init/2`
     :show_navigation # Show navigation, default `true`  
   ]
+```
+
+```elixir
+`config.exs`
+  ```elixir
+    config :ex_ussd,
+        default: [
+            next: %{name: "MORE", next: "98", delimiter: ":"},
+            previous: %{name: "BACK", previous: "0", delimiter: ":"},
+            split: 7,
+            default_error: "You have selected invalid option try again\n",
+            delimiter: ":"
+        ]
+  ```
 ```
 
 ```elixir

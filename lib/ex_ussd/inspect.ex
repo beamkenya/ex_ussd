@@ -20,7 +20,7 @@ defimpl Inspect, for: ExUssd do
 
     "#ExUssd<orientation: #{orientation}, default_error: #{default_error}, menu_list: [#{
       menu_list
-    }], split: #{split}, title: #{title}, show_navigation: #{show_navigation}, should_close: #{
+    }], split: #{inspect(split)}, title: #{inspect(title)}, show_navigation: #{show_navigation}, should_close: #{
       should_close
     }, data: #{inspect(data)}>"
   end

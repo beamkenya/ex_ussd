@@ -13,7 +13,7 @@ defmodule ExUssd.Utils do
   end
 
   def truncate(text, options \\ []) do
-    len = options[:length] || 145
+    len = options[:length] || 30
     omi = options[:omission] || "..."
 
     cond do

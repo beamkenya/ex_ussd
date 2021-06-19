@@ -28,17 +28,22 @@ defmodule ExUssd do
             error: {nil, false},
             handle: {false, false},
             show_navigation: {true, false},
-            next: {%{name: "MORE", next: "98", delimiter: ":"}, false},
-            previous: {%{name: "BACK", previous: "0", delimiter: ":"}, false},
-            split: {7, false},
+            next:
+              {Application.get_env(:ex_ussd, :default)[:next] ||
+                 %{name: "MORE", next: "98", delimiter: ":"}, false},
+            previous:
+              {Application.get_env(:ex_ussd, :default)[:previous] ||
+                 %{name: "BACK", previous: "0", delimiter: ":"}, false},
+            split: {Application.get_env(:ex_ussd, :default)[:split] || 7, false},
             should_close: {false, false},
-            delimiter: {":", false},
+            delimiter: {Application.get_env(:ex_ussd, :default)[:delimiter] || ":", false},
             parent: nil,
             validation_menu: {nil, false},
             data: nil,
             continue: {nil, false},
             orientation: :vertical,
-            default_error: "Invalid Choice\n"
+            default_error:
+              Application.get_env(:ex_ussd, :default)[:default_error] || "Invalid Choice\n"
 
   defdelegate new(opts), to: ExUssd.Op
   defdelegate add(menu, opts), to: ExUssd.Op
@@ -77,20 +82,14 @@ defmodule ExUssd do
 
     phone_numbers =
       case options[:phone_numbers] do
-        nil ->
-          %{phone_numbers: []}
-
-        phone_numbers ->
-          %{phone_numbers: phone_numbers}
+        nil -> []
+        phone_numbers -> phone_numbers
       end
 
     menu =
       case options[:menu] do
-        nil ->
-          %{menu: nil}
-
-        menu ->
-          %{menu: menu}
+        nil -> nil
+        menu -> menu
       end
 
     session_args = [phone_numbers, menu]
@@ -103,7 +102,7 @@ defmodule ExUssd do
     ]
   end
 
-  def __session__(_conn, %{phone_numbers: phone_numbers}, %{menu: menu}) do
+  def __session__(_conn, phone_numbers, menu) do
     %{"phone_numbers" => phone_numbers, "menu" => menu}
   end
 end
