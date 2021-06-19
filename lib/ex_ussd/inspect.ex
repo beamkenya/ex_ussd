@@ -18,10 +18,6 @@ defimpl Inspect, for: ExUssd do
       |> Enum.map(fn {%ExUssd{name: name}, index} -> "#{index + 1}: #{name}" end)
       |> Enum.join(", ")
 
-    "#ExUssd<orientation: #{orientation}, default_error: #{default_error}, menu_list: [#{
-      menu_list
-    }], split: #{inspect(split)}, title: #{inspect(title)}, show_navigation: #{show_navigation}, should_close: #{
-      should_close
-    }, data: #{inspect(data)}>"
+    "#ExUssd<orientation: #{orientation}, default_error: #{default_error}, menu_list: [#{menu_list}], split: #{inspect(split)}, title: #{inspect(title)}, show_navigation: #{show_navigation}, should_close: #{should_close}, data: #{inspect(data)}>"
   end
 end

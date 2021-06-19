@@ -133,9 +133,7 @@ defmodule ExUssd.Op do
     else
       raise Error,
         message:
-          "Expected field allowable fields #{inspect(@allowed_fields)} found #{
-            inspect(Keyword.keys(fields))
-          }"
+          "Expected field allowable fields #{inspect(@allowed_fields)} found #{inspect(Keyword.keys(fields))}"
     end
   end
 
@@ -240,9 +238,7 @@ defmodule ExUssd.Op do
 
   def goto(%{api_parameters: api_parameters, menu: _}) do
     message =
-      "'text', 'service_code', 'session_id',  not found in api_parameters #{
-        inspect(api_parameters)
-      }"
+      "'text', 'service_code', 'session_id',  not found in api_parameters #{inspect(api_parameters)}"
 
     raise Error, message: message
   end

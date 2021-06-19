@@ -43,18 +43,17 @@ Use `ExUssd.set/2` to set USSD value
   ]
 ```
 
+
+Set ExUssd Default `config.exs`
 ```elixir
-`config.exs`
-  ```elixir
-    config :ex_ussd,
-        default: [
-            next: %{name: "MORE", next: "98", delimiter: ":"},
-            previous: %{name: "BACK", previous: "0", delimiter: ":"},
-            split: 7,
-            default_error: "You have selected invalid option try again\n",
-            delimiter: ":"
-        ]
-  ```
+  config :ex_ussd,
+      default: [
+          next: %{name: "MORE", next: "98", delimiter: ":"},
+          previous: %{name: "BACK", previous: "0", delimiter: ":"},
+          split: 7,
+          default_error: "You have selected invalid option try again\n",
+          delimiter: ":"
+      ]
 ```
 
 ```elixir
