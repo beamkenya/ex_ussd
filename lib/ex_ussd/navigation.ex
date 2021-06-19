@@ -186,7 +186,7 @@ defmodule ExUssd.Navigation do
         validation_menu: {current_validation_menu, _}
       } = current_menu ->
         cond do
-          is_nil(error) and not is_nil(validation_menu) and
+          is_nil(error) and not is_nil(current_validation_menu) and
             current_validation_menu.handler == handler and current_menu != validation_menu ->
             Registry.add(session_id, route)
 

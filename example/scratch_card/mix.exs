@@ -22,7 +22,7 @@ defmodule ScratchCard.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ex_ussd, "~> 0.1.4"},
+      {:ex_ussd, "~> 0.1.5"},
       {:plug, "~> 1.9"},
       {:cowboy, "~> 2.7"},
       {:plug_cowboy, "~> 2.2"},
