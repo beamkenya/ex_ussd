@@ -9,7 +9,7 @@ defmodule ExUssd.Op do
     :previous,
     :should_close,
     :split,
-    :delimiter_style,
+    :delimiter,
     :continue,
     :default_error,
     :show_navigation,
@@ -38,7 +38,7 @@ defmodule ExUssd.Op do
   end
 
   def new(%{name: name, data: data}) do
-    name = Utils.truncate(name, length: 145)
+    name = Utils.truncate(name, length: 140, omission: "...")
     struct(ExUssd, %{name: name, data: data})
   end
 
