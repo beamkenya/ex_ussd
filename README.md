@@ -15,7 +15,7 @@ by adding `ex_ussd` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ex_ussd, "0.1.4"}
+    {:ex_ussd, "0.1.5"}
   ]
 end
 ```
