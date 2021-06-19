@@ -23,13 +23,13 @@ end
 ## Example 
 Checkout The example folder.
 
-### Simple USSD menu
-Implement ExUssd `init/2` or `init/3` callback.
-Use `ExUssd.set/2` to set USSD value
+### Configuration
+The ExUssd field can be set using Use `ExUssd.set/2`
+
+Following are the setable fields
 
 ```elixir
 @allowed_fields [
-    :error, # -> Custom error message, Used in the `callback/2`
     :title, # -> USSD menu title
     :next, # -> %{name: "MORE", next: "98", delimiter: ":"}
     :previous, # -> %{name: "BACK", previous: "0", delimiter: ":"}
@@ -38,23 +38,26 @@ Use `ExUssd.set/2` to set USSD value
     :split, # -> Set split menu list by,  default 7
     :delimiter, # -> Set delimiter style,  ":"
     :continue, # -> Navigation state, Used in the `callback/2`
+    :error, # -> Custom error message, Used in the `callback/2`
     :default_error, # -> Set default error message, "Invalid Choice\n", Used in the `init/2`
     :show_navigation # Show navigation, default `true`  
   ]
 ```
 
-
-Set ExUssd Default `config.exs`
+Set ExUssd Global Default `config.exs`
 ```elixir
   config :ex_ussd,
-      default: [
-          next: %{name: "MORE", next: "98", delimiter: ":"},
-          previous: %{name: "BACK", previous: "0", delimiter: ":"},
-          split: 7,
-          default_error: "You have selected invalid option try again\n",
-          delimiter: ":"
-      ]
+    default: [
+        next: %{name: "MORE", next: "98", delimiter: ":"},
+        previous: %{name: "BACK", previous: "0", delimiter: ":"},
+        split: 7,
+        default_error: "You have selected invalid option try again\n",
+        delimiter: ":"
+    ]
 ```
+
+### Simple USSD menu
+Implement ExUssd `init/2` or `init/3` callback.
 
 ```elixir
   defmodule MyHomeHandler do
