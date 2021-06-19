@@ -10,7 +10,6 @@ defmodule ExUssd.Op do
     :should_close,
     :split,
     :delimiter,
-    :continue,
     :default_error,
     :show_navigation,
     :data

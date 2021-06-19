@@ -16,11 +16,9 @@ defmodule ScratchCard.Ussd.HomeHandler do
       {voucher_number, _} ->
         menu
         |> ExUssd.navigate(data: %{voucher_number: voucher_number}, handler: ProcessCardHandler)
-        |> ExUssd.set(continue: true)
 
       _ ->
         menu
-        |> ExUssd.set(continue: false)
     end
   end
 end

@@ -37,7 +37,6 @@ Following are the setable fields
     :should_close, # -> Indicate Menu state, default `false`
     :split, # -> Set split menu list by,  default 7
     :delimiter, # -> Set delimiter style,  ":"
-    :continue, # -> Navigation state, Used in the `callback/2`
     :error, # -> Custom error message, Used in the `callback/2`
     :default_error, # -> Set default error message, "Invalid Choice\n", Used in the `init/2`
     :show_navigation # Show navigation, default `true`  
@@ -216,7 +215,7 @@ Implement `after_route/1` function on your USSD handler module.
 
 #### Scenario  
 User passes in invalid
-  - payload 
+  - response 
  ```elixir 
  %{
     state: :error,
@@ -229,7 +228,7 @@ User passes in invalid
 ```
 
 User passes in valid input, name navigated to next menu
- - payload 
+ - response 
  ```elixir 
  %{
     state: :ok,
@@ -288,11 +287,9 @@ Implement ExUssd `callback/2` or `callback/3` in the event you need to validate 
           menu
           |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
           |> ExUssd.set(should_close: true)
-          |> ExUssd.set(continue: true)
 
         _ ->
-          menu 
-          |> ExUssd.set(continue: false)
+          menu
       end
     end
   end
@@ -327,11 +324,9 @@ Implement ExUssd `callback/2` or `callback/3` in the event you need to validate 
           menu
           |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
           |> ExUssd.set(should_close: true)
-          |> ExUssd.set(continue: true)
 
         _ ->
-          menu 
-          |> ExUssd.set(continue: false)
+          menu
       end
     end
   end
@@ -350,15 +345,13 @@ Implement ExUssd `callback/2` or `callback/3` in the event you need to validate 
           menu
           # |> ExUssd.navigate(data: %{name: "John"}, handler: MyHomeHandler)
           |> ExUssd.navigate(handler: MyHomeHandler)
-          |> ExUssd.set(continue: true)
         _ ->
           menu 
           |> ExUssd.set(error: "Wrong pin number\n")
-          |> ExUssd.set(continue: false)
       end
     end
 
-    def navigation_response(payload) do
+    def after_route(payload) do
       IO.inspect payload
     end
   end

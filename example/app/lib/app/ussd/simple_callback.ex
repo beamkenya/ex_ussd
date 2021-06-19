@@ -15,11 +15,9 @@ defmodule App.SimpleCallback.MyHomeHandler do
         menu
         |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
         |> ExUssd.set(should_close: true)
-        |> ExUssd.set(continue: true)
 
       _ ->
         menu
-        |> ExUssd.set(continue: false)
     end
   end
 end

@@ -44,7 +44,6 @@ defmodule ExUssd.Utils do
   def invoke_init(%ExUssd{validation_menu: {validation_menu, _}} = menu, api_parameters)
       when not is_nil(validation_menu) do
     current_menu = apply_effect(menu, api_parameters)
-
     invoke_validation_handler(current_menu, api_parameters)
   end
 
