@@ -179,7 +179,7 @@ defmodule ExUssd.Navigation do
        ) do
     case Utils.invoke_before_route(validation_menu, Map.put(api_parameters, :text, route.value)) do
       nil ->
-        {:error, Map.merge(menu, %{error: {Map.get(menu, :default_error), true}})}
+        {:error, Map.merge(menu, %{error: Map.get(menu, :default_error)})}
 
       %ExUssd{
         error: {error, _},
