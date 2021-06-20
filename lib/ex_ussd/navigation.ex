@@ -225,14 +225,14 @@ defmodule ExUssd.Navigation do
 
             error =
               if menus == [] do
-                if is_nil(error), do: Map.get(menu, :default_error), else: error
+                if is_nil(error), do: Map.get(menu, :default_error), else: {error, true}
               else
                 Map.get(menu, :default_error)
               end
 
             {:error,
              Map.merge(menu, %{
-               error: {error, true},
+               error: error,
                parent: fn -> %{parent | error: {nil, true}} end
              })}
         end

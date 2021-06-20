@@ -20,7 +20,7 @@ defmodule ExUssd.Display do
          %ExUssd{
            orientation: :horizontal,
            menu_list: {menu_list, _},
-           default_error: default_error,
+           default_error: {default_error, _},
            next: {%{delimiter: next_display_style, next: next, name: next_name}, _},
            previous:
              {%{

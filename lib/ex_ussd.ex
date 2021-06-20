@@ -41,7 +41,8 @@ defmodule ExUssd do
             data: nil,
             orientation: :vertical,
             default_error:
-              Application.get_env(:ex_ussd, :default)[:default_error] || "Invalid Choice\n"
+              {Application.get_env(:ex_ussd, :default)[:default_error] || "Invalid Choice\n",
+               false}
 
   defdelegate new(opts), to: ExUssd.Op
   defdelegate add(menu, opts), to: ExUssd.Op
