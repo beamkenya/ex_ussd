@@ -114,21 +114,33 @@ defmodule ExUssd.Utils do
         }
       }
 
-      current_menu = validate(menu, apply(handler, :after_route, [args]), handler)
-
-      validation_handler =
-        get_in(current_menu, [Access.key(:validation_menu), Access.elem(0), Access.key(:handler)])
-
-      if validation_handler == handler do
-        {:error, current_menu}
-      else
-        menu = Op.new(%{name: "", handler: validation_handler, data: current_menu.data})
-        menu = Map.put(menu, :parent, fn -> %{current_menu | error: {nil, true}} end)
-        {:ok, apply_effect(menu, api_parameters)}
-      end
+      current_menu = validate(menu, apply(handler, :after_route, [args]))
+      handle_after_route(menu, current_menu)
     else
       {:ok, menu}
     end
+  end
+
+  defp handle_after_route(_, %ExUssd{validation_menu: {validation_menu, _}} = current_menu)
+       when is_nil(validation_menu) do
+    {:ok, current_menu}
+  end
+
+  defp handle_after_route(
+         %ExUssd{handler: handler},
+         %ExUssd{validation_menu: {%ExUssd{handler: validation_handler}, _}} = current_menu
+       )
+       when handler == validation_handler do
+    {:error, current_menu}
+  end
+
+  defp handle_after_route(
+         _,
+         %ExUssd{validation_menu: {%ExUssd{handler: validation_handler}, _}} = current_menu
+       ) do
+    menu = Op.new(%{name: "", handler: validation_handler, data: current_menu.data})
+    menu = Map.put(menu, :parent, fn -> %{current_menu | error: {nil, true}} end)
+    {:ok, apply_effect(menu, api_parameters)}
   end
 
   defp apply_effect(%ExUssd{handler: handler} = menu, api_parameters) do
@@ -151,7 +163,7 @@ defmodule ExUssd.Utils do
     %{invoked_at: invoked_at, route: route, text: text}
   end
 
-  defp validate(_, %ExUssd{} = menu, _), do: menu
+  defp validate(_, %ExUssd{} = menu), do: menu
 
-  defp validate(menu, _, _), do: menu
+  defp validate(menu, _), do: menu
 end

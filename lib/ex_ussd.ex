@@ -81,13 +81,13 @@ defmodule ExUssd do
 
     phone_numbers =
       case options[:phone_numbers] do
-        nil -> []
+        nil -> ["phone_number_option_not_set"]
         phone_numbers -> phone_numbers
       end
 
     menu =
       case options[:menu] do
-        nil -> nil
+        nil -> %ExUssd{title: {"Menu option missing", false}, should_close: {true, false}}
         menu -> menu
       end
 
