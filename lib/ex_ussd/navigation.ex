@@ -179,6 +179,7 @@ defmodule ExUssd.Navigation do
        ) do
     case Utils.invoke_before_route(validation_menu, Map.put(api_parameters, :text, route.value)) do
       nil ->
+
         {:error, Map.merge(menu, %{error: Map.get(menu, :default_error)})}
 
       %ExUssd{
@@ -257,7 +258,7 @@ defmodule ExUssd.Navigation do
           get_validation_menu(validation_menu, api_parameters, current_menu, route)
       end
     else
-      {:error, Map.merge(current_menu, %{error: {Map.get(current_menu, :default_error), true}})}
+      {:error, Map.merge(current_menu, %{error: Map.get(current_menu, :default_error)})}
     end
   end
 

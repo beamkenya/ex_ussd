@@ -2,7 +2,7 @@ defimpl Inspect, for: ExUssd do
   def inspect(
         %ExUssd{
           split: {split, _},
-          default_error: default_error,
+          default_error: {default_error, _},
           orientation: orientation,
           title: {title, _},
           show_navigation: {show_navigation, _},
