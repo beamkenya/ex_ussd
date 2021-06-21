@@ -173,16 +173,24 @@ defmodule ExUssd.Op do
         |> Utils.invoke_after_route({:error, api_parameters})
         |> get_in([Access.key(:validation_menu), Access.elem(0)])
 
-      route =
-        Route.get_route(%{
-          text: api_parameters.text,
-          service_code: api_parameters.service_code
-        })
-
-      Ops.circle(Enum.reverse(route), menu, api_parameters)
+      apply_effect_run(menu, current_menu, api_parameters)
     else
       {:ok, current_menu}
     end
+  end
+
+  defp apply_effect_run(nil, current_menu, _) do
+    {:ok, current_menu}
+  end
+
+  defp apply_effect_run(%ExUssd{} = menu, current_menu, api_parameters) do
+    route =
+      Route.get_route(%{
+        text: api_parameters.text,
+        service_code: api_parameters.service_code
+      })
+
+    Ops.circle(Enum.reverse(route), menu, api_parameters)
   end
 
   def goto(fields) when is_list(fields),
