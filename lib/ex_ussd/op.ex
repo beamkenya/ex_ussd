@@ -179,11 +179,11 @@ defmodule ExUssd.Op do
     end
   end
 
-  defp apply_effect_run(nil, current_menu, _) do
+  defp apply_effect_run(nil, current_menu, _api_parameters) do
     {:ok, current_menu}
   end
 
-  defp apply_effect_run(%ExUssd{} = menu, current_menu, api_parameters) do
+  defp apply_effect_run(%ExUssd{} = menu, _current_menu, api_parameters) do
     route =
       Route.get_route(%{
         text: api_parameters.text,
