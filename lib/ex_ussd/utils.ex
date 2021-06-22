@@ -44,22 +44,21 @@ defmodule ExUssd.Utils do
   def invoke_init(%ExUssd{validation_menu: {validation_menu, _}} = menu, api_parameters)
       when not is_nil(validation_menu) do
     current_menu = apply_effect(menu, api_parameters)
-    invoke_validation_handler(current_menu, api_parameters)
+    set_validation_handler(current_menu, api_parameters)
   end
 
   def invoke_init(%ExUssd{} = menu, api_parameters),
     do: apply_effect(menu, api_parameters)
 
-  defp invoke_validation_handler(%ExUssd{validation_menu: {validation_menu, _}} = menu, _)
+  defp set_validation_handler(%ExUssd{validation_menu: {validation_menu, _}} = menu, _)
        when is_nil(validation_menu) do
     menu
   end
 
-  defp invoke_validation_handler(
-         %ExUssd{data: data, handler: handler, validation_menu: {validation_menu, _}},
+  defp set_validation_handler(
+         %ExUssd{data: data, handler: handler, validation_menu: {validation_menu, _}} = menu,
          api_parameters
        ) do
-    menu = apply_effect(validation_menu, api_parameters)
     validation_menu = Op.new(%{name: "", handler: handler, data: data})
     Map.put(menu, :validation_menu, {validation_menu, true})
   end
@@ -103,7 +102,11 @@ defmodule ExUssd.Utils do
     end
   end
 
-  def invoke_after_route(%ExUssd{handler: handler} = menu, {:error, api_parameters}) do
+  def invoke_after_route(%ExUssd{handler: handler} = menu, payload) do
+    payload = Tuple.to_list(payload)
+    route = Enum.at(payload, 2)
+    api_parameters = Enum.at(payload, 1) |> Map.put(:route, route)
+
     if function_exported?(handler, :after_route, 1) do
       args = %{
         state: :error,
@@ -123,7 +126,7 @@ defmodule ExUssd.Utils do
 
   defp handle_after_route(_, %ExUssd{validation_menu: {validation_menu, _}} = current_menu, _)
        when is_nil(validation_menu) do
-    {:ok, current_menu}
+    {:error, current_menu}
   end
 
   defp handle_after_route(
@@ -155,14 +158,25 @@ defmodule ExUssd.Utils do
     end
   end
 
-  defp get_metadata(_, %{service_code: service_code, session_id: session_id, text: text}) do
-    [_ | routes] = Registry.get(session_id) |> Enum.reverse() |> get_in([Access.all(), :value])
-    route = Enum.join(routes, "*")
+  defp get_metadata(
+         _,
+         %{service_code: service_code, session_id: session_id, text: text} = payload
+       ) do
+    route = Map.get(payload, :route)
+
+    route = if not is_nil(route), do: [route], else: []
+    routes = Registry.get(session_id) |> Enum.reverse()
+    routes = routes ++ route
+
+    [_ | route] = get_in(routes, [Access.all(), :value])
+    route = Enum.join(route, "*")
+
+    [%{attempt: attempt} | _] = Enum.reverse(routes)
 
     service_code = String.replace(service_code, "#", "")
     route = if route == "", do: service_code <> "#", else: service_code <> "*" <> route <> "#"
     invoked_at = DateTime.truncate(DateTime.utc_now(), :second)
-    %{invoked_at: invoked_at, route: route, text: text}
+    %{attempts: attempt, invoked_at: invoked_at, route: route, text: text}
   end
 
   defp validate(_, %ExUssd{} = menu), do: menu

@@ -34,6 +34,11 @@ defmodule ExUssd.Registry do
   def add(session, route), do: GenServer.call(via_tuple(session), {:add, route})
   def set(session, route), do: GenServer.call(via_tuple(session), {:set, route})
 
+  def set_attempt(session, attempt),
+    do: GenServer.call(via_tuple(session), {:set_attempt, attempt})
+
+  def increase_attempt(session), do: GenServer.call(via_tuple(session), {:increase_attempt})
+
   def set_home(session, menu),
     do: GenServer.call(via_tuple(session), {:set_home, menu})
 
@@ -92,6 +97,25 @@ defmodule ExUssd.Registry do
         new_state = [new_head | tail]
         {:reply, routes, Map.put(state, :routes, new_state)}
     end
+  end
+
+  def handle_call({:increase_attempt}, _from, state) do
+    %{routes: routes} = state
+    [head | tail] = routes
+    %{attempt: attempt} = head
+    new_head = Map.put(head, :attempt, attempt + 1)
+    new_state = [new_head | tail]
+
+    {:reply, new_state, Map.put(state, :routes, new_state)}
+  end
+
+  def handle_call({:set_attempt, attempt}, _from, state) do
+    %{routes: routes} = state
+    [head | tail] = routes
+    new_head = Map.put(head, :attempt, attempt)
+    new_state = [new_head | tail]
+
+    {:reply, new_state, Map.put(state, :routes, new_state)}
   end
 
   def handle_call({:set_home, menu}, _from, state) do
