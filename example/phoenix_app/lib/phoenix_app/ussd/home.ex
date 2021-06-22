@@ -1,7 +1,9 @@
 defmodule PhoenixApp.MyHomeHandler do
   use ExUssd.Handler
 
-  def init(menu, _api_parameters) do
+  def init(menu, _api_parameters, metadata) do
+    IO.inspect(metadata, label: "metadata")
+
     menu
     |> ExUssd.set(title: "Examples")
     |> ExUssd.add(ExUssd.new(name: "Simple List", handler: App.SimpleList.MyHomeHandler))
@@ -14,5 +16,15 @@ defmodule PhoenixApp.MyHomeHandler do
     |> ExUssd.add(
       ExUssd.new(name: "Dynamic Horizontal menus", handler: App.Dymanic.Horizontal.MyHomeHandler)
     )
+  end
+
+  def after_route(%{menu: menu} = payload) do
+    menu
+    |> ExUssd.navigate(handler: App.SimpleCallback.MyHomeHandler)
+    |> IO.inspect()
+  end
+
+  def after_route(%{payload: payload}) do
+    IO.inspect(payload)
   end
 end

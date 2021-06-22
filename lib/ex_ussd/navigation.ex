@@ -29,8 +29,13 @@ defmodule ExUssd.Navigation do
 
         {_, current_menu} =
           case depth do
-            1 -> {:ok, menu.parent.()}
-            _ -> {:ok, menu}
+            1 ->
+              Registry.set_attempt(session_id, 0)
+              {:ok, menu.parent.()}
+
+            _ ->
+              Registry.increase_attempt(session_id)
+              {:ok, menu}
           end
 
         case current_menu.parent do
@@ -46,6 +51,7 @@ defmodule ExUssd.Navigation do
 
       605_356_150_351_840_375_921_999_017_933 ->
         Registry.next(session_id)
+        Registry.increase_attempt(session_id)
         Registry.get_current(session_id)
 
       705_897_792_423_629_962_208_442_626_284 ->
@@ -57,6 +63,7 @@ defmodule ExUssd.Navigation do
 
       depth ->
         Registry.depth(session_id, depth)
+        Registry.increase_attempt(session_id)
         {:ok, menu}
     end
   end
@@ -77,8 +84,13 @@ defmodule ExUssd.Navigation do
 
         {_, current_menu} =
           case depth do
-            1 -> {:ok, menu.parent.()}
-            _ -> {:ok, menu}
+            1 ->
+              Registry.set_attempt(session_id, 0)
+              {:ok, menu.parent.()}
+
+            _ ->
+              Registry.increase_attempt(session_id)
+              {:ok, menu}
           end
 
         %{previous: {%{name: name}, _}} = current_menu
@@ -103,11 +115,13 @@ defmodule ExUssd.Navigation do
         %{next: {%{name: name}, _}} = menu
         Utils.invoke_after_route(menu, {:ok, %{api_parameters: api_parameters, action: name}})
         Registry.next(session_id)
+        Registry.increase_attempt(session_id)
         Registry.get_current(session_id)
 
       705_897_792_423_629_962_208_442_626_284 ->
         Utils.invoke_after_route(menu, {:ok, %{api_parameters: api_parameters, action: "HOME"}})
         Registry.set(session_id, %{depth: 1, value: "555"})
+        Registry.set_attempt(session_id, 0)
         Registry.get_home(session_id)
 
       depth ->
@@ -138,7 +152,10 @@ defmodule ExUssd.Navigation do
        when is_integer(depth) do
     case Enum.at(menus, depth - 1) do
       nil ->
-        {:error, menu} |> after_route(api_parameters, route)
+        Registry.increase_attempt(session_id)
+
+        {:error, Map.merge(menu, %{error: Map.get(menu, :default_error)})}
+        |> after_route(api_parameters, route)
 
       child_menu ->
         Registry.add(session_id, route)
@@ -153,17 +170,25 @@ defmodule ExUssd.Navigation do
     next_menu(depth, menus, nil, api_parameters, menu, route)
   end
 
-  defp next_menu(depth, menus, validation_menu, api_parameters, menu, route) do
+  defp next_menu(
+         depth,
+         menus,
+         validation_menu,
+         %{session_id: session_id} = api_parameters,
+         menu,
+         route
+       ) do
     case get_validation_menu(validation_menu, api_parameters, menu, route) do
       {:error, current_menu} ->
         if Enum.at(menus, depth - 1) == nil do
-          {:error, current_menu}
+          Registry.increase_attempt(session_id)
+          {:error, current_menu} |> after_route(api_parameters, route)
         else
           next_menu(depth, menus, nil, api_parameters, menu, route)
         end
 
       current_menu ->
-        current_menu
+        current_menu |> after_route(api_parameters, route)
     end
   end
 
@@ -179,8 +204,18 @@ defmodule ExUssd.Navigation do
        ) do
     case Utils.invoke_before_route(validation_menu, Map.put(api_parameters, :text, route.value)) do
       nil ->
+        Registry.increase_attempt(session_id)
 
-        {:error, Map.merge(menu, %{error: Map.get(menu, :default_error)})}
+        Map.merge(menu, %{error: Map.get(menu, :default_error)})
+        |> Utils.invoke_after_route({:error, api_parameters, route})
+        |> case do
+          {:ok, _} = current_menu ->
+            Registry.add(session_id, route)
+            current_menu
+
+          current_menu ->
+            current_menu
+        end
 
       %ExUssd{
         error: {error, _},
@@ -189,6 +224,7 @@ defmodule ExUssd.Navigation do
         cond do
           is_nil(error) and not is_nil(current_validation_menu) and
             current_validation_menu.handler == handler and current_menu != validation_menu ->
+            Registry.increase_attempt(session_id)
             Registry.add(session_id, route)
 
             {:ok, current_menu} |> after_route(api_parameters, route)
@@ -201,6 +237,7 @@ defmodule ExUssd.Navigation do
 
           is_nil(error) and not is_nil(current_validation_menu) and
               current_validation_menu.handler != handler ->
+            Registry.increase_attempt(session_id)
             Registry.add(session_id, route)
 
             {:ok, current_menu} |> after_route(api_parameters, route)

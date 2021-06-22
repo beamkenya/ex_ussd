@@ -27,18 +27,18 @@ defmodule ExUssd.Route do
     service_code_value = service_code |> String.replace("#", "")
 
     cond do
-      text_value == service_code_value -> [%{depth: 1, value: "555"}]
+      text_value == service_code_value -> [%{depth: 1, value: "555", attempt: 0}]
       text_value =~ service_code_value -> take_range(split(text), split(service_code))
       true -> get_route(split(text), split(service_code), session_id)
     end
   end
 
-  defp get_route([""], _service_code, _session_id), do: [%{depth: 1, value: "555"}]
+  defp get_route([""], _service_code, _session_id), do: [%{depth: 1, value: "555", attempt: 0}]
 
   defp get_route([first | _rest = []], _service_code, session_id) do
     case Registry.lookup(session_id) do
-      {:error, :not_found} -> [%{depth: 1, value: first}, %{depth: 1, value: "555"}]
-      _ -> %{depth: 1, value: first}
+      {:error, :not_found} -> [%{depth: 1, value: first}, %{depth: 1, value: "555", attempt: 0}]
+      _ -> %{depth: 1, value: first, attempt: 0}
     end
   end
 
@@ -48,7 +48,7 @@ defmodule ExUssd.Route do
         if head == "", do: to_map(tail), else: to_map(route)
 
       {:ok, _pid} ->
-        %{depth: 1, value: List.last(route)}
+        %{depth: 1, value: List.last(route), attempt: 0}
     end
   end
 
@@ -62,8 +62,8 @@ defmodule ExUssd.Route do
   end
 
   defp to_map(list) do
-    Enum.reduce(list, [%{depth: 1, value: "555"}], fn item, acc ->
-      [Map.put(%{depth: 1}, :value, item) | acc]
+    Enum.reduce(list, [%{depth: 1, value: "555", attempt: 0}], fn item, acc ->
+      [Map.put(%{depth: 1, attempt: 1}, :value, item) | acc]
     end)
   end
 end

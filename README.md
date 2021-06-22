@@ -40,6 +40,7 @@ Following are the setable fields
     :error, # -> Custom error message, Used in the `callback/2`
     :default_error, # -> Set default error message, "Invalid Choice\n", Used in the `init/2`
     :show_navigation # Show navigation, default `true`  
+    :data
   ]
 ```
 
