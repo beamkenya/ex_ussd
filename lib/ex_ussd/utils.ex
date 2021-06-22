@@ -55,10 +55,7 @@ defmodule ExUssd.Utils do
     menu
   end
 
-  defp set_validation_handler(
-         %ExUssd{data: data, handler: handler, validation_menu: {validation_menu, _}} = menu,
-         api_parameters
-       ) do
+  defp set_validation_handler(%ExUssd{data: data, handler: handler} = menu, _) do
     validation_menu = Op.new(%{name: "", handler: handler, data: data})
     Map.put(menu, :validation_menu, {validation_menu, true})
   end
@@ -105,7 +102,7 @@ defmodule ExUssd.Utils do
   def invoke_after_route(%ExUssd{handler: handler} = menu, payload) do
     payload = Tuple.to_list(payload)
     route = Enum.at(payload, 2)
-    api_parameters = Enum.at(payload, 1) |> Map.put(:route, route)
+    api_parameters = Enum.at(payload, 1)
 
     if function_exported?(handler, :after_route, 1) do
       args = %{
@@ -113,7 +110,7 @@ defmodule ExUssd.Utils do
         menu: menu,
         payload: %{
           api_parameters: api_parameters,
-          metadata: get_metadata(menu, api_parameters)
+          metadata: get_metadata(menu, Map.put(api_parameters, :route, route))
         }
       }
 
