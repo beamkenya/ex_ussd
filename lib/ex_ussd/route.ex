@@ -63,7 +63,7 @@ defmodule ExUssd.Route do
 
   defp to_map(list) do
     Enum.reduce(list, [%{depth: 1, value: "555", attempt: 0}], fn item, acc ->
-      [Map.put(%{depth: 1, attempt: 1}, :value, item) | acc]
+      [Map.put(%{depth: 1, attempt: 0}, :value, item) | acc]
     end)
   end
 end

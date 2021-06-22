@@ -154,8 +154,16 @@ defmodule ExUssd.Navigation do
       nil ->
         Registry.increase_attempt(session_id)
 
-        {:error, Map.merge(menu, %{error: Map.get(menu, :default_error)})}
-        |> after_route(api_parameters, route)
+        Map.merge(menu, %{error: Map.get(menu, :default_error)})
+        |> Utils.invoke_after_route({:error, api_parameters, route})
+        |> case do
+          {:ok, _} = current_menu ->
+            Registry.add(session_id, route)
+            current_menu
+
+          current_menu ->
+            current_menu
+        end
 
       child_menu ->
         Registry.add(session_id, route)
