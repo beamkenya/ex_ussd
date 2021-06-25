@@ -147,7 +147,16 @@ defmodule ExUssd.Navigation do
     get_validation_menu(validation_menu, api_parameters, menu, route)
   end
 
-  defp next_menu(depth, menus, nil, %{session_id: session_id} = api_parameters, menu, route, session) when length(session) == 1 do
+  defp next_menu(
+         depth,
+         menus,
+         nil,
+         %{session_id: session_id} = api_parameters,
+         menu,
+         route,
+         session
+       )
+       when length(session) == 1 do
     if is_nil(menu.validation_data) do
       next_menu(depth, menus, nil, api_parameters, menu, route, nil)
     else
@@ -159,14 +168,16 @@ defmodule ExUssd.Navigation do
             {:ok, _} = current_menu ->
               Registry.add(session_id, route)
               current_menu
-  
+
             current_menu ->
               current_menu
           end
-        menu -> menu 
+
+        menu ->
+          menu
       end
     end
-  end 
+  end
 
   defp next_menu(depth, menus, nil, %{session_id: session_id} = api_parameters, menu, route, _)
        when is_integer(depth) do
