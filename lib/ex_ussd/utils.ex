@@ -151,7 +151,28 @@ defmodule ExUssd.Utils do
         apply(handler, :init, [menu, api_parameters])
 
       function_exported?(handler, :init, 3) ->
-        apply(handler, :init, [menu, api_parameters, get_metadata(menu, api_parameters)])
+        metadata =
+          case get_metadata(menu, api_parameters) do
+            %{attempts: 0} = metadata ->
+              metadata
+
+            %{text: text} = metadata ->
+              if length(String.split(text, "*")) > 1 do
+                [text | routes] =
+                  metadata.text |> String.replace("#", "") |> String.split("*") |> Enum.reverse()
+
+                route = routes |> Enum.reverse() |> Enum.join("*")
+                Map.merge(metadata, %{attempts: 0, text: text, route: route <> "#"})
+              else
+                routes =
+                  metadata.route |> String.replace("#", "") |> String.split("*") |> Enum.reverse()
+
+                route = [text | routes] |> Enum.reverse() |> Enum.join("*")
+                Map.merge(metadata, %{attempts: 0, text: text, route: route <> "#"})
+              end
+          end
+
+        apply(handler, :init, [menu, api_parameters, metadata])
     end
   end
 

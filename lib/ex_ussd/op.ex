@@ -146,14 +146,7 @@ defmodule ExUssd.Op do
         Registry.start(session_id)
         Registry.add(session_id, route)
 
-        current_menu =
-          case Ops.circle(Enum.reverse(route), menu, api_parameters) do
-            {:error, current_menu} ->
-              apply_effect(current_menu, menu, api_parameters)
-
-            current_menu ->
-              current_menu
-          end
+        current_menu = Ops.circle(Enum.reverse(route), menu, api_parameters)
 
         Registry.set_current(session_id, current_menu)
         current_menu
@@ -164,33 +157,6 @@ defmodule ExUssd.Op do
         Registry.set_current(session_id, current_menu)
         current_menu
     end
-  end
-
-  defp apply_effect(current_menu, menu, api_parameters) do
-    if function_exported?(menu.handler, :after_route, 1) do
-      menu =
-        menu
-        |> Utils.invoke_after_route({:error, api_parameters})
-        |> get_in([Access.key(:validation_menu), Access.elem(0)])
-
-      apply_effect_run(menu, current_menu, api_parameters)
-    else
-      {:ok, current_menu}
-    end
-  end
-
-  defp apply_effect_run(nil, current_menu, _api_parameters) do
-    {:ok, current_menu}
-  end
-
-  defp apply_effect_run(%ExUssd{} = menu, _current_menu, api_parameters) do
-    route =
-      Route.get_route(%{
-        text: api_parameters.text,
-        service_code: api_parameters.service_code
-      })
-
-    Ops.circle(Enum.reverse(route), menu, api_parameters)
   end
 
   def goto(fields) when is_list(fields),
