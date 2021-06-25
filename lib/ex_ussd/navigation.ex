@@ -151,7 +151,7 @@ defmodule ExUssd.Navigation do
     if is_nil(menu.validation_data) do
       next_menu(depth, menus, nil, api_parameters, menu, route, nil)
     else
-      case next_menu(depth, [], menu.validation_data, api_parameters, menu, route, nil) do
+      case get_validation_menu(menu.validation_data, api_parameters, menu, route) do
         {:error, menu} ->
           menu
           |> Utils.invoke_after_route({:error, api_parameters})
@@ -159,11 +159,11 @@ defmodule ExUssd.Navigation do
             {:ok, _} = current_menu ->
               Registry.add(session_id, route)
               current_menu
-
+  
             current_menu ->
               current_menu
           end
-        menu -> menu
+        menu -> menu 
       end
     end
   end 
