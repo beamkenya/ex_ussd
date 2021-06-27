@@ -186,17 +186,14 @@ defmodule ExUssd.Navigation do
     if length(Route.split(api_parameters.text)) == 1 do
       current_menu
     else
-      menu =
-        case current_menu do
-          {:ok, menu} ->
-            Registry.previous(session_id)
-            menu
+      {_, menu} = current_menu
 
-          {:error, menu} ->
-            menu
-        end
-
-      get_validation_menu(menu, Map.put(api_parameters, :text, route.value), menu, route)
+      if is_nil(Utils.can_invoke_before_route?(menu.handler)) do
+        current_menu
+      else
+        Registry.previous(session_id)
+        get_validation_menu(menu, Map.put(api_parameters, :text, route.value), menu, route)
+      end
     end
   end
 
