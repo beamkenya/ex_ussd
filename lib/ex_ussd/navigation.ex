@@ -157,7 +157,7 @@ defmodule ExUssd.Navigation do
          session
        )
        when length(session) == 1 do
-    if is_nil(menu.validation_data) do
+    if is_nil(Map.get(menu, :validation_data)) do
       next_menu(depth, menus, nil, api_parameters, menu, route, nil)
     else
       case get_validation_menu(menu.validation_data, api_parameters, menu, route) do
