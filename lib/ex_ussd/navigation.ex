@@ -275,10 +275,11 @@ defmodule ExUssd.Navigation do
         error: {error, _},
         validation_menu: {current_validation_menu, _}
       } = current_menu ->
+        Registry.increase_attempt(session_id)
+
         cond do
           is_nil(error) and not is_nil(current_validation_menu) and
             current_validation_menu.handler == handler and current_menu != validation_menu ->
-            Registry.increase_attempt(session_id)
             Registry.add(session_id, route)
 
             {:ok, current_menu} |> after_route(api_parameters, route)
@@ -291,7 +292,6 @@ defmodule ExUssd.Navigation do
 
           is_nil(error) and not is_nil(current_validation_menu) and
               current_validation_menu.handler != handler ->
-            Registry.increase_attempt(session_id)
             Registry.add(session_id, route)
 
             {:ok, current_menu} |> after_route(api_parameters, route)
@@ -327,6 +327,7 @@ defmodule ExUssd.Navigation do
                error: error,
                parent: fn -> %{parent | error: {nil, true}} end
              })}
+            |> after_route(api_parameters, route)
         end
     end
   end
