@@ -1,5 +1,5 @@
 defmodule ExUssd.Navigation do
-  alias ExUssd.{Op, Registry, Utils}
+  alias ExUssd.{Op, Registry, Route, Utils}
 
   @default_value 436_739_010_658_356_127_157_159_114_145
   def navigate(
@@ -135,12 +135,16 @@ defmodule ExUssd.Navigation do
     menu = Utils.invoke_init(menu, api_parameters)
     {validation_menu, _} = menu.validation_menu
 
-    menu =
-      if is_nil(validation_menu),
-        do: menu,
-        else: Map.merge(menu, %{validation_menu: {nil, true}, validation_data: validation_menu})
+    if menu.to_navigate do
+      {:ok, Utils.invoke_init(validation_menu, api_parameters)}
+    else
+      menu =
+        if is_nil(validation_menu),
+          do: menu,
+          else: Map.merge(menu, %{validation_menu: {nil, true}, validation_data: validation_menu})
 
-    {:ok, menu}
+      {:ok, menu}
+    end
   end
 
   defp next_menu(_depth, [], validation_menu, api_parameters, menu, route, _) do
@@ -157,25 +161,42 @@ defmodule ExUssd.Navigation do
          session
        )
        when length(session) == 1 do
-    if is_nil(Map.get(menu, :validation_data)) do
-      next_menu(depth, menus, nil, api_parameters, menu, route, nil)
-    else
-      case get_validation_menu(menu.validation_data, api_parameters, menu, route) do
-        {:error, menu} ->
-          menu
-          |> Utils.invoke_after_route({:error, api_parameters})
-          |> case do
-            {:ok, _} = current_menu ->
-              Registry.add(session_id, route)
-              current_menu
+    current_menu =
+      if is_nil(Map.get(menu, :validation_data)) do
+        next_menu(depth, menus, nil, api_parameters, menu, route, nil)
+      else
+        case get_validation_menu(menu.validation_data, api_parameters, menu, route) do
+          {:error, menu} ->
+            menu
+            |> Utils.invoke_after_route({:error, api_parameters})
+            |> case do
+              {:ok, _} = current_menu ->
+                Registry.add(session_id, route)
+                current_menu
 
-            current_menu ->
-              current_menu
-          end
+              current_menu ->
+                current_menu
+            end
 
-        menu ->
-          menu
+          menu ->
+            menu
+        end
       end
+
+    if length(Route.split(api_parameters.text)) == 1 do
+      current_menu
+    else
+      menu =
+        case current_menu do
+          {:ok, menu} ->
+            Registry.previous(session_id)
+            menu
+
+          {:error, menu} ->
+            menu
+        end
+
+      get_validation_menu(menu, Map.put(api_parameters, :text, route.value), menu, route)
     end
   end
 

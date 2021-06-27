@@ -17,7 +17,8 @@ defmodule ExUssd do
           validation_menu: {%__MODULE__{}, boolean()},
           data: map(),
           default_error: String.t(),
-          show_navigation: {boolean(), boolean()}
+          show_navigation: {boolean(), boolean()},
+          to_navigate: boolean()
         }
 
   defstruct name: nil,
@@ -40,6 +41,7 @@ defmodule ExUssd do
             validation_menu: {nil, false},
             data: nil,
             orientation: :vertical,
+            to_navigate: false,
             default_error:
               {Application.get_env(:ex_ussd, :default)[:default_error] || "Invalid Choice\n",
                false}

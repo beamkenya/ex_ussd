@@ -52,7 +52,7 @@ defmodule ExUssd.Route do
     end
   end
 
-  defp split(text), do: text |> String.replace("#", "") |> String.split("*")
+  def split(text), do: text |> String.replace("#", "") |> String.split("*")
 
   defp take_range(positions, shortcode) do
     pos = length(positions)

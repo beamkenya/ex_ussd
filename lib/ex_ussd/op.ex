@@ -115,7 +115,7 @@ defmodule ExUssd.Op do
 
     menu = ExUssd.set(menu, data: data)
 
-    Map.merge(menu, %{validation_menu: {validation_menu, true}})
+    Map.merge(menu, %{validation_menu: {validation_menu, true}, to_navigate: true})
   end
 
   def set(%ExUssd{data: nil} = menu, [data: _data] = field) do
