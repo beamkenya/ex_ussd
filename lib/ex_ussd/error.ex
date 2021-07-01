@@ -1,3 +1,3 @@
 defmodule ExUssd.Error do
-  defexception message: "default message"
+  defexception message: nil
 end

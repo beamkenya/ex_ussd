@@ -223,22 +223,15 @@ defmodule ExUssd.Navigation do
     end
   end
 
-  defp next_menu(
-         depth,
-         menus,
-         validation_menu,
-         %{session_id: session_id} = api_parameters,
-         menu,
-         route,
-         _
-       ) do
+  defp next_menu(depth, menus, validation_menu, api_parameters, menu, route, _) do
     case get_validation_menu(validation_menu, api_parameters, menu, route) do
       {:error, current_menu} ->
-        if Enum.at(menus, depth - 1) == nil do
-          Registry.increase_attempt(session_id)
-          {:error, current_menu} |> after_route(api_parameters, route)
-        else
-          next_menu(depth, menus, nil, api_parameters, menu, route, nil)
+        case Enum.at(menus, depth - 1) do
+          nil ->
+            {:error, current_menu}
+
+          _ ->
+            next_menu(depth, menus, nil, api_parameters, menu, route, nil)
         end
 
       current_menu ->
@@ -313,14 +306,8 @@ defmodule ExUssd.Navigation do
 
           true ->
             parent = if is_nil(menu.parent), do: menu, else: menu.parent.()
-            {menus, _} = menu.menu_list
 
-            error =
-              if menus == [] do
-                if is_nil(error), do: Map.get(menu, :default_error), else: {error, true}
-              else
-                Map.get(menu, :default_error)
-              end
+            error = if is_nil(error), do: Map.get(menu, :default_error), else: {error, true}
 
             {:error,
              Map.merge(menu, %{

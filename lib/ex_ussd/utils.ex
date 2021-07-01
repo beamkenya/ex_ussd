@@ -1,7 +1,7 @@
 defmodule ExUssd.Utils do
-  alias ExUssd.{Op, Registry}
+  alias ExUssd.{Error, Op, Registry}
 
-  def generate_id() do
+  def generate_id do
     min = String.to_integer("1000000000000", 36)
     max = String.to_integer("ZZZZZZZZZZZZZZ", 36)
 
@@ -145,14 +145,28 @@ defmodule ExUssd.Utils do
     {:ok, apply_effect(menu, api_parameters)}
   end
 
-  defp apply_effect(%ExUssd{handler: handler} = menu, api_parameters) do
+  defp apply_effect(%ExUssd{handler: handler} = menu, %{session_id: session_id} = api_parameters) do
     cond do
       function_exported?(handler, :init, 2) ->
         apply(handler, :init, [menu, api_parameters])
 
       function_exported?(handler, :init, 3) ->
-        metadata = get_metadata(menu, api_parameters)
+        metadata =
+          case get_metadata(menu, api_parameters) do
+            %{attempts: attempts} = metadata when attempts > 0 ->
+              Registry.set_attempt(session_id, 0)
+              Map.put(metadata, :attempts, 0)
+
+            metadata ->
+              metadata
+          end
+
         apply(handler, :init, [menu, api_parameters, metadata])
+
+      true ->
+        handler = handler |> to_string() |> String.split(".") |> List.last()
+        message = "`init` function not provided on #{String.to_atom(handler)}"
+        raise Error, message: message
     end
   end
 
