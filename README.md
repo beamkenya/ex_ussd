@@ -258,7 +258,6 @@ User passes in valid input, name navigated to next menu
 
     def after_route(%{state: :error, menu: menu, payload: payload}) do
       IO.inspect payload
-      # menu |> ExUssd.set(title: "Max retry reached, account locked") |> ExUssd.set(should_close: true)
     end
   end
   
@@ -352,8 +351,13 @@ Implement ExUssd `callback/2` or `callback/3` in the event you need to validate 
       end
     end
 
-    def after_route(payload) do
-      IO.inspect payload
+    def after_route(%{payload: %{metadata: %{attempts: attempts}}} = attrs) do
+      if(Map.get(attrs, :menu) && attempts == 3) do
+        attrs.menu 
+        |> ExUssd.set(title: "Max retry reached, account locked") 
+        |> ExUssd.set(error: "")
+        |> ExUssd.set(should_close: true)
+      end
     end
   end
 
@@ -485,7 +489,7 @@ Note: The name value is Truncated after 140 characters
 ``` 
 
 ## Phoenix Simulator
-Update your router's configuration to forward requests to ExUssd Simlutate with a `menu` entry and `phone_numbers` list
+Update your router's configuration to forward requests to ExUssd Simulator, it takes `menu` and `phone_numbers` list
 
 ```elixir
 # lib/my_app_web/router.ex
