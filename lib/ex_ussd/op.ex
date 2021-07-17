@@ -45,7 +45,7 @@ defmodule ExUssd.Op do
   defp validate_new(menu, opts) do
     fun = fn opts, key ->
       if not Keyword.has_key?(opts, key) do
-        message = "#{inspect(key)} not found in #{inspect(Keyword.keys(opts))}"
+        message = "Expected #{inspect(key)} found #{inspect(Keyword.keys(opts))}"
         {:error, message}
       end
     end
@@ -80,7 +80,7 @@ defmodule ExUssd.Op do
 
     with nil <- apply(fun, [menu, opts]) do
       message =
-        "Expected field allowable fields #{inspect(@allowed_fields)} found #{inspect(Keyword.keys(opts))}"
+        "Expected field in allowable fields #{inspect(@allowed_fields)} found #{inspect(Keyword.keys(opts))}"
 
       raise ExUssd.Error, message: message
     end
