@@ -15,5 +15,6 @@ defmodule ExUssd do
     menu_list: []
   ]
 
-  defdelegate new!(opts), to: ExUssd.Op
+  defdelegate new(opts), to: ExUssd.Op
+  defdelegate set(menu, opts), to: ExUssd.Op
 end
