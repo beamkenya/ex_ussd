@@ -4,8 +4,8 @@ defmodule ExUssd.MixProject do
   def project do
     [
       app: :ex_ussd,
-      version: "0.1.8",
-      elixir: "~> 1.11",
+      version: "0.1.9",
+      elixir: "~> 1.12",
       start_permanent: Mix.env() == :prod,
       description: "ExUssd lets you create simple, flexible, and customizable USSD interface.",
       deps: deps(),
@@ -47,11 +47,10 @@ defmodule ExUssd.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:phoenix_live_view, "0.15.1"},
-      {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:ex_doc, "~> 0.21", only: :dev, runtime: false}
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      {:phoenix_live_view, "~> 0.15.1"},
+      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.1", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.24", only: [:dev, :test], runtime: false}
     ]
   end
 end
