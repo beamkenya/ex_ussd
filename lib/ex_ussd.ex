@@ -1,15 +1,19 @@
 defmodule ExUssd do
-  @moduledoc """
-  Documentation for `ExUssd`.
-  """
+  defstruct [
+    :name,
+    :handler,
+    :title,
+    :parent,
+    :data,
+    :error,
+    split: 7,
+    show_navigation: true,
+    should_close: false,
+    delimiter: ":",
+    default_error: "Invalid Choice\n",
+    orientation: :vertical,
+    menu_list: []
+  ]
 
-  @doc """
-  ExUssd.
-  ## Examples
-      iex> ExUssd.hello()
-      :world
-  """
-  def hello do
-    :world
-  end
+  defdelegate new!(opts), to: ExUssd.Op
 end
