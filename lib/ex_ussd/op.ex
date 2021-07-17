@@ -66,4 +66,30 @@ defmodule ExUssd.Op do
       raise ExUssd.Error, message: message
     end
   end
+
+  @doc """
+  Add menu to ExUssd menu list.
+
+  ## Options
+  These options are required;
+  * `:menu` — ExUssd Menu
+  * `:menu` — ExUssd menu to add to menu list
+
+  ## Example
+    iex> menu = ExUssd.new(name: "Home", handler: MyHomeHandler)
+    iex> menu |> ExUssd.add(ExUssd.new(name: "Product A", handler: ProductAHandler)))
+  """
+
+  def add(%ExUssd{orientation: :vertical} = menu, %ExUssd{} = child) do
+    fun = fn menu, child ->
+      Map.get_and_update(menu, :menu_list, fn menu_list -> {:ok, [child | menu_list]} end)
+    end
+
+    with {:ok, menu} <- apply(fun, [menu, child]), do: menu
+  end
+
+  def add(%ExUssd{orientation: :horizontal}, _child) do
+    message = "Change menu orientation to :vertical to use ExUssd.add/2"
+    raise Error, message: message
+  end
 end
