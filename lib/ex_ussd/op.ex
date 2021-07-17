@@ -46,13 +46,14 @@ defmodule ExUssd.Op do
     fun = fn opts, key ->
       if not Keyword.has_key?(opts, key) do
         message = "#{inspect(key)} not found in #{inspect(Keyword.keys(opts))}"
+        {:error, message}
       end
     end
 
     Enum.reduce_while([:name, :handler], 0, fn key, _ ->
       case apply(fun, [opts, key]) do
         nil -> {:cont, menu}
-        message -> {:halt, {:error, message}}
+        message -> {:halt, message}
       end
     end)
   end
