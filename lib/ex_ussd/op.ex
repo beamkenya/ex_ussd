@@ -21,7 +21,7 @@ defmodule ExUssd.Op do
 
   ## Options
   These options are required;
-  * `:opts` — keyword lists
+  * `:opts` — keyword lists includes (name, handler)
 
   ## Example
     iex> ExUssd.new(name: "Home", handler: MyHomeHandler)
@@ -29,14 +29,32 @@ defmodule ExUssd.Op do
   def new(opts) do
     fun = fn opts ->
       if Keyword.keyword?(opts) do
-        struct!(ExUssd, Keyword.take(opts, [:handler, :name]))
+        struct!(ExUssd, Keyword.take(opts, [:data, :handler, :name]))
       end
     end
 
-    with nil <- apply(fun, [opts]) do
-      message = "Expected a keyword list found #{IO.inspect(opts)}"
-      raise ExUssd.Error, message: message
+    with {:error, error} <- apply(fun, [opts]) |> validate_new(opts) do
+      raise ExUssd.Error, message: error
     end
+  end
+
+  defp validate_new(nil, opts) do
+    {:error, "Expected a keyword list opts found #{IO.inspect(opts)}"}
+  end
+
+  defp validate_new(menu, opts) do
+    fun = fn opts, key ->
+      if not Keyword.has_key?(opts, key) do
+        message = "#{inspect(key)} not found in #{inspect(Keyword.keys(opts))}"
+      end
+    end
+
+    Enum.reduce_while([:name, :handler], 0, fn key, _ ->
+      case apply(fun, [opts, key]) do
+        nil -> {:cont, menu}
+        message -> {:halt, {:error, message}}
+      end
+    end)
   end
 
   @doc """
@@ -45,7 +63,7 @@ defmodule ExUssd.Op do
   ## Options
   These options are required;
   * `:menu` — ExUssd Menu
-  * `:opts` — Keyword list field value
+  * `:opts` — Keyword list includes @allowed_fields
 
   ## Example
     iex> menu = ExUssd.new(name: "Home", handler: MyHomeHandler)
@@ -73,7 +91,7 @@ defmodule ExUssd.Op do
   ## Options
   These options are required;
   * `:menu` — ExUssd Menu
-  * `:menu` — ExUssd menu to add to menu list
+  * `:menu` — ExUssd child menu to add to menu list
 
   ## Example
     iex> menu = ExUssd.new(name: "Home", handler: MyHomeHandler)
