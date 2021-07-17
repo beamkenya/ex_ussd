@@ -17,24 +17,24 @@ defmodule ExUssd.Op do
   ]
 
   @doc """
-  Returns the ExUssd struct for the given keyword list args.
+  Returns the ExUssd struct for the given keyword list opts.
 
   ## Options
   These options are required;
-  * `:args` — keyword lists
+  * `:opts` — keyword lists
 
   ## Example
     iex> ExUssd.new(name: "Home", handler: MyHomeHandler)
   """
-  def new(args) do
-    fun = fn args ->
-      if Keyword.keyword?(args) do
-        struct!(ExUssd, Keyword.take(args, [:handler, :name]))
+  def new(opts) do
+    fun = fn opts ->
+      if Keyword.keyword?(opts) do
+        struct!(ExUssd, Keyword.take(opts, [:handler, :name]))
       end
     end
 
-    with nil <- apply(fun, [args]) do
-      message = "Expected a keyword list found #{IO.inspect(args)}"
+    with nil <- apply(fun, [opts]) do
+      message = "Expected a keyword list found #{IO.inspect(opts)}"
       raise ExUssd.Error, message: message
     end
   end
@@ -90,6 +90,61 @@ defmodule ExUssd.Op do
 
   def add(%ExUssd{orientation: :horizontal}, _child) do
     message = "Change menu orientation to :vertical to use ExUssd.add/2"
-    raise Error, message: message
+    raise ExUssd.Error, message: message
+  end
+
+  @doc """
+  Add menus to to ExUssd menu list.
+  Note: The menus share one handler
+
+  ## Options
+  These options are required;
+  * `:menu` — ExUssd Menu
+  * `:opts` — Keyword list includes (menus, handler, orientation)
+
+  ## Example
+    iex> menu = ExUssd.new(name: "Home", handler: MyHomeHandler)
+    iex> menu |> ExUssd.dynamic(menus: [ExUssd.new(name: "Product A")], orientation: vertical, handler: ProductAHandler))
+  """
+
+  def dynamic(menu, opts) do
+    opts =
+      opts
+      |> Keyword.take([:menus, :handler, :orientation])
+      |> Enum.into(%{})
+
+    orientation = Map.get(opts, :orientation)
+
+    dynamic(orientation, opts, menu)
+  end
+
+  defp dynamic(:vertical, %{menus: menus, handler: handler}, menu) do
+    menu_list = Enum.map(menus, fn menu -> Map.put(menu, :handler, handler) end)
+    Map.put(menu, :menu_list, Enum.reverse(menu_list))
+  end
+
+  defp dynamic(:horizontal, %{menus: menus, handler: handler}, menu) do
+    menu_list = Enum.map(menus, fn menu -> Map.put(menu, :handler, handler) end)
+    Map.put(menu, :menu_list, menu_list)
+  end
+
+  defp dynamic(_, %{menus: menus, handler: _}, _) when not is_list(menus) do
+    message = "menus should be a list, found #{IO.inspect(menus)}"
+    raise ExUssd.Error, message: message
+  end
+
+  defp dynamic(_, %{menus: menus, handler: _}, _) when menus == [] do
+    message = "menus should not be empty"
+    raise ExUssd.Error, message: message
+  end
+
+  defp dynamic(_, %{menus: _}, _) do
+    message = "handler not provided"
+    raise ExUssd.Error, message: message
+  end
+
+  defp dynamic(_, _, _) do
+    message = "menus not provided"
+    raise ExUssd.Error, message: message
   end
 end

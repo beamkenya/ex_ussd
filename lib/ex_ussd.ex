@@ -18,4 +18,5 @@ defmodule ExUssd do
   defdelegate new(opts), to: ExUssd.Op
   defdelegate set(menu, opts), to: ExUssd.Op
   defdelegate add(menu, child), to: ExUssd.Op
+  defdelegate dynamic(menu, opts), to: ExUssd.Op
 end
