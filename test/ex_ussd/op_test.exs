@@ -33,10 +33,17 @@ defmodule ExUssd.OpTest do
   end
 
   describe "add/2" do
-    test "successfully add menu to menu list", %{menu: menu, handler: handler} do
+    test "vertical: successfully add menu to menu list", %{menu: menu, handler: handler} do
       menu1 = ExUssd.new(name: Faker.Company.name(), handler: handler)
       menu2 = ExUssd.new(name: Faker.Company.name(), handler: handler)
       assert %ExUssd{menu_list: [^menu2, ^menu1]} = menu |> ExUssd.add(menu1) |> ExUssd.add(menu2)
+    end
+
+    test "horizontal: successfully add menu to menu list", %{handler: handler} do
+      home = ExUssd.new(name: Faker.Company.name(), handler: handler, orientation: :horizontal)
+      menu1 = ExUssd.new(name: Faker.Company.name(), handler: handler)
+      menu2 = ExUssd.new(name: Faker.Company.name(), handler: handler)
+      assert %ExUssd{menu_list: [^menu1, ^menu2]} = home |> ExUssd.add(menu1) |> ExUssd.add(menu2)
     end
 
     test "vertical: successfully add menus to menu list", %{handler: handler} do
@@ -50,7 +57,7 @@ defmodule ExUssd.OpTest do
     end
 
     test "horizontal: successfully add menus to menu list", %{handler: handler} do
-      home = ExUssd.new(name: "hello", handler: handler, orientation: :horizontal)
+      home = ExUssd.new(name: Faker.Company.name(), handler: handler, orientation: :horizontal)
       menu1 = ExUssd.new(name: Faker.Company.name(), handler: handler)
       menu2 = ExUssd.new(name: Faker.Company.name(), handler: handler)
 

@@ -93,19 +93,14 @@ defmodule ExUssd.Op do
   These options are required;
   * `:menu` — ExUssd Menu
   * `:menu` — ExUssd child menu to add to menu list
+  * `:opts` — Keyword list includes (menus, handler)
 
   ## Example
     iex> menu = ExUssd.new(name: "Home", handler: MyHomeHandler)
     iex> menu |> ExUssd.add(ExUssd.new(name: "Product A", handler: ProductAHandler)))
 
-
   Add menus to to ExUssd menu list.
   Note: The menus share one handler
-
-  ## Options
-  These options are required;
-  * `:menu` — ExUssd Menu
-  * `:opts` — Keyword list includes (menus, handler)
 
   ## Example
     iex> menu = ExUssd.new(name: "Home", handler: MyHomeHandler, orientation: :horizontal)
@@ -118,6 +113,16 @@ defmodule ExUssd.Op do
     end
 
     with {:ok, menu} <- apply(fun, [menu, child]), do: menu
+  end
+
+  def add(%ExUssd{orientation: :horizontal} = menu, %ExUssd{} = child) do
+    fun = fn menu, child ->
+      Map.get_and_update(menu, :menu_list, fn menu_list -> {:ok, [child | menu_list]} end)
+    end
+
+    menu_list = with {:ok, menu} <- apply(fun, [menu, child]), do: menu.menu_list
+
+    Map.put(menu, :menu_list, Enum.reverse(menu_list))
   end
 
   def add(menu, opts) do
