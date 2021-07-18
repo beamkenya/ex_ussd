@@ -43,7 +43,7 @@ defmodule ExUssd.OpTest do
       home = ExUssd.new(name: Faker.Company.name(), handler: handler, orientation: :horizontal)
       menu1 = ExUssd.new(name: Faker.Company.name(), handler: handler)
       menu2 = ExUssd.new(name: Faker.Company.name(), handler: handler)
-      assert %ExUssd{menu_list: [^menu1, ^menu2]} = home |> ExUssd.add(menu1) |> ExUssd.add(menu2)
+      assert %ExUssd{menu_list: [^menu2, ^menu1]} = home |> ExUssd.add(menu1) |> ExUssd.add(menu2)
     end
 
     test "vertical: successfully add menus to menu list", %{handler: handler} do
@@ -61,7 +61,7 @@ defmodule ExUssd.OpTest do
       menu1 = ExUssd.new(name: Faker.Company.name(), handler: handler)
       menu2 = ExUssd.new(name: Faker.Company.name(), handler: handler)
 
-      assert %ExUssd{menu_list: [^menu1, ^menu2]} =
+      assert %ExUssd{menu_list: [^menu2, ^menu1]} =
                home
                |> ExUssd.add(
                  menus: [menu1, menu2],

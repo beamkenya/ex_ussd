@@ -2,6 +2,7 @@ defmodule ExUssd.Op do
   @moduledoc """
   Contains all ExUssd Public API functions
   """
+  alias ExUssd.Utils
 
   @allowed_fields [
     :error,
@@ -24,17 +25,22 @@ defmodule ExUssd.Op do
   * `:opts` — keyword lists includes (name, handler)
 
   ## Example
-    iex> ExUssd.new(name: "Home", handler: MyHomeHandler, orientation: :vertical)
+    iex> ExUssd.new(name: "aasd ...", handler: MyHomeHandler, orientation: :vertical)
   """
   def new(opts) do
     fun = fn opts ->
       if Keyword.keyword?(opts) do
+        {_, opts} =
+          Keyword.get_and_update(opts, :name, fn name ->
+            {name, Utils.truncate(name, length: 140, omission: "...")}
+          end)
+
         struct!(ExUssd, Keyword.take(opts, [:data, :handler, :name, :orientation]))
       end
     end
 
     with {:error, error} <- apply(fun, [opts]) |> validate_new(opts) do
-      raise ExUssd.Error, message: error
+      throw(error)
     end
   end
 
@@ -42,11 +48,10 @@ defmodule ExUssd.Op do
     {:error, "Expected a keyword list opts found #{inspect(opts)}"}
   end
 
-  defp validate_new(menu, opts) do
+  defp validate_new(%ExUssd{} = menu, opts) do
     fun = fn opts, key ->
       if not Keyword.has_key?(opts, key) do
-        message = "Expected #{inspect(key)} found #{inspect(Keyword.keys(opts))}"
-        {:error, message}
+        {:error, "Expected #{inspect(key)} in opts, found #{inspect(Keyword.keys(opts))}"}
       end
     end
 
@@ -67,8 +72,8 @@ defmodule ExUssd.Op do
   * `:opts` — Keyword list includes @allowed_fields
 
   ## Example
-    iex> menu = ExUssd.new(name: "Home", handler: MyHomeHandler)
-    iex> menu |> ExUssd.set(title: "Welcome", should_close: true)
+    iex> menu = ExUssd.new(name: "Home", handler: fn menu, _, _ -> menu |> ExUssd.set(title: "Welcome") end)
+    iex> menu |> ExUssd.set(title: "Welcome", data: %{a: 1}, should_close: true)
   """
 
   def set(%ExUssd{} = menu, opts) do
@@ -79,10 +84,9 @@ defmodule ExUssd.Op do
     end
 
     with nil <- apply(fun, [menu, opts]) do
-      message =
+      throw(
         "Expected field in allowable fields #{inspect(@allowed_fields)} found #{inspect(Keyword.keys(opts))}"
-
-      raise ExUssd.Error, message: message
+      )
     end
   end
 
@@ -92,77 +96,72 @@ defmodule ExUssd.Op do
   ## Options
   These options are required;
   * `:menu` — ExUssd Menu
-  * `:menu` — ExUssd child menu to add to menu list
+  * `:menu` — ExUssd add to menu list
   * `:opts` — Keyword list includes (menus, handler)
 
   ## Example
     iex> menu = ExUssd.new(name: "Home", handler: MyHomeHandler)
-    iex> menu |> ExUssd.add(ExUssd.new(name: "Product A", handler: ProductAHandler)))
+    iex> ExUssd.add(menu, ExUssd.new(name: "Product A", handler: ProductAHandler)))
 
   Add menus to to ExUssd menu list.
   Note: The menus share one handler
 
   ## Example
     iex> menu = ExUssd.new(name: "Home", handler: MyHomeHandler, orientation: :horizontal)
-    iex> menu |> ExUssd.add(menus: [ExUssd.new(name: "Product A")], handler: ProductAHandler))
+    iex> menu |> ExUssd.add(menus: [ExUssd.new(name: "Nairobi", data: %{city: "Nairobi", code: 47})], handler: ProductAHandler))
   """
 
-  def add(%ExUssd{orientation: :vertical} = menu, %ExUssd{} = child) do
-    fun = fn menu, child ->
-      Map.get_and_update(menu, :menu_list, fn menu_list -> {:ok, [child | menu_list]} end)
+  def add(%ExUssd{orientation: orientation} = menu, %ExUssd{} = child) do
+    fun = fn orientation, menu, child ->
+      if Enum.member?([:horizontal, :vertical], orientation) do
+        Map.get_and_update(menu, :menu_list, fn menu_list -> {:ok, [child | menu_list]} end)
+      end
     end
 
-    with {:ok, menu} <- apply(fun, [menu, child]), do: menu
+    with {:error, error} <- apply(fun, [orientation, menu, child]) |> validate_add(orientation) do
+      throw(error)
+    end
   end
 
-  def add(%ExUssd{orientation: :horizontal} = menu, %ExUssd{} = child) do
-    fun = fn menu, child ->
-      Map.get_and_update(menu, :menu_list, fn menu_list -> {:ok, [child | menu_list]} end)
+  def add(%ExUssd{orientation: orientation} = menu, opts) when is_list(opts) do
+    fun = fn orientation, menu, opts ->
+      if Enum.member?([:horizontal, :vertical], orientation) do
+        with %ExUssd{} = menu <- validate_add(menu, opts) do
+          {:ok, menu}
+        end
+      end
     end
 
-    menu_list = with {:ok, menu} <- apply(fun, [menu, child]), do: menu.menu_list
-
-    Map.put(menu, :menu_list, Enum.reverse(menu_list))
-  end
-
-  def add(menu, opts) do
     opts =
       opts
       |> Keyword.take([:menus, :handler])
       |> Enum.into(%{})
 
-    orientation = Map.get(menu, :orientation)
-
-    add(orientation, opts, menu)
+    with {:error, error} <- apply(fun, [orientation, menu, opts]) |> validate_add(orientation) do
+      throw(error)
+    end
   end
 
-  defp add(:vertical, %{menus: menus, handler: handler}, menu) do
+  defp validate_add({:ok, menu}, orientation) when is_atom(orientation), do: menu
+
+  defp validate_add(nil, orientation) when is_atom(orientation),
+    do: {:error, "Unknown orientation value, #{inspect(orientation)}"}
+
+  defp validate_add(%ExUssd{} = menu, %{menus: menus, handler: handler}) do
     menu_list = Enum.map(menus, fn menu -> Map.put(menu, :handler, handler) end)
     Map.put(menu, :menu_list, Enum.reverse(menu_list))
   end
 
-  defp add(:horizontal, %{menus: menus, handler: handler}, menu) do
-    menu_list = Enum.map(menus, fn menu -> Map.put(menu, :handler, handler) end)
-    Map.put(menu, :menu_list, menu_list)
-  end
+  defp validate_add(_, %{menus: menus, handler: _}),
+    do: {:error, "menus should be a list, found #{inspect(menus)}"}
 
-  defp add(_, %{menus: menus, handler: _}, _) when not is_list(menus) do
-    message = "menus should be a list, found #{inspect(menus)}"
-    raise ExUssd.Error, message: message
-  end
+  defp validate_add(_, %{menus: menus, handler: _}) when not is_list(menus),
+    do: {:error, "menus should be a list, found #{inspect(menus)}"}
 
-  defp add(_, %{menus: menus, handler: _}, _) when menus == [] do
-    message = "menus should not be empty"
-    raise ExUssd.Error, message: message
-  end
+  defp validate_add(_, %{menus: menus, handler: _}) when menus == [],
+    do: {:error, "menus should not be empty"}
 
-  defp add(_, %{menus: _}, _) do
-    message = "handler not provided"
-    raise ExUssd.Error, message: message
-  end
+  defp validate_add(_, %{menus: _}), do: {:error, "handler not provided"}
 
-  defp add(_, _, _) do
-    message = "menus not provided"
-    raise ExUssd.Error, message: message
-  end
+  defp validate_add(_, _), do: {:error, "menus not provided"}
 end
