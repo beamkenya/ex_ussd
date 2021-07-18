@@ -25,8 +25,8 @@ defmodule ExUssd.Op do
   * `:opts` — keyword lists includes (name, resolve)
 
   ## Example
-    iex> ExUssd.new( orientation: :vertical, name: "home", resolve: MyHomeHandler)
-    iex> ExUssd.new( orientation: :vertical, name: "home", resolve: fn menu, _api_parameters, _metadata -> menu |> ExUssd.set(title: "Welcome") end)
+    iex> ExUssd.new(orientation: :vertical, name: "home", resolve: MyHomeHandler)
+    iex> ExUssd.new(orientation: :horizontal, name: "home", resolve: fn menu, _api_parameters, _metadata -> menu |> ExUssd.set(title: "Welcome") end)
   """
   def new(opts) do
     fun = fn opts ->

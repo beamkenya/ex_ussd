@@ -2,17 +2,11 @@ defmodule ExUssd.OpTest do
   use ExUnit.Case
 
   setup do
-    defmodule HomeHandler do
-      use ExUssd
+    resolve = fn menu, _api_parameters, _metadata -> menu |> ExUssd.set(title: "Welcome") end
 
-      def ussd_init(menu, _api_parameters) do
-        menu |> Map.put(:title, Faker.Lorem.sentence(4..10))
-      end
-    end
+    menu = ExUssd.new(name: Faker.Company.name(), resolve: resolve)
 
-    menu = ExUssd.new(name: Faker.Company.name(), resolve: HomeHandler)
-
-    %{resolve: HomeHandler, menu: menu}
+    %{resolve: resolve, menu: menu}
   end
 
   describe "new/1" do

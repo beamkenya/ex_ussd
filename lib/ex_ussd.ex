@@ -1,4 +1,21 @@
 defmodule ExUssd do
+  alias __MODULE__
+
+  @type t :: %__MODULE__{
+          name: String.t(),
+          resolve: any(),
+          title: String.t(),
+          parent: ExUssd.t(),
+          data: any(),
+          error: String.t(),
+          show_navigation: boolean(),
+          should_close: boolean(),
+          delimiter: String.t(),
+          default_error: String.t(),
+          orientation: atom(),
+          menu_list: list(ExUssd.t())
+        }
+
   defstruct [
     :name,
     :resolve,
@@ -50,7 +67,7 @@ defmodule ExUssd do
 
   defmacro __using__([]) do
     quote do
-      @behaviour ExUssd.Handler
+      @behaviour ExUssd
     end
   end
 
