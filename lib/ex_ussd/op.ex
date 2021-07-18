@@ -24,12 +24,12 @@ defmodule ExUssd.Op do
   * `:opts` — keyword lists includes (name, handler)
 
   ## Example
-    iex> ExUssd.new(name: "Home", handler: MyHomeHandler)
+    iex> ExUssd.new(name: "Home", handler: MyHomeHandler, orientation: :vertical)
   """
   def new(opts) do
     fun = fn opts ->
       if Keyword.keyword?(opts) do
-        struct!(ExUssd, Keyword.take(opts, [:data, :handler, :name]))
+        struct!(ExUssd, Keyword.take(opts, [:data, :handler, :name, :orientation]))
       end
     end
 
@@ -39,7 +39,7 @@ defmodule ExUssd.Op do
   end
 
   defp validate_new(nil, opts) do
-    {:error, "Expected a keyword list opts found #{IO.inspect(opts)}"}
+    {:error, "Expected a keyword list opts found #{inspect(opts)}"}
   end
 
   defp validate_new(menu, opts) do
@@ -53,7 +53,7 @@ defmodule ExUssd.Op do
     Enum.reduce_while([:name, :handler], 0, fn key, _ ->
       case apply(fun, [opts, key]) do
         nil -> {:cont, menu}
-        message -> {:halt, message}
+        error -> {:halt, error}
       end
     end)
   end
@@ -97,6 +97,19 @@ defmodule ExUssd.Op do
   ## Example
     iex> menu = ExUssd.new(name: "Home", handler: MyHomeHandler)
     iex> menu |> ExUssd.add(ExUssd.new(name: "Product A", handler: ProductAHandler)))
+
+
+  Add menus to to ExUssd menu list.
+  Note: The menus share one handler
+
+  ## Options
+  These options are required;
+  * `:menu` — ExUssd Menu
+  * `:opts` — Keyword list includes (menus, handler)
+
+  ## Example
+    iex> menu = ExUssd.new(name: "Home", handler: MyHomeHandler, orientation: :horizontal)
+    iex> menu |> ExUssd.add(menus: [ExUssd.new(name: "Product A")], handler: ProductAHandler))
   """
 
   def add(%ExUssd{orientation: :vertical} = menu, %ExUssd{} = child) do
@@ -107,62 +120,43 @@ defmodule ExUssd.Op do
     with {:ok, menu} <- apply(fun, [menu, child]), do: menu
   end
 
-  def add(%ExUssd{orientation: :horizontal}, _child) do
-    message = "Change menu orientation to :vertical to use ExUssd.add/2"
-    raise ExUssd.Error, message: message
-  end
-
-  @doc """
-  Add menus to to ExUssd menu list.
-  Note: The menus share one handler
-
-  ## Options
-  These options are required;
-  * `:menu` — ExUssd Menu
-  * `:opts` — Keyword list includes (menus, handler, orientation)
-
-  ## Example
-    iex> menu = ExUssd.new(name: "Home", handler: MyHomeHandler)
-    iex> menu |> ExUssd.dynamic(menus: [ExUssd.new(name: "Product A")], orientation: vertical, handler: ProductAHandler))
-  """
-
-  def dynamic(menu, opts) do
+  def add(menu, opts) do
     opts =
       opts
-      |> Keyword.take([:menus, :handler, :orientation])
+      |> Keyword.take([:menus, :handler])
       |> Enum.into(%{})
 
-    orientation = Map.get(opts, :orientation)
+    orientation = Map.get(menu, :orientation)
 
-    dynamic(orientation, opts, menu)
+    add(orientation, opts, menu)
   end
 
-  defp dynamic(:vertical, %{menus: menus, handler: handler}, menu) do
+  defp add(:vertical, %{menus: menus, handler: handler}, menu) do
     menu_list = Enum.map(menus, fn menu -> Map.put(menu, :handler, handler) end)
     Map.put(menu, :menu_list, Enum.reverse(menu_list))
   end
 
-  defp dynamic(:horizontal, %{menus: menus, handler: handler}, menu) do
+  defp add(:horizontal, %{menus: menus, handler: handler}, menu) do
     menu_list = Enum.map(menus, fn menu -> Map.put(menu, :handler, handler) end)
     Map.put(menu, :menu_list, menu_list)
   end
 
-  defp dynamic(_, %{menus: menus, handler: _}, _) when not is_list(menus) do
-    message = "menus should be a list, found #{IO.inspect(menus)}"
+  defp add(_, %{menus: menus, handler: _}, _) when not is_list(menus) do
+    message = "menus should be a list, found #{inspect(menus)}"
     raise ExUssd.Error, message: message
   end
 
-  defp dynamic(_, %{menus: menus, handler: _}, _) when menus == [] do
+  defp add(_, %{menus: menus, handler: _}, _) when menus == [] do
     message = "menus should not be empty"
     raise ExUssd.Error, message: message
   end
 
-  defp dynamic(_, %{menus: _}, _) do
+  defp add(_, %{menus: _}, _) do
     message = "handler not provided"
     raise ExUssd.Error, message: message
   end
 
-  defp dynamic(_, _, _) do
+  defp add(_, _, _) do
     message = "menus not provided"
     raise ExUssd.Error, message: message
   end
