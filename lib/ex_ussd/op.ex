@@ -22,10 +22,11 @@ defmodule ExUssd.Op do
 
   ## Options
   These options are required;
-  * `:opts` — keyword lists includes (name, handler)
+  * `:opts` — keyword lists includes (name, resolve)
 
   ## Example
-    iex> ExUssd.new(name: "aasd ...", handler: MyHomeHandler, orientation: :vertical)
+    iex> ExUssd.new( orientation: :vertical, name: "home", resolve: MyHomeHandler)
+    iex> ExUssd.new( orientation: :vertical, name: "home", resolve: fn menu, _api_parameters, _metadata -> menu |> ExUssd.set(title: "Welcome") end)
   """
   def new(opts) do
     fun = fn opts ->
@@ -35,7 +36,7 @@ defmodule ExUssd.Op do
             {name, Utils.truncate(name, length: 140, omission: "...")}
           end)
 
-        struct!(ExUssd, Keyword.take(opts, [:data, :handler, :name, :orientation]))
+        struct!(ExUssd, Keyword.take(opts, [:data, :resolve, :name, :orientation]))
       end
     end
 
@@ -55,7 +56,7 @@ defmodule ExUssd.Op do
       end
     end
 
-    Enum.reduce_while([:name, :handler], 0, fn key, _ ->
+    Enum.reduce_while([:name, :resolve], 0, fn key, _ ->
       case apply(fun, [opts, key]) do
         nil -> {:cont, menu}
         error -> {:halt, error}
@@ -72,7 +73,7 @@ defmodule ExUssd.Op do
   * `:opts` — Keyword list includes @allowed_fields
 
   ## Example
-    iex> menu = ExUssd.new(name: "Home", handler: fn menu, _, _ -> menu |> ExUssd.set(title: "Welcome") end)
+    iex> menu = ExUssd.new(name: "Home", resolve: fn menu, _, _ -> menu |> ExUssd.set(title: "Welcome") end)
     iex> menu |> ExUssd.set(title: "Welcome", data: %{a: 1}, should_close: true)
   """
 
@@ -97,18 +98,18 @@ defmodule ExUssd.Op do
   These options are required;
   * `:menu` — ExUssd Menu
   * `:menu` — ExUssd add to menu list
-  * `:opts` — Keyword list includes (menus, handler)
+  * `:opts` — Keyword list includes (menus, resolver)
 
   ## Example
-    iex> menu = ExUssd.new(name: "Home", handler: MyHomeHandler)
-    iex> ExUssd.add(menu, ExUssd.new(name: "Product A", handler: ProductAHandler)))
+    iex> menu = ExUssd.new(name: "Home", resolve: MyHomeHandler)
+    iex> ExUssd.add(menu, ExUssd.new(name: "Product A", resolve: ProductAHandler)))
 
   Add menus to to ExUssd menu list.
-  Note: The menus share one handler
+  Note: The menus share one resolver
 
   ## Example
-    iex> menu = ExUssd.new(name: "Home", handler: MyHomeHandler, orientation: :horizontal)
-    iex> menu |> ExUssd.add(menus: [ExUssd.new(name: "Nairobi", data: %{city: "Nairobi", code: 47})], handler: ProductAHandler))
+    iex> menu = ExUssd.new(orientation: :horizontal, name: "Home", resolve: MyHomeHandler)
+    iex> menu |> ExUssd.add(menus: [ExUssd.new(name: "Nairobi", data: %{city: "Nairobi", code: 47})], resolve: ProductAHandler))
   """
 
   def add(%ExUssd{orientation: orientation} = menu, %ExUssd{} = child) do
@@ -134,7 +135,7 @@ defmodule ExUssd.Op do
 
     opts =
       opts
-      |> Keyword.take([:menus, :handler])
+      |> Keyword.take([:menus, :resolve])
       |> Enum.into(%{})
 
     with {:error, error} <- apply(fun, [orientation, menu, opts]) |> validate_add(orientation) do
@@ -147,21 +148,21 @@ defmodule ExUssd.Op do
   defp validate_add(nil, orientation) when is_atom(orientation),
     do: {:error, "Unknown orientation value, #{inspect(orientation)}"}
 
-  defp validate_add(%ExUssd{} = menu, %{menus: menus, handler: handler}) do
-    menu_list = Enum.map(menus, fn menu -> Map.put(menu, :handler, handler) end)
+  defp validate_add(%ExUssd{} = menu, %{menus: menus, resolve: resolve}) do
+    menu_list = Enum.map(menus, fn menu -> Map.put(menu, :resolve, resolve) end)
     Map.put(menu, :menu_list, Enum.reverse(menu_list))
   end
 
-  defp validate_add(_, %{menus: menus, handler: _}),
+  defp validate_add(_, %{menus: menus, resolve: _}),
     do: {:error, "menus should be a list, found #{inspect(menus)}"}
 
-  defp validate_add(_, %{menus: menus, handler: _}) when not is_list(menus),
+  defp validate_add(_, %{menus: menus, resolve: _}) when not is_list(menus),
     do: {:error, "menus should be a list, found #{inspect(menus)}"}
 
-  defp validate_add(_, %{menus: menus, handler: _}) when menus == [],
+  defp validate_add(_, %{menus: menus, resolve: _}) when menus == [],
     do: {:error, "menus should not be empty"}
 
-  defp validate_add(_, %{menus: _}), do: {:error, "handler not provided"}
+  defp validate_add(_, %{menus: _}), do: {:error, "resolve not provided"}
 
   defp validate_add(_, _), do: {:error, "menus not provided"}
 end
