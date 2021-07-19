@@ -49,7 +49,8 @@ defmodule ExUssd.Op do
     {:error, "Expected a keyword list opts found #{inspect(opts)}"}
   end
 
-  defp validate_new(%ExUssd{} = menu, opts) do
+  defp validate_new(%ExUssd{orientation: orientation} = menu, opts)
+       when orientation in [:vertical, :horizontal] do
     fun = fn opts, key ->
       if not Keyword.has_key?(opts, key) do
         {:error, "Expected #{inspect(key)} in opts, found #{inspect(Keyword.keys(opts))}"}
@@ -62,6 +63,10 @@ defmodule ExUssd.Op do
         error -> {:halt, error}
       end
     end)
+  end
+
+  defp validate_new(%ExUssd{orientation: orientation}, _opts) do
+    {:error, "Unknown orientation value, #{inspect(orientation)}"}
   end
 
   @doc """
@@ -112,25 +117,31 @@ defmodule ExUssd.Op do
     iex> menu |> ExUssd.add(menus: [ExUssd.new(name: "Nairobi", data: %{city: "Nairobi", code: 47})], resolve: ProductAHandler))
   """
 
-  def add(%ExUssd{orientation: orientation} = menu, %ExUssd{} = child) do
-    fun = fn orientation, menu, child ->
-      if Enum.member?([:horizontal, :vertical], orientation) do
-        Map.get_and_update(menu, :menu_list, fn menu_list -> {:ok, [child | menu_list]} end)
-      end
+  def add(%ExUssd{} = menu, %ExUssd{} = child) do
+    fun = fn menu, child ->
+      Map.get_and_update(menu, :menu_list, fn menu_list -> {:ok, [child | menu_list]} end)
     end
 
-    with {:error, error} <- apply(fun, [orientation, menu, child]) |> validate_add(orientation) do
-      throw(error)
-    end
+    with {:ok, menu} <- apply(fun, [menu, child]), do: menu
   end
 
-  def add(%ExUssd{orientation: orientation} = menu, opts) when is_list(opts) do
-    fun = fn orientation, menu, opts ->
-      if Enum.member?([:horizontal, :vertical], orientation) do
-        with %ExUssd{} = menu <- validate_add(menu, opts) do
-          {:ok, menu}
-        end
-      end
+  def add(%ExUssd{} = menu, opts) when is_list(opts) do
+    fun = fn
+      menu, %{menus: menus, resolve: resolve} when is_list(menus) ->
+        menu_list = Enum.map(menus, fn menu -> Map.put(menu, :resolve, resolve) end)
+        Map.put(menu, :menu_list, Enum.reverse(menu_list))
+
+      _, %{menus: menus, resolve: _} when menus == [] ->
+        {:error, "menus should not be empty"}
+
+      _, %{menus: menus, resolve: _} when not is_list(menus) ->
+        {:error, "menus should be a list, found #{inspect(menus)}"}
+
+      _, %{menus: _} ->
+        {:error, "resolve not provided"}
+
+      _, _ ->
+        {:error, "menus not provided"}
     end
 
     opts =
@@ -138,31 +149,8 @@ defmodule ExUssd.Op do
       |> Keyword.take([:menus, :resolve])
       |> Enum.into(%{})
 
-    with {:error, error} <- apply(fun, [orientation, menu, opts]) |> validate_add(orientation) do
+    with {:error, error} <- apply(fun, [menu, opts]) do
       throw(error)
     end
   end
-
-  defp validate_add({:ok, menu}, orientation) when is_atom(orientation), do: menu
-
-  defp validate_add(nil, orientation) when is_atom(orientation),
-    do: {:error, "Unknown orientation value, #{inspect(orientation)}"}
-
-  defp validate_add(%ExUssd{} = menu, %{menus: menus, resolve: resolve}) do
-    menu_list = Enum.map(menus, fn menu -> Map.put(menu, :resolve, resolve) end)
-    Map.put(menu, :menu_list, Enum.reverse(menu_list))
-  end
-
-  defp validate_add(_, %{menus: menus, resolve: _}),
-    do: {:error, "menus should be a list, found #{inspect(menus)}"}
-
-  defp validate_add(_, %{menus: menus, resolve: _}) when not is_list(menus),
-    do: {:error, "menus should be a list, found #{inspect(menus)}"}
-
-  defp validate_add(_, %{menus: menus, resolve: _}) when menus == [],
-    do: {:error, "menus should not be empty"}
-
-  defp validate_add(_, %{menus: _}), do: {:error, "resolve not provided"}
-
-  defp validate_add(_, _), do: {:error, "menus not provided"}
 end

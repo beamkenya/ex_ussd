@@ -15,6 +15,28 @@ defmodule ExUssd.OpTest do
       options = [name: name, resolve: resolve]
       assert %ExUssd{name: ^name, resolve: ^resolve} = ExUssd.new(options)
     end
+
+    test "new/1 throws an error if the name is not provided", %{resolve: resolve} do
+      assert catch_throw(throw(ExUssd.new(resolve: resolve))) ==
+               "Expected :name in opts, found [:resolve]"
+    end
+
+    test "new/1 throws an error if the orientation is unknown", %{resolve: resolve} do
+      name = Faker.Company.name()
+      orientation = :top
+
+      assert catch_throw(
+               throw(ExUssd.new(orientation: orientation, name: name, resolve: resolve))
+             ) ==
+               "Unknown orientation value, #{inspect(orientation)}"
+    end
+
+    test "new/1 throws an error if opt is not a key wordlist", %{resolve: resolve} do
+      opts = %{resolve: resolve}
+
+      assert catch_throw(throw(ExUssd.new(opts))) ==
+               "Expected a keyword list opts found #{inspect(opts)}"
+    end
   end
 
   describe "set/2" do
@@ -23,6 +45,11 @@ defmodule ExUssd.OpTest do
 
       assert %ExUssd{title: ^title, should_close: true} =
                ExUssd.set(menu, title: title, should_close: true)
+    end
+
+    test "set/1 throws an error if opts value is not part of the allowed_fields", %{menu: menu} do
+      assert catch_throw(throw(ExUssd.set(menu, close: true))) ==
+               "Expected field in allowable fields [:error, :title, :next, :previous, :should_close, :split, :delimiter, :default_error, :show_navigation, :data] found [:close]"
     end
   end
 
