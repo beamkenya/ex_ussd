@@ -127,26 +127,31 @@ defmodule ExUssd.Op do
 
   def add(%ExUssd{} = menu, opts) when is_list(opts) do
     fun = fn
-      menu, %{menus: menus, resolve: resolve} when is_list(menus) ->
-        menu_list = Enum.map(menus, fn menu -> Map.put(menu, :resolve, resolve) end)
-        Map.put(menu, :menu_list, Enum.reverse(menu_list))
+      _menu, %{menus: menus} when menus == [] ->
+        {:error, "menus should not be empty, found #{inspect(menu)}"}
 
-      _, %{menus: menus, resolve: _} when menus == [] ->
-        {:error, "menus should not be empty"}
-
-      _, %{menus: menus, resolve: _} when not is_list(menus) ->
+      _menu, %{menus: menus} when not is_list(menus) ->
         {:error, "menus should be a list, found #{inspect(menus)}"}
 
-      _, %{menus: _} ->
-        {:error, "resolve not provided"}
+      %ExUssd{orientation: :vertical}, %{menus: _, resolve: nil} = opts ->
+        {:error, "resolve not provided, found #{inspect(Keyword.new(opts))}"}
 
-      _, _ ->
-        {:error, "menus not provided"}
+      _menu, %{menus: menus, resolve: resolve} ->
+        if Enum.all?(menus, &is_struct(&1, ExUssd)) do
+          menu_list = Enum.map(menus, fn menu -> Map.put(menu, :resolve, resolve) end)
+          Map.put(menu, :menu_list, Enum.reverse(menu_list))
+        else
+          {:error, "menus should be a list ExUssd struct, found #{inspect(menus)}"}
+        end
+
+      _menu, opts ->
+        {:error, "menus not provided, found #{inspect(Keyword.new(opts))}"}
     end
 
     opts =
       opts
       |> Keyword.take([:menus, :resolve])
+      |> Keyword.put_new(:resolve, nil)
       |> Enum.into(%{})
 
     with {:error, error} <- apply(fun, [menu, opts]) do
