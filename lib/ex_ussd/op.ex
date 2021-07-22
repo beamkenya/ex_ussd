@@ -127,21 +127,24 @@ defmodule ExUssd.Op do
 
   def add(%ExUssd{} = menu, opts) when is_list(opts) do
     fun = fn
-      menu, %{menus: menus, resolve: resolve} when is_list(menus) ->
+      _menu, %{menus: menus} when menus == [] ->
+        {:error, "menus should not be empty, found #{inspect(menu)}"}
+
+      _menu, %{menus: menus} when not is_list(menus) ->
+        {:error, "menus should be a list, found #{inspect(menus)}"}
+
+      %ExUssd{orientation: :vertical} = menu, %{menus: menus, resolve: resolve} ->
         menu_list = Enum.map(menus, fn menu -> Map.put(menu, :resolve, resolve) end)
         Map.put(menu, :menu_list, Enum.reverse(menu_list))
 
-      _, %{menus: menus, resolve: _} when menus == [] ->
-        {:error, "menus should not be empty"}
+      %ExUssd{orientation: :horizontal} = menu, %{menus: menus} ->
+        Map.put(menu, :menu_list, Enum.reverse(menus))
 
-      _, %{menus: menus, resolve: _} when not is_list(menus) ->
-        {:error, "menus should be a list, found #{inspect(menus)}"}
+      _menu, %{menus: _} = opts ->
+        {:error, "resolve not provided, found #{inspect(Keyword.new(opts))}"}
 
-      _, %{menus: _} ->
-        {:error, "resolve not provided"}
-
-      _, _ ->
-        {:error, "menus not provided"}
+      _menu, opts ->
+        {:error, "menus not provided, found #{inspect(Keyword.new(opts))}"}
     end
 
     opts =
