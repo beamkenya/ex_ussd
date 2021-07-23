@@ -57,7 +57,7 @@ defmodule ExUssd.Op do
       end
     end
 
-    Enum.reduce_while([:name, :resolve], 0, fn key, _ ->
+    Enum.reduce_while([:name], 0, fn key, _ ->
       case apply(fun, [opts, key]) do
         nil -> {:cont, menu}
         error -> {:halt, error}
@@ -102,7 +102,7 @@ defmodule ExUssd.Op do
   ## Options
   These options are required;
   * `:menu` — ExUssd Menu
-  * `:menu` — ExUssd add to menu list
+  * `:child` — ExUssd add to menu list
   * `:opts` — Keyword list includes (menus, resolver)
 
   ## Example
@@ -113,7 +113,7 @@ defmodule ExUssd.Op do
   Note: The menus share one resolver
 
   ## Example
-    iex> menu = ExUssd.new(orientation: :horizontal, name: "Home", resolve: MyHomeHandler)
+    iex> menu = ExUssd.new(orientation: :vertical, name: "Home", resolve: MyHomeHandler)
     iex> menu |> ExUssd.add(menus: [ExUssd.new(name: "Nairobi", data: %{city: "Nairobi", code: 47})], resolve: ProductAHandler))
   """
 
@@ -127,31 +127,33 @@ defmodule ExUssd.Op do
 
   def add(%ExUssd{} = menu, opts) when is_list(opts) do
     fun = fn
+      _menu, opts when not is_map_key(opts, :menus) ->
+        {:error, "menus not provided, found #{inspect(Keyword.new(opts))}"}
+
       _menu, %{menus: menus} when menus == [] ->
         {:error, "menus should not be empty, found #{inspect(menu)}"}
 
       _menu, %{menus: menus} when not is_list(menus) ->
         {:error, "menus should be a list, found #{inspect(menus)}"}
 
-      %ExUssd{orientation: :vertical}, %{menus: _, resolve: nil} = opts ->
-        {:error, "resolve not provided, found #{inspect(Keyword.new(opts))}"}
+      %ExUssd{orientation: :vertical}, %{menus: _} = opts when not is_map_key(opts, :resolve) ->
+        {:error,
+         "orientation: :vertical, resolve not provided, found #{inspect(Keyword.new(opts))}"}
 
-      _menu, %{menus: menus, resolve: resolve} ->
+      _menu, %{menus: menus} = opts ->
+        resolve = Map.get(opts, :resolve)
+
         if Enum.all?(menus, &is_struct(&1, ExUssd)) do
           menu_list = Enum.map(menus, fn menu -> Map.put(menu, :resolve, resolve) end)
           Map.put(menu, :menu_list, Enum.reverse(menu_list))
         else
-          {:error, "menus should be a list ExUssd struct, found #{inspect(menus)}"}
+          {:error, "menus should be a list of ExUssd struct, found #{inspect(menus)}"}
         end
-
-      _menu, opts ->
-        {:error, "menus not provided, found #{inspect(Keyword.new(opts))}"}
     end
 
     opts =
       opts
       |> Keyword.take([:menus, :resolve])
-      |> Keyword.put_new(:resolve, nil)
       |> Enum.into(%{})
 
     with {:error, error} <- apply(fun, [menu, opts]) do
