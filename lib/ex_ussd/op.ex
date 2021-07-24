@@ -25,7 +25,7 @@ defmodule ExUssd.Op do
   * `:opts` — keyword lists includes (name, resolve)
 
   ## Example
-    iex> ExUssd.new(orientation: :vertical, name: "home", resolve: MyHomeHandler)
+    iex> ExUssd.new(orientation: :vertical, name: "home", resolve: MyHomeResolver)
     iex> ExUssd.new(orientation: :horizontal, name: "home", resolve: fn menu, _api_parameters, _metadata -> menu |> ExUssd.set(title: "Welcome") end)
   """
   def new(opts) do
@@ -78,7 +78,7 @@ defmodule ExUssd.Op do
   * `:opts` — Keyword list includes @allowed_fields
 
   ## Example
-    iex> menu = ExUssd.new(name: "Home", resolve: fn menu, _, _ -> menu |> ExUssd.set(title: "Welcome") end)
+    iex> menu = ExUssd.new(name: "Home", resolve: &HomeResolver.welcome_menu/3)
     iex> menu |> ExUssd.set(title: "Welcome", data: %{a: 1}, should_close: true)
   """
 
@@ -103,21 +103,24 @@ defmodule ExUssd.Op do
   These options are required;
   * `:menu` — ExUssd Menu
   * `:child` — ExUssd add to menu list
-  * `:opts` — Keyword list includes (menus, resolver)
+  * `:menus` — List of ExUssd menu
+  * `:opts` — Keyword list includes (resolve)
 
   ## Example
-    iex> menu = ExUssd.new(name: "Home", resolve: MyHomeHandler)
-    iex> ExUssd.add(menu, ExUssd.new(name: "Product A", resolve: ProductAHandler)))
+    iex> menu = ExUssd.new(name: "Home", resolve: MyHomeResolver)
+    iex> ExUssd.add(menu, ExUssd.new(name: "Product A", resolve: ProductResolver)))
 
   Add menus to to ExUssd menu list.
   Note: The menus share one resolver
 
   ## Example
-    iex> menu = ExUssd.new(orientation: :vertical, name: "Home", resolve: MyHomeHandler)
-    iex> menu |> ExUssd.add(menus: [ExUssd.new(name: "Nairobi", data: %{city: "Nairobi", code: 47})], resolve: ProductAHandler))
+    iex> menu = ExUssd.new(orientation: :vertical, name: "Home", resolve: MyHomeResolver)
+    iex> menu |> ExUssd.add([ExUssd.new(name: "Nairobi", data: %{city: "Nairobi", code: 47})], resolve: &CountyResolver.city_menu/3))
   """
 
-  def add(%ExUssd{} = menu, %ExUssd{} = child) do
+  def add(_, _, opts \\ [])
+
+  def add(%ExUssd{} = menu, %ExUssd{} = child, _opts) do
     fun = fn menu, child ->
       Map.get_and_update(menu, :menu_list, fn menu_list -> {:ok, [child | menu_list]} end)
     end
@@ -125,24 +128,20 @@ defmodule ExUssd.Op do
     with {:ok, menu} <- apply(fun, [menu, child]), do: menu
   end
 
-  def add(%ExUssd{} = menu, opts) when is_list(opts) do
+  def add(%ExUssd{} = menu, menus, opts) do
+    resolve = Keyword.get(opts, :resolve)
+
     fun = fn
-      _menu, opts when not is_map_key(opts, :menus) ->
-        {:error, "menus not provided, found #{inspect(Keyword.new(opts))}"}
-
-      _menu, %{menus: menus} when menus == [] ->
-        {:error, "menus should not be empty, found #{inspect(menu)}"}
-
-      _menu, %{menus: menus} when not is_list(menus) ->
+      _menu, menus, _ when not is_list(menus) ->
         {:error, "menus should be a list, found #{inspect(menus)}"}
 
-      %ExUssd{orientation: :vertical}, %{menus: _} = opts when not is_map_key(opts, :resolve) ->
-        {:error,
-         "orientation: :vertical, resolve not provided, found #{inspect(Keyword.new(opts))}"}
+      _menu, menus, _ when menus == [] ->
+        {:error, "menus should not be empty, found #{inspect(menu)}"}
 
-      _menu, %{menus: menus} = opts ->
-        resolve = Map.get(opts, :resolve)
+      %ExUssd{orientation: :vertical}, menus, nil ->
+        {:error, "resolve callback not found in opts keyword list"}
 
+      %ExUssd{} = menu, menus, resolve ->
         if Enum.all?(menus, &is_struct(&1, ExUssd)) do
           menu_list = Enum.map(menus, fn menu -> Map.put(menu, :resolve, resolve) end)
           Map.put(menu, :menu_list, Enum.reverse(menu_list))
@@ -151,12 +150,7 @@ defmodule ExUssd.Op do
         end
     end
 
-    opts =
-      opts
-      |> Keyword.take([:menus, :resolve])
-      |> Enum.into(%{})
-
-    with {:error, error} <- apply(fun, [menu, opts]) do
+    with {:error, error} <- apply(fun, [menu, menus, resolve]) do
       throw(error)
     end
   end

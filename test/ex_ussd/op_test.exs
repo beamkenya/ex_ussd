@@ -73,8 +73,7 @@ defmodule ExUssd.OpTest do
       menu2 = ExUssd.new(name: Faker.Company.name(), resolve: resolve)
 
       assert %ExUssd{menu_list: [^menu2, ^menu1]} =
-               home
-               |> ExUssd.add(menus: [menu1, menu2], resolve: resolve)
+               home |> ExUssd.add([menu1, menu2], resolve: resolve)
     end
 
     test "horizontal: successfully add menus to menu list", %{resolve: resolve} do
@@ -82,7 +81,7 @@ defmodule ExUssd.OpTest do
       menu1 = ExUssd.new(name: Faker.Company.name())
       menu2 = ExUssd.new(name: Faker.Company.name())
 
-      assert %ExUssd{menu_list: [^menu2, ^menu1]} = home |> ExUssd.add(menus: [menu1, menu2])
+      assert %ExUssd{menu_list: [^menu2, ^menu1]} = home |> ExUssd.add([menu1, menu2])
     end
   end
 end
