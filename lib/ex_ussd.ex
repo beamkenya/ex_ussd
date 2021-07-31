@@ -29,7 +29,12 @@ defmodule ExUssd do
     delimiter: ":",
     default_error: "Invalid Choice\n",
     orientation: :vertical,
-    menu_list: []
+    menu_list: [],
+    nav: [
+      ExUssd.Nav.new(type: :home, name: "HOME", match: "00", orientation: :vertical),
+      ExUssd.Nav.new(type: :back, name: "BACK", match: "0"),
+      ExUssd.Nav.new(type: :next, name: "MORE", match: "98")
+    ]
   ]
 
   @type menu() :: ExUssd.t()

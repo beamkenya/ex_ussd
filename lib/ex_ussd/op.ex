@@ -80,7 +80,30 @@ defmodule ExUssd.Op do
   ## Example
     iex> menu = ExUssd.new(name: "Home", resolve: &HomeResolver.welcome_menu/3)
     iex> menu |> ExUssd.set(title: "Welcome", data: %{a: 1}, should_close: true)
+    iex> menu |> ExUssd.set(nav: ExUssd.Nav.new(type: :back, name: "BACK", match: "*"))
+    iex> menu |> ExUssd.set(nav: [ExUssd.Nav.new(type: :back, name: "BACK", match: "*")])
   """
+
+  def set(%ExUssd{} = menu, nav: %ExUssd.Nav{type: type} = nav)
+      when type in [:home, :next, :back] do
+    case Enum.find_index(menu.nav, fn nav -> nav.type == type end) do
+      nil ->
+        menu
+
+      index ->
+        Map.put(menu, :nav, List.update_at(menu.nav, index, fn _ -> nav end))
+    end
+  end
+
+  def set(%ExUssd{} = menu, nav: nav) when is_list(nav) do
+    if Enum.all?(nav, &is_struct(&1, ExUssd.Nav)) do
+      Map.put(menu, :nav, Enum.uniq_by(nav ++ menu.nav, fn n -> n.type end))
+    else
+      raise %ArgumentError{
+        message: "nav should be a list of ExUssd.Nav struct, found #{inspect(nav)}"
+      }
+    end
+  end
 
   def set(%ExUssd{} = menu, opts) do
     fun = fn menu, opts ->
