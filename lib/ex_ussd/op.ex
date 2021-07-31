@@ -40,8 +40,8 @@ defmodule ExUssd.Op do
       end
     end
 
-    with {:error, error} <- apply(fun, [opts]) |> validate_new(opts) do
-      throw(error)
+    with {:error, message} <- apply(fun, [opts]) |> validate_new(opts) do
+      raise %ArgumentError{message: message}
     end
   end
 
@@ -90,9 +90,10 @@ defmodule ExUssd.Op do
     end
 
     with nil <- apply(fun, [menu, opts]) do
-      throw(
+      message =
         "Expected field in allowable fields #{inspect(@allowed_fields)} found #{inspect(Keyword.keys(opts))}"
-      )
+
+      raise %ArgumentError{message: message}
     end
   end
 
@@ -150,8 +151,8 @@ defmodule ExUssd.Op do
         end
     end
 
-    with {:error, error} <- apply(fun, [menu, menus, resolve]) do
-      throw(error)
+    with {:error, message} <- apply(fun, [menu, menus, resolve]) do
+      raise %ArgumentError{message: message}
     end
   end
 end

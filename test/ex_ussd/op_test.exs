@@ -17,26 +17,27 @@ defmodule ExUssd.OpTest do
       assert %ExUssd{name: ^name, resolve: ^resolve} = ExUssd.new(options)
     end
 
-    test "new/1 throws an error if the name is not provided", %{resolve: resolve} do
-      assert catch_throw(throw(ExUssd.new(resolve: resolve))) ==
-               "Expected :name in opts, found [:resolve]"
+    test "raise ArgumentError if the name is not provided", %{resolve: resolve} do
+      assert_raise ArgumentError, "Expected :name in opts, found [:resolve]", fn ->
+        ExUssd.new(resolve: resolve)
+      end
     end
 
-    test "new/1 throws an error if the orientation is unknown", %{resolve: resolve} do
+    test "raise ArgumentError if the orientation is unknown", %{resolve: resolve} do
       name = Faker.Company.name()
       orientation = :top
 
-      assert catch_throw(
-               throw(ExUssd.new(orientation: orientation, name: name, resolve: resolve))
-             ) ==
-               "Unknown orientation value, #{inspect(orientation)}"
+      assert_raise ArgumentError, "Unknown orientation value, #{inspect(orientation)}", fn ->
+        ExUssd.new(orientation: orientation, name: name, resolve: resolve)
+      end
     end
 
-    test "new/1 throws an error if opt is not a key wordlist", %{resolve: resolve} do
+    test "raise ArgumentError if opt is not a key wordlist", %{resolve: resolve} do
       opts = %{resolve: resolve}
 
-      assert catch_throw(throw(ExUssd.new(opts))) ==
-               "Expected a keyword list opts found #{inspect(opts)}"
+      assert_raise ArgumentError, "Expected a keyword list opts found #{inspect(opts)}", fn ->
+        ExUssd.new(opts)
+      end
     end
   end
 
@@ -48,9 +49,10 @@ defmodule ExUssd.OpTest do
                ExUssd.set(menu, title: title, should_close: true)
     end
 
-    test "set/1 throws an error if opts value is not part of the allowed_fields", %{menu: menu} do
-      assert catch_throw(throw(ExUssd.set(menu, close: true))) ==
-               "Expected field in allowable fields [:error, :title, :next, :previous, :should_close, :split, :delimiter, :default_error, :show_navigation, :data] found [:close]"
+    test "raise ArgumentError if opts value is not part of the allowed_fields", %{menu: menu} do
+      assert_raise ArgumentError,
+                   "Expected field in allowable fields [:error, :title, :next, :previous, :should_close, :split, :delimiter, :default_error, :show_navigation, :data] found [:close]",
+                   fn -> ExUssd.set(menu, close: true) end
     end
   end
 
