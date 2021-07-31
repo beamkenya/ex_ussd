@@ -138,7 +138,7 @@ defmodule ExUssd.Op do
       _menu, menus, _ when menus == [] ->
         {:error, "menus should not be empty, found #{inspect(menu)}"}
 
-      %ExUssd{orientation: :vertical}, menus, nil ->
+      %ExUssd{orientation: :vertical}, _menus, nil ->
         {:error, "resolve callback not found in opts keyword list"}
 
       %ExUssd{} = menu, menus, resolve ->
@@ -146,7 +146,7 @@ defmodule ExUssd.Op do
           menu_list = Enum.map(menus, fn menu -> Map.put(menu, :resolve, resolve) end)
           Map.put(menu, :menu_list, Enum.reverse(menu_list))
         else
-          {:error, "menus should be a list of ExUssd struct, found #{inspect(menus)}"}
+          {:error, "menus should be a list of ExUssd menus, found #{inspect(menus)}"}
         end
     end
 

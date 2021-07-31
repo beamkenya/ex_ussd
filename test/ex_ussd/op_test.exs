@@ -1,4 +1,5 @@
 defmodule ExUssd.OpTest do
+  @moduledoc false
   use ExUnit.Case
 
   setup do

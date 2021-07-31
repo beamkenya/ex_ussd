@@ -1,4 +1,8 @@
 defmodule ExUssd.Utils do
+  @moduledoc """
+  This module contains utils helpers for `ExUssd`.
+  """
+
   def truncate(text, options \\ []) do
     len = options[:length] || 30
     omi = options[:omission] || "..."
