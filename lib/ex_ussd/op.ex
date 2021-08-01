@@ -57,7 +57,7 @@ defmodule ExUssd.Op do
       end
     end
 
-    Enum.reduce_while([:name], 0, fn key, _ ->
+    Enum.reduce_while([:name], menu, fn key, _ ->
       case apply(fun, [opts, key]) do
         nil -> {:cont, menu}
         error -> {:halt, error}
