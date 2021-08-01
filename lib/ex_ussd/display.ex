@@ -81,7 +81,7 @@ defmodule ExUssd.Display do
       end)
       |> String.trim()
 
-    title_error = "#{error}#{title}"
+    title_error = IO.iodata_to_binary(["#{error}", title])
 
     menu_string =
       cond do

@@ -3,18 +3,26 @@ defmodule ExUssd.ExecuterTest do
   use ExUnit.Case
   alias ExUssd.Executer
 
-  setup do
-    resolve = fn menu, _api_parameters, _metadata -> menu |> ExUssd.set(title: "Welcome") end
-
-    menu = ExUssd.new(name: Faker.Company.name(), resolve: resolve)
-
-    %{menu: menu}
-  end
-
   describe "execute/3" do
-    test "successfully executes anonymous resolve fn", %{menu: menu} do
+    test "successfully executes anonymous resolve fn" do
+      menu =
+        ExUssd.new(
+          name: Faker.Company.name(),
+          resolve: fn menu, _api_parameters, _metadata -> menu |> ExUssd.set(title: "Welcome") end
+        )
+
       title = "Welcome"
       assert %ExUssd{title: ^title} = Executer.execute(menu, Map.new(), Map.new())
+    end
+
+    test "raise BadArityError if resolve function does not take arity of 3" do
+      menu =
+        ExUssd.new(
+          name: Faker.Company.name(),
+          resolve: fn menu, _api_parameters -> menu |> ExUssd.set(title: "Welcome") end
+        )
+
+      assert_raise BadArityError, fn -> Executer.execute(menu, Map.new(), Map.new()) end
     end
   end
 end

@@ -23,10 +23,14 @@ defmodule ExUssd.DisplayTest do
       menu: menu,
       route: route
     } do
-      menu = Executer.execute(menu, Map.new(), Map.new())
+      menu = get_menu(menu)
 
       assert {:ok, %{menu_string: "Welcome\n1:menu 1\n2:menu 2", should_close: false}} ==
                Display.to_string(menu, route)
     end
+  end
+
+  defp get_menu(menu) do
+    Executer.execute(menu, Map.new(), Map.new())
   end
 end
