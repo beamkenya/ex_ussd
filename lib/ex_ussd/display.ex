@@ -47,9 +47,9 @@ defmodule ExUssd.Display do
           show_navigation: show_navigation,
           split: split,
           title: title
-        } = menu,
+        },
         %ExUssd.Route{route: route},
-        opts \\ []
+        _opts \\ []
       ) do
     %{depth: depth} = List.first(route)
 
@@ -70,11 +70,10 @@ defmodule ExUssd.Display do
       nav
       |> Enum.reduce("", fn %{type: type}, acc ->
         navigation =
-          get_navigation(
-            menu,
+          ExUssd.Nav.to_string(
+            Enum.find(nav, &(&1.type == type)),
             depth,
-            Enum.at(menu_list, max + 1),
-            Enum.find(nav, &(&1.type == type))
+            Enum.at(menu_list, max + 1)
           )
 
         IO.iodata_to_binary([acc, navigation])
@@ -110,62 +109,4 @@ defmodule ExUssd.Display do
         nil
     end
   end
-
-  def get_navigation(
-        %ExUssd{should_close: should_close},
-        depth,
-        max,
-        %ExUssd.Nav{orientation: orientation} = nav
-      ) do
-    fun = fn
-      _, %ExUssd.Nav{show: false} ->
-        ""
-
-      %{depth: 1}, _nav ->
-        ""
-
-      %{max: nil}, %ExUssd.Nav{type: :next} ->
-        ""
-
-      _, %ExUssd.Nav{name: name, delimiter: delimiter, match: match, reverse: true} ->
-        "#{match}#{delimiter}#{name}"
-
-      _, %ExUssd.Nav{name: name, delimiter: delimiter, match: match} ->
-        "#{name}#{delimiter}#{match}"
-    end
-
-    navigation = apply(fun, [%{depth: depth, max: max}, nav])
-
-    if String.equivalent?(navigation, "") do
-      navigation
-    else
-      navigation
-      |> padding(:left, nav)
-      |> padding(:right, nav)
-      |> padding(:top, nav)
-      |> padding(:bottom, nav)
-    end
-  end
-
-  defp padding(string, :left, %ExUssd.Nav{left: amount}) do
-    String.pad_leading(string, String.length(string) + amount)
-  end
-
-  defp padding(string, :right, %ExUssd.Nav{orientation: :horizontal, right: amount}) do
-    String.pad_trailing(string, String.length(string) + amount)
-  end
-
-  defp padding(string, :right, %ExUssd.Nav{orientation: :vertical}), do: string
-
-  defp padding(string, :top, %ExUssd.Nav{top: amount}) do
-    padding = String.duplicate("\n", amount)
-    IO.iodata_to_binary([padding, string])
-  end
-
-  defp padding(string, :bottom, %ExUssd.Nav{orientation: :vertical, bottom: amount}) do
-    padding = String.duplicate("\n", 1 + amount)
-    IO.iodata_to_binary([string, padding])
-  end
-
-  defp padding(string, :bottom, %ExUssd.Nav{orientation: :horizontal}), do: string
 end
