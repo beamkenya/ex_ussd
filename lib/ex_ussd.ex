@@ -31,8 +31,14 @@ defmodule ExUssd do
     orientation: :vertical,
     menu_list: [],
     nav: [
-      ExUssd.Nav.new(type: :home, name: "HOME", match: "00", orientation: :vertical),
-      ExUssd.Nav.new(type: :back, name: "BACK", match: "0"),
+      ExUssd.Nav.new(
+        type: :home,
+        name: "HOME",
+        match: "00",
+        reverse: true,
+        orientation: :vertical
+      ),
+      ExUssd.Nav.new(type: :back, name: "BACK", match: "0", right: 1),
       ExUssd.Nav.new(type: :next, name: "MORE", match: "98")
     ]
   ]

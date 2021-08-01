@@ -95,6 +95,10 @@ defmodule ExUssd.Op do
     end
   end
 
+  def set(%ExUssd{}, nav: %ExUssd.Nav{type: type}) do
+    raise %ArgumentError{message: "nav has unknown type #{inspect(type)}"}
+  end
+
   def set(%ExUssd{} = menu, nav: nav) when is_list(nav) do
     if Enum.all?(nav, &is_struct(&1, ExUssd.Nav)) do
       Map.put(menu, :nav, Enum.uniq_by(nav ++ menu.nav, fn n -> n.type end))
