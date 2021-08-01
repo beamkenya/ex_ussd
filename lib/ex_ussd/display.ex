@@ -3,38 +3,60 @@ defmodule ExUssd.Display do
   This module provides the display functions for the ExUssd lib.
   """
 
-  #   def to_string(
-  #         %ExUssd{
-  #           orientation: :horizontal,
-  #           delimiter: delimiter,
-  #           error: error,
-  #           menu_list: menu_list,
-  #           nav: nav,
-  #           should_close: should_close,
-  #           show_navigation: show_navigation,
-  #           split: split,
-  #           title: title
-  #         } = menu,
-  #         %ExUssd.Route{route: route},
-  #         opts \\ []
-  #       ) do
-  #     session = Keyword.get(opts, :session)
-  #     navigation =
-  #       nav
-  #       |> Enum.reduce("", fn %{type: type}, acc ->
-  #         navigation =
-  #           get_navigation(
-  #             menu,
-  #             depth,
-  #             Enum.at(menu_list, max + 1),
-  #             Enum.find(nav, &(&1.type == type))
-  #           )
+  def to_string(_, _, opts \\ [])
 
-  #         IO.iodata_to_binary([acc, navigation])
-  #       end)
-  #       |> String.trim()
+  def to_string(
+        %ExUssd{
+          orientation: :horizontal,
+          delimiter: delimiter,
+          menu_list: menu_list,
+          nav: nav,
+          should_close: should_close,
+          default_error: default_error
+        },
+        %{route: route},
+        opts
+      ) do
+    _session = Keyword.get(opts, :session)
 
-  #   end
+    %{depth: depth} = List.first(route)
+
+    total_length = length(menu_list)
+
+    menu_list = Enum.reverse(menu_list)
+
+    navigation =
+      nav
+      |> Enum.reduce("", &reduce_nav(&1, &2, nav, menu_list, depth + 1, depth - 1))
+      |> String.trim()
+
+    should_close =
+      if depth == total_length do
+        should_close
+      else
+        false
+      end
+
+    menu_string =
+      case Enum.at(menu_list, depth - 1) do
+        %ExUssd{name: name} ->
+          IO.iodata_to_binary([
+            "#{depth}",
+            delimiter,
+            "#{total_length}",
+            "\n",
+            name,
+            "\n",
+            navigation
+          ])
+
+        _ ->
+          # TODO: set current depth: Registry.depth(session, total_length + 1)
+          IO.iodata_to_binary([default_error, navigation])
+      end
+
+    {:ok, %{menu_string: menu_string, should_close: should_close}}
+  end
 
   def to_string(
         %ExUssd{
@@ -48,8 +70,8 @@ defmodule ExUssd.Display do
           split: split,
           title: title
         },
-        %ExUssd.Route{route: route},
-        _opts \\ []
+        %{route: route},
+        _opts
       ) do
     %{depth: depth} = List.first(route)
 
@@ -68,16 +90,7 @@ defmodule ExUssd.Display do
 
     navigation =
       nav
-      |> Enum.reduce("", fn %{type: type}, acc ->
-        navigation =
-          ExUssd.Nav.to_string(
-            Enum.find(nav, &(&1.type == type)),
-            depth,
-            Enum.at(menu_list, max + 1)
-          )
-
-        IO.iodata_to_binary([acc, navigation])
-      end)
+      |> Enum.reduce("", &reduce_nav(&1, &2, nav, menu_list, depth, max))
       |> String.trim()
 
     title_error = IO.iodata_to_binary(["#{error}", title])
@@ -91,13 +104,20 @@ defmodule ExUssd.Display do
           IO.iodata_to_binary([title_error, navigation])
 
         show_navigation == false ->
-          IO.iodata_to_binary(["#{title_error}\n", Enum.join(menus, "\n")])
+          IO.iodata_to_binary([title_error, "\n", Enum.join(menus, "\n")])
 
         show_navigation == true ->
-          IO.iodata_to_binary(["#{title_error}\n", Enum.join(menus, "\n"), navigation])
+          IO.iodata_to_binary([title_error, "\n", Enum.join(menus, "\n"), navigation])
       end
 
     {:ok, %{menu_string: menu_string, should_close: should_close}}
+  end
+
+  defp reduce_nav(%{type: type}, acc, nav, menu_list, depth, max) do
+    navigation =
+      ExUssd.Nav.to_string(Enum.find(nav, &(&1.type == type)), depth, Enum.at(menu_list, max + 1))
+
+    IO.iodata_to_binary([acc, navigation])
   end
 
   defp transform(menu_list, min, delimiter, {position, index}) do
