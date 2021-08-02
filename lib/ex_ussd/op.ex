@@ -32,9 +32,11 @@ defmodule ExUssd.Op do
     fun = fn opts ->
       if Keyword.keyword?(opts) do
         {_, opts} =
-          Keyword.get_and_update(opts, :name, fn name ->
-            {name, Utils.truncate(name, length: 140, omission: "...")}
-          end)
+          Keyword.get_and_update(
+            opts,
+            :name,
+            &{&1, Utils.truncate(&1, length: 140, omission: "...")}
+          )
 
         struct!(ExUssd, Keyword.take(opts, [:data, :resolve, :name, :orientation]))
       end

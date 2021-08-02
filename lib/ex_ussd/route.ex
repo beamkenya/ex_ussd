@@ -51,14 +51,7 @@ defmodule ExUssd.Route do
       %{text: text, mode: :parallel, equivalent: false, contains: false} ->
         list = String.split(text, "*")
 
-        route =
-          Enum.reduce(list, [%{depth: 1, text: "555"}], fn text, acc ->
-            if String.equivalent?(text, "") do
-              acc
-            else
-              [%{depth: 1, text: text} | acc]
-            end
-          end)
+        route = Enum.reduce(list, [%{depth: 1, text: "555"}], &reduce_route/2)
 
         %Route{mode: :parallel, route: route}
 
@@ -80,5 +73,13 @@ defmodule ExUssd.Route do
     end
 
     apply(fun, [opts])
+  end
+
+  defp reduce_route(text, acc) do
+    if String.equivalent?(text, "") do
+      acc
+    else
+      [%{depth: 1, text: text} | acc]
+    end
   end
 end

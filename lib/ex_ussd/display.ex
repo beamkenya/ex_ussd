@@ -56,7 +56,7 @@ defmodule ExUssd.Display do
           ])
 
         _ ->
-          # TODO: set current depth: Registry.depth(session, total_length + 1)
+          # set current depth: Registry.depth(session, total_length + 1)
           IO.iodata_to_binary([default_error, navigation])
       end
 
