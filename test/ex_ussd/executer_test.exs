@@ -12,7 +12,7 @@ defmodule ExUssd.ExecuterTest do
         )
 
       title = "Welcome"
-      assert %ExUssd{title: ^title} = Executer.execute(menu, Map.new(), Map.new())
+      assert {:ok, %ExUssd{title: ^title}} = Executer.execute(menu, Map.new(), Map.new())
     end
 
     test "raise BadArityError if resolve function does not take arity of 3" do

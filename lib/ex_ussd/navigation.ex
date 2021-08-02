@@ -56,20 +56,25 @@ defmodule ExUssd.Navigation do
         Registry.set(session, [%{depth: 1, value: "555"}])
         {:ok, Registry.fetch_home(session)}
 
-      pos ->
-        route(pos, route, menu, api_parameters)
+      position ->
+        get_menu(position, route, menu, api_parameters)
     end
   end
 
-  defp route(_pos, _route, %ExUssd{menu_list: []} = menu, api_parameters) do
+  defp get_menu(_pos, _route, %ExUssd{menu_list: []} = menu, api_parameters) do
     with nil <- Executer.execute_callback(menu, api_parameters, %{metadata: true}) do
       {:skip, menu}
     end
   end
 
-  defp route(pos, route, %ExUssd{menu_list: menu_list} = menu, %{session_id: session} = api_parameters) do
+  defp get_menu(
+         position,
+         route,
+         %ExUssd{menu_list: menu_list} = menu,
+         %{session_id: session} = api_parameters
+       ) do
     with nil <- Executer.execute_callback(menu, api_parameters, %{metadata: true}) do
-      case Enum.at(menu_list, pos - 1) do
+      case Enum.at(menu_list, position - 1) do
         # invoke the child init callback
         %ExUssd{} = menu ->
           Registry.add(session, route)
