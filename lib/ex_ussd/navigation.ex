@@ -21,7 +21,7 @@ defmodule ExUssd.Navigation do
       [], _api_parameters, menu ->
         {:ok, menu}
 
-      [%{depth: _, value: "555"}] = route, api_parameters, menu ->
+      [%{depth: _, text: "555"}] = route, api_parameters, menu ->
         execute_navigation(List.first(route), api_parameters, menu)
 
       [head | tail], api_parameters, menu ->
@@ -53,7 +53,7 @@ defmodule ExUssd.Navigation do
        when is_map(route) do
     case Utils.to_int(Integer.parse(route[:text]), menu, route[:text]) do
       705_897_792_423_629_962_208_442_626_284 ->
-        Registry.set(session, [%{depth: 1, value: "555"}])
+        Registry.set(session, [%{depth: 1, text: "555"}])
         {:ok, Registry.fetch_home(session)}
 
       position ->
@@ -74,7 +74,7 @@ defmodule ExUssd.Navigation do
          %{session_id: session} = api_parameters
        ) do
     with nil <- Executer.execute_callback(menu, api_parameters, %{metadata: true}) do
-      case Enum.at(menu_list, position - 1) do
+      case Enum.at(Enum.reverse(menu_list), position - 1) do
         # invoke the child init callback
         %ExUssd{} = menu ->
           Registry.add(session, route)

@@ -46,17 +46,17 @@ defmodule ExUssd.Route do
 
     fun = fn
       %{text: _text, mode: :parallel, equivalent: true, contains: true} ->
-        %Route{mode: :parallel, route: [%{depth: 1, value: "555"}]}
+        %Route{mode: :parallel, route: [%{depth: 1, text: "555"}]}
 
       %{text: text, mode: :parallel, equivalent: false, contains: false} ->
         list = String.split(text, "*")
 
         route =
-          Enum.reduce(list, [%{depth: 1, value: "555"}], fn value, acc ->
-            if String.equivalent?(value, "") do
+          Enum.reduce(list, [%{depth: 1, text: "555"}], fn text, acc ->
+            if String.equivalent?(text, "") do
               acc
             else
-              [%{depth: 1, value: value} | acc]
+              [%{depth: 1, text: text} | acc]
             end
           end)
 
@@ -66,17 +66,17 @@ defmodule ExUssd.Route do
         list = list -- String.split(code, "*")
 
         route =
-          Enum.reduce(list, [%{depth: 1, value: "555"}], fn value, acc ->
-            [%{depth: 1, value: value} | acc]
+          Enum.reduce(list, [%{depth: 1, text: "555"}], fn text, acc ->
+            [%{depth: 1, text: text} | acc]
           end)
 
         %Route{mode: :parallel, route: route}
 
       %{text: text, mode: :serial, equivalent: false, contains: false, text_list: [_ | []]} ->
-        %Route{route: %{depth: 1, value: text}}
+        %Route{route: %{depth: 1, text: text}}
 
       %{text: _text, mode: :serial, text_list: text_list} ->
-        %Route{route: %{depth: 1, value: List.last(text_list)}}
+        %Route{route: %{depth: 1, text: List.last(text_list)}}
     end
 
     apply(fun, [opts])

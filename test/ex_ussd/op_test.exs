@@ -87,4 +87,65 @@ defmodule ExUssd.OpTest do
       assert %ExUssd{menu_list: [^menu2, ^menu1]} = home |> ExUssd.add([menu1, menu2])
     end
   end
+
+  describe "goto/1" do
+    setup do
+      resolve = fn menu, _api_parameters, _metadata ->
+        menu
+        |> ExUssd.set(title: "Welcome")
+        |> ExUssd.add(
+          ExUssd.new(
+            name: "menu 1",
+            resolve: fn menu, _, _ -> ExUssd.set(menu, title: "menu 1") end
+          )
+        )
+        |> ExUssd.add(
+          ExUssd.new(
+            name: "menu 2",
+            resolve: fn menu, _, _ -> ExUssd.set(menu, title: "menu 2") end
+          )
+        )
+        |> ExUssd.add(
+          ExUssd.new(
+            name: "menu 3",
+            resolve: fn menu, _, _ -> ExUssd.set(menu, title: "menu 3") end
+          )
+        )
+        |> ExUssd.add(
+          ExUssd.new(
+            name: "menu 4",
+            resolve: fn menu, _, _ -> ExUssd.set(menu, title: "menu 4") end
+          )
+        )
+        |> ExUssd.add(
+          ExUssd.new(
+            name: "menu 5",
+            resolve: fn menu, _, _ -> ExUssd.set(menu, title: "menu 5") end
+          )
+        )
+      end
+
+      %{menu: ExUssd.new(name: Faker.Company.name(), resolve: resolve)}
+    end
+
+    test "successfully navigates to the first layer", %{menu: menu} do
+      assert {:ok,
+              %{
+                menu_string: "Welcome\n1:menu 1\n2:menu 2\n3:menu 3\n4:menu 4\n5:menu 5",
+                should_close: false
+              }} ==
+               ExUssd.goto(%{
+                 api_parameters: %{session_id: "session_01", text: "", service_code: "*544#"},
+                 menu: menu
+               })
+    end
+
+    test "successfully navigates to the first menu option", %{menu: menu} do
+      assert {:ok, %{menu_string: "menu 1", should_close: false}} ==
+               ExUssd.goto(%{
+                 api_parameters: %{session_id: "session_01", text: "1", service_code: "*544#"},
+                 menu: menu
+               })
+    end
+  end
 end

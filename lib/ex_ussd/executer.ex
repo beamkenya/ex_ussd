@@ -21,18 +21,24 @@ defmodule ExUssd.Executer do
     end
   end
 
-  def execute_callback(%ExUssd{resolve: resolve} = menu, api_parameters, metadata) do
+  def execute_callback(%ExUssd{resolve: resolve} = menu, api_parameters, metadata)
+      when not is_function(resolve) do
     if function_exported?(resolve, :ussd_callback, 3) do
       with %ExUssd{} = menu <- apply(resolve, :ussd_callback, [menu, api_parameters, metadata]),
            do: {:skip, menu}
     end
   end
 
-  def execute_after_callback(%ExUssd{resolve: resolve} = menu, api_parameters, metadata) do
+  def execute_callback(_, _, _), do: nil
+
+  def execute_after_callback(%ExUssd{resolve: resolve} = menu, api_parameters, metadata)
+      when not is_function(resolve) do
     if function_exported?(resolve, :ussd_after_callback, 3) do
       with %ExUssd{} = menu <-
              apply(resolve, :ussd_after_callback, [menu, api_parameters, metadata]),
            do: {:skip, menu}
     end
   end
+
+  def execute_after_callback(_, _, _), do: nil
 end
