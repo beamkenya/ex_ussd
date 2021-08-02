@@ -78,4 +78,5 @@ defmodule ExUssd do
   defdelegate set(menu, opts), to: ExUssd.Op
   defdelegate add(menu, child), to: ExUssd.Op
   defdelegate add(menu, menus, opts), to: ExUssd.Op
+  defdelegate end_session(opts), to: ExUssd.Registry
 end

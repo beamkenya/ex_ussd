@@ -182,4 +182,46 @@ defmodule ExUssd.Op do
       raise %ArgumentError{message: message}
     end
   end
+
+  def goto(fields) when is_list(fields),
+    do: goto(Enum.into(fields, %{}))
+
+  def goto(%{
+        api_parameters:
+          %{text: text, session_id: session, service_code: service_code} = api_parameters,
+        menu: menu
+      }) do
+    route = ExUssd.Route.get_route(%{text: text, service_code: service_code, session: session})
+    current_menu = ExUssd.Navigation.navigate(route, menu, api_parameters)
+    ExUssd.Display.to_string(current_menu, ExUssd.Registry.fetch_state(session))
+  end
+
+  def goto(%{
+        api_parameters: %{"text" => _, "session_id" => _, "service_code" => _} = api_parameters,
+        menu: menu
+      }) do
+    goto(%{api_parameters: Utils.format(api_parameters), menu: menu})
+  end
+
+  def goto(%{api_parameters: %{"session_id" => _, "service_code" => _} = api_parameters, menu: _}) do
+    message = "'text' not found in api_parameters #{inspect(api_parameters)}"
+    raise %ArgumentError{message: message}
+  end
+
+  def goto(%{api_parameters: %{"text" => _, "service_code" => _} = api_parameters, menu: _}) do
+    message = "'session_id' not found in api_parameters #{inspect(api_parameters)}"
+    raise %ArgumentError{message: message}
+  end
+
+  def goto(%{api_parameters: %{"text" => _, "session_id" => _} = api_parameters, menu: _}) do
+    message = "'service_code' not found in api_parameters #{inspect(api_parameters)}"
+    raise %ArgumentError{message: message}
+  end
+
+  def goto(%{api_parameters: api_parameters, menu: _}) do
+    message =
+      "'text', 'service_code', 'session_id',  not found in api_parameters #{inspect(api_parameters)}"
+
+    raise %ArgumentError{message: message}
+  end
 end

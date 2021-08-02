@@ -1,6 +1,11 @@
 defmodule ExUssd.Display do
   @moduledoc """
   This module provides the display functions for the ExUssd lib.
+
+  ## Examples
+  ``` iex> menu = ExUssd.new(name: Faker.Company.name(), resolve: fn menu, _api_parameters, _metadata -> menu |> ExUssd.set(title: "Welcome") end)
+      iex> ExUssd.Display.to_string(menu, ExUssd.Route.get_route(%{text: "*544#", service_code: "*544#"}))
+      {:ok, %{menu_string: "Welcome", should_close: false}}
   """
 
   def to_string(_, _, opts \\ [])

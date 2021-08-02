@@ -12,7 +12,10 @@ defmodule ExUssd.Route do
     
      ## Examples
       iex> ExUssd.Route.get_route(%{text: "*544#", service_code: "*544#"})
-      %Route{mode: :serial, route: [%{depth: 1, text: "555"}]}
+      %Route{mode: :parallel, route: [%{depth: 1, text: "555"}]}
+
+      iex> ExUssd.Route.get_route(%{text: "2", service_code: "*544#"})
+      %Route{mode: :serial, route: %{depth: 1, text: "2"}}
 
       iex> ExUssd.Route.get_route(%{text: "*544*2*3#", service_code: "*544#"})
       %Route{mode: :parallel, route: [%{depth: 1, text: "3"}, %{depth: 1, text: "2"}, %{depth: 1, text: "555"}]}
