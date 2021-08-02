@@ -47,10 +47,14 @@ defmodule ExUssd do
   @type api_parameters() :: map()
   @type metadata() :: map()
 
+  @callback ussd_before_init(
+              menu :: menu(),
+              api_parameters :: api_parameters()
+            ) :: menu()
+
   @callback ussd_init(
               menu :: menu(),
-              api_parameters :: api_parameters(),
-              metadata :: map()
+              api_parameters :: api_parameters()
             ) :: menu()
 
   @callback ussd_callback(
@@ -65,7 +69,8 @@ defmodule ExUssd do
               metadata :: metadata()
             ) :: any()
 
-  @optional_callbacks ussd_callback: 3,
+  @optional_callbacks ussd_before_init: 2,
+                      ussd_callback: 3,
                       ussd_after_callback: 3
 
   defmacro __using__([]) do

@@ -5,7 +5,7 @@ defmodule ExUssd.RouteTest do
 
   describe "get_route/2" do
     test "get route when text is equivalent to service code" do
-      assert %ExUssd.Route{mode: :parallel, route: [%{depth: 1, value: "555"}]} =
+      assert %ExUssd.Route{mode: :parallel, route: [%{depth: 1, text: "555"}]} =
                ExUssd.Route.get_route(%{text: "*544#", service_code: "*544#"})
     end
 
@@ -13,9 +13,9 @@ defmodule ExUssd.RouteTest do
       assert %ExUssd.Route{
                mode: :parallel,
                route: [
-                 %{depth: 1, value: "3"},
-                 %{depth: 1, value: "2"},
-                 %{depth: 1, value: "555"}
+                 %{depth: 1, text: "3"},
+                 %{depth: 1, text: "2"},
+                 %{depth: 1, text: "555"}
                ]
              } = ExUssd.Route.get_route(%{text: "*544*2*3#", service_code: "*544#"})
     end
@@ -24,9 +24,9 @@ defmodule ExUssd.RouteTest do
       assert %ExUssd.Route{
                mode: :parallel,
                route: [
-                 %{depth: 1, value: "3"},
-                 %{depth: 1, value: "2"},
-                 %{depth: 1, value: "555"}
+                 %{depth: 1, text: "3"},
+                 %{depth: 1, text: "2"},
+                 %{depth: 1, text: "555"}
                ]
              } = ExUssd.Route.get_route(%{text: "2*3#", service_code: "*544#"})
     end
@@ -36,7 +36,7 @@ defmodule ExUssd.RouteTest do
 
       assert %ExUssd.Route{
                mode: :serial,
-               route: %{depth: 1, value: "2"}
+               route: %{depth: 1, text: "2"}
              } =
                ExUssd.Route.get_route(%{text: "3*2", service_code: "*544#", session: "session_01"})
     end

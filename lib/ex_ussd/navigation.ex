@@ -41,7 +41,7 @@ defmodule ExUssd.Navigation do
        )
        when is_map(route) do
     Registry.add(session, route)
-    {_, home} = Executer.execute(menu, api_parameters, %{metadata: true})
+    {_, home} = Executer.execute(menu, api_parameters)
     {:ok, Registry.set_home(session, home)}
   end
 
@@ -78,7 +78,7 @@ defmodule ExUssd.Navigation do
         # invoke the child init callback
         %ExUssd{} = menu ->
           Registry.add(session, route)
-          Executer.execute(menu, api_parameters, %{metadata: true})
+          Executer.execute(menu, api_parameters)
 
         nil ->
           {:skip, menu}

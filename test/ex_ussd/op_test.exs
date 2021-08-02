@@ -3,7 +3,7 @@ defmodule ExUssd.OpTest do
   use ExUnit.Case
 
   setup do
-    resolve = fn menu, _api_parameters, _metadata -> menu |> ExUssd.set(title: "Welcome") end
+    resolve = fn menu, _api_parameters -> menu |> ExUssd.set(title: "Welcome") end
 
     menu = ExUssd.new(name: Faker.Company.name(), resolve: resolve)
 
@@ -91,7 +91,7 @@ defmodule ExUssd.OpTest do
   describe "goto/1 simple" do
     setup do
       %{
-        menu: ExUssd.new(name: Faker.Company.name(), resolve: &ExUssd.Example.simple/3),
+        menu: ExUssd.new(name: Faker.Company.name(), resolve: &ExUssd.Example.simple/2),
         session: "#{System.unique_integer()}"
       }
     end

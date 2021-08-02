@@ -26,7 +26,7 @@ defmodule ExUssd.Op do
 
   ## Example
     iex> ExUssd.new(orientation: :vertical, name: "home", resolve: MyHomeResolver)
-    iex> ExUssd.new(orientation: :horizontal, name: "home", resolve: fn menu, _api_parameters, _metadata -> menu |> ExUssd.set(title: "Welcome") end)
+    iex> ExUssd.new(orientation: :horizontal, name: "home", resolve: fn menu, _api_parameters -> menu |> ExUssd.set(title: "Welcome") end)
   """
   def new(opts) do
     fun = fn opts ->
@@ -78,7 +78,7 @@ defmodule ExUssd.Op do
   * `:opts` — Keyword list includes @allowed_fields
 
   ## Example
-    iex> menu = ExUssd.new(name: "Home", resolve: &HomeResolver.welcome_menu/3)
+    iex> menu = ExUssd.new(name: "Home", resolve: &HomeResolver.welcome_menu/2)
     iex> menu |> ExUssd.set(title: "Welcome", data: %{a: 1}, should_close: true)
     iex> menu |> ExUssd.set(nav: ExUssd.Nav.new(type: :back, name: "BACK", match: "*"))
     iex> menu |> ExUssd.set(nav: [ExUssd.Nav.new(type: :back, name: "BACK", match: "*")])
@@ -143,7 +143,7 @@ defmodule ExUssd.Op do
 
   ## Example
     iex> menu = ExUssd.new(orientation: :vertical, name: "Home", resolve: MyHomeResolver)
-    iex> menu |> ExUssd.add([ExUssd.new(name: "Nairobi", data: %{city: "Nairobi", code: 47})], resolve: &CountyResolver.city_menu/3))
+    iex> menu |> ExUssd.add([ExUssd.new(name: "Nairobi", data: %{city: "Nairobi", code: 47})], resolve: &CountyResolver.city_menu/2))
   """
 
   def add(_, _, opts \\ [])
