@@ -22,7 +22,7 @@ defmodule ExUssd.Executer do
 
   def execute_callback(%ExUssd{resolve: resolve} = menu, api_parameters, metadata) do
     if function_exported?(resolve, :ussd_callback, 3) do
-      {:ok, apply(resolve, :ussd_callback, [menu, api_parameters, metadata])}
+      {:skip, apply(resolve, :ussd_callback, [menu, api_parameters, metadata])}
     end
   end
 

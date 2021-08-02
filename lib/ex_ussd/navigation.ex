@@ -27,7 +27,7 @@ defmodule ExUssd.Navigation do
       [head | tail], api_parameters, menu ->
         case execute_navigation(head, api_parameters, menu) do
           {:ok, current_menu} -> execute_navigation(tail, api_parameters, current_menu)
-          {:error, current_menu} -> {:ok, current_menu}
+          {:skip, current_menu} -> {:ok, current_menu}
         end
     end
 
@@ -46,32 +46,36 @@ defmodule ExUssd.Navigation do
 
   defp execute_navigation(
          route,
-         %{session_id: session_id} = api_parameters,
-         %ExUssd{orientation: :vertical, menu_list: menu_list} = menu
+         %{session_id: session} = api_parameters,
+         %ExUssd{orientation: :vertical} = menu
        )
        when is_map(route) do
     case Utils.to_int(Integer.parse(route[:text]), menu, route[:text]) do
       705_897_792_423_629_962_208_442_626_284 ->
         Registry.set(session_id, [%{depth: 1, value: "555"}])
-        {:ok, Registry.fetch_home(session_id)}
+        {:ok, Registry.fetch_home(session)}
 
-      position ->
-        fetch_from_menulist(position, menu, api_parameters, menu_list)
+      pos ->
+        route(pos, route, menu, api_parameters)
     end
   end
 
-  defp fetch_from_menulist(_position, menu, api_parameters, []) do
+  defp route(_pos, _route, %ExUssd{menu_list: []} = menu, api_parameters) do
     with nil <- Executer.execute_callback(menu, api_parameters, %{metadata: true}) do
-      {:error, menu}
+      {:skip, menu}
     end
   end
 
-  defp fetch_from_menulist(position, _menu, api_parameters, menu_list) do
+  defp route(pos, route, %ExUssd{menu_list: menu_list}, %{session_id: session} = api_parameters) do
     with nil <- Executer.execute_callback(menu, api_parameters, %{metadata: true}) do
-      case Enum.at(menus, depth - 1) do
+      case Enum.at(menus, pos - 1) do
         # invoke the child init callback
-        %ExUssd{} = menu -> Executer.execute(menu, api_parameters, %{metadata: true})
-        nil -> {:error, menu}
+        %ExUssd{} = menu ->
+          Registry.add(session, route)
+          Executer.execute(menu, api_parameters, %{metadata: true})
+
+        nil ->
+          {:skip, menu}
       end
     end
   end

@@ -22,6 +22,9 @@ defmodule ExUssd.Utils do
       v when v == home ->
         705_897_792_423_629_962_208_442_626_284
 
+      v when v == "0" ->
+        0
+
       _ ->
         value
     end
