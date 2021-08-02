@@ -42,7 +42,7 @@ defmodule ExUssd.Navigation do
        when is_map(route) do
     Registry.add(session, route)
     {_, home} = Executer.execute(menu, api_parameters)
-    {:ok, Registry.set_home(session, home)}
+    {:ok, Registry.set_home(session, %{home | parent: fn -> home end})}
   end
 
   defp execute_navigation(
@@ -55,6 +55,19 @@ defmodule ExUssd.Navigation do
       705_897_792_423_629_962_208_442_626_284 ->
         Registry.set(session, [%{depth: 1, text: "555"}])
         {:ok, Registry.fetch_home(session)}
+
+      605_356_150_351_840_375_921_999_017_933 ->
+        Registry.next(session)
+        {:ok, menu}
+
+      128_977_754_852_657_127_041_634_246_588 ->
+        %{depth: depth} = Registry.back(session)
+
+        if depth == 1 do
+          {:ok, menu.parent.()}
+        else
+          {:ok, menu}
+        end
 
       position ->
         get_menu(position, route, menu, api_parameters)
@@ -78,7 +91,8 @@ defmodule ExUssd.Navigation do
         # invoke the child init callback
         %ExUssd{} = menu ->
           Registry.add(session, route)
-          Executer.execute(menu, api_parameters)
+          {_, current_menu} = Executer.execute(menu, api_parameters)
+          {:ok, %{current_menu | parent: fn -> menu end}}
 
         nil ->
           {:skip, menu}

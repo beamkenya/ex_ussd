@@ -30,6 +30,8 @@ defmodule ExUssd.Registry do
   end
 
   def add(session, route), do: GenServer.call(via_tuple(session), {:add, route})
+  def next(session), do: GenServer.call(via_tuple(session), {:next})
+  def back(session), do: GenServer.call(via_tuple(session), {:back})
   def fetch_current(session), do: GenServer.call(via_tuple(session), {:fetch_current})
   def fetch_home(session), do: GenServer.call(via_tuple(session), {:fetch_home})
   def fetch_state(session), do: GenServer.call(via_tuple(session), {:fetch_state})
@@ -67,4 +69,20 @@ defmodule ExUssd.Registry do
   def handle_call({:fetch_state}, _from, state), do: {:reply, state, state}
 
   def handle_call({:fetch_route}, _from, %State{route: route} = state), do: {:reply, route, state}
+
+  def handle_call({:next}, _from, %State{route: [head | tail]} = state) do
+    new_state = Map.put(state, :route, [Map.put(head, :depth, head[:depth] + 1) | tail])
+    {:reply, new_state, new_state}
+  end
+
+  def handle_call({:back}, _from, %State{route: [%{depth: depth} = head | tail]} = state) do
+    if head[:depth] == 1 do
+      route = with [] <- tail, do: [%{depth: 1, text: "555"}]
+      {:reply, head, Map.put(state, :route, route)}
+    else
+      new_head = Map.put(head, :depth, depth - 1)
+      new_state = [new_head | tail]
+      {:reply, head, Map.put(state, :routes, new_state)}
+    end
+  end
 end

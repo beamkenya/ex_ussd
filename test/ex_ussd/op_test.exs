@@ -109,9 +109,49 @@ defmodule ExUssd.OpTest do
     end
 
     test "successfully navigates to the first menu option", %{menu: menu, session: session} do
-      assert {:ok, %{menu_string: "menu 1", should_close: false}} ==
+      assert {:ok,
+              %{
+                menu_string: "Welcome\n1:menu 1\n2:menu 2\n3:menu 3\n00:HOME\nBACK:0 MORE:98",
+                should_close: false
+              }} ==
                ExUssd.goto(%{
                  api_parameters: %{session_id: session, text: "1", service_code: "*544#"},
+                 menu: ExUssd.set(menu, split: 3)
+               })
+    end
+
+    test "successfully navigates to the nested menu", %{menu: menu, session: session} do
+      assert {:ok,
+              %{
+                menu_string: "Welcome\n4:menu 4\n5:menu 5\n00:HOME\nBACK:0",
+                should_close: false
+              }} ==
+               ExUssd.goto(%{
+                 api_parameters: %{session_id: session, text: "98", service_code: "*544#"},
+                 menu: ExUssd.set(menu, split: 3)
+               })
+    end
+
+    test "successfully navigates back the nested menu", %{menu: menu, session: session} do
+      assert {:ok,
+              %{
+                menu_string: "Welcome\n1:menu 1\n2:menu 2\n3:menu 3\n00:HOME\nBACK:0 MORE:98",
+                should_close: false
+              }} ==
+               ExUssd.goto(%{
+                 api_parameters: %{session_id: session, text: "0", service_code: "*544#"},
+                 menu: ExUssd.set(menu, split: 3)
+               })
+    end
+
+    test "successfully navigates back to home menu", %{menu: menu, session: session} do
+      assert {:ok,
+              %{
+                menu_string: "Welcome\n1:menu 1\n2:menu 2\n3:menu 3\n4:menu 4\n5:menu 5",
+                should_close: false
+              }} ==
+               ExUssd.goto(%{
+                 api_parameters: %{session_id: session, text: "0", service_code: "*544#"},
                  menu: menu
                })
     end

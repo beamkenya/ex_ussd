@@ -19,8 +19,9 @@ defmodule ExUssd.Example do
     |> ExUssd.add(
       ExUssd.new(
         name: "menu 1",
-        resolve: fn menu, _ -> ExUssd.set(menu, title: "menu 1") end
+        resolve: &simple/2
       )
+      |> ExUssd.set(split: 3)
     )
     |> ExUssd.add(
       ExUssd.new(

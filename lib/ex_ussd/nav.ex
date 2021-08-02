@@ -54,7 +54,7 @@ defmodule ExUssd.Nav do
       _, %ExUssd.Nav{show: false} ->
         ""
 
-      %{depth: 1}, _nav ->
+      %{depth: 1, max: nil}, _nav ->
         ""
 
       %{max: nil}, %ExUssd.Nav{type: :next} ->
@@ -89,6 +89,11 @@ defmodule ExUssd.Nav do
   end
 
   defp padding(string, :right, %ExUssd.Nav{orientation: :vertical}), do: string
+
+  defp padding(string, :top, %ExUssd.Nav{orientation: :vertical, top: amount}) do
+    padding = String.duplicate("\n", 1 + amount)
+    IO.iodata_to_binary([padding, string])
+  end
 
   defp padding(string, :top, %ExUssd.Nav{top: amount}) do
     padding = String.duplicate("\n", amount)

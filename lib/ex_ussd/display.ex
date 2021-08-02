@@ -96,7 +96,7 @@ defmodule ExUssd.Display do
     navigation =
       nav
       |> Enum.reduce("", &reduce_nav(&1, &2, nav, menu_list, depth, max))
-      |> String.trim()
+      |> String.trim(" ")
 
     title_error = IO.iodata_to_binary(["#{error}", title])
 

@@ -28,7 +28,7 @@ defmodule ExUssd.NavTest do
       next =
         ExUssd.Nav.new(type: :next, name: "MORE", match: "98", down: 1, orientation: :vertical)
 
-      assert "MORE:98\n" == ExUssd.Nav.to_string(next)
+      assert "\nMORE:98\n" == ExUssd.Nav.to_string(next)
     end
 
     test "successfully hides nav" do
