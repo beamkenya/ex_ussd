@@ -46,7 +46,7 @@ defmodule ExUssd.Registry do
     {:reply, state, state}
   end
 
-  def handle_call({:set, route}, _from, %State{route: routes} = state) when is_list(route) do
+  def handle_call({:set, route}, _from, state) when is_list(route) do
     state = Map.put(state, :route, route)
     {:reply, state, state}
   end

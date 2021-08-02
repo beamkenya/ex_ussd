@@ -36,12 +36,13 @@ defmodule ExUssd.Navigation do
 
   defp execute_navigation(
          %{depth: _, text: "555"} = route,
-         api_parameters,
+         %{session_id: session} = api_parameters,
          %ExUssd{orientation: :vertical} = menu
        )
        when is_map(route) do
+    Registry.add(session, route)
     {_, home} = Executer.execute(menu, api_parameters, %{metadata: true})
-    {:ok, Registry.set_home(session_id, home)}
+    {:ok, Registry.set_home(session, home)}
   end
 
   defp execute_navigation(
@@ -52,7 +53,7 @@ defmodule ExUssd.Navigation do
        when is_map(route) do
     case Utils.to_int(Integer.parse(route[:text]), menu, route[:text]) do
       705_897_792_423_629_962_208_442_626_284 ->
-        Registry.set(session_id, [%{depth: 1, value: "555"}])
+        Registry.set(session, [%{depth: 1, value: "555"}])
         {:ok, Registry.fetch_home(session)}
 
       pos ->
@@ -66,9 +67,9 @@ defmodule ExUssd.Navigation do
     end
   end
 
-  defp route(pos, route, %ExUssd{menu_list: menu_list}, %{session_id: session} = api_parameters) do
+  defp route(pos, route, %ExUssd{menu_list: menu_list} = menu, %{session_id: session} = api_parameters) do
     with nil <- Executer.execute_callback(menu, api_parameters, %{metadata: true}) do
-      case Enum.at(menus, pos - 1) do
+      case Enum.at(menu_list, pos - 1) do
         # invoke the child init callback
         %ExUssd{} = menu ->
           Registry.add(session, route)
