@@ -88,62 +88,67 @@ defmodule ExUssd.OpTest do
     end
   end
 
-  describe "goto/1" do
+  describe "goto/1 simple" do
     setup do
-      resolve = fn menu, _api_parameters, _metadata ->
-        menu
-        |> ExUssd.set(title: "Welcome")
-        |> ExUssd.add(
-          ExUssd.new(
-            name: "menu 1",
-            resolve: fn menu, _, _ -> ExUssd.set(menu, title: "menu 1") end
-          )
-        )
-        |> ExUssd.add(
-          ExUssd.new(
-            name: "menu 2",
-            resolve: fn menu, _, _ -> ExUssd.set(menu, title: "menu 2") end
-          )
-        )
-        |> ExUssd.add(
-          ExUssd.new(
-            name: "menu 3",
-            resolve: fn menu, _, _ -> ExUssd.set(menu, title: "menu 3") end
-          )
-        )
-        |> ExUssd.add(
-          ExUssd.new(
-            name: "menu 4",
-            resolve: fn menu, _, _ -> ExUssd.set(menu, title: "menu 4") end
-          )
-        )
-        |> ExUssd.add(
-          ExUssd.new(
-            name: "menu 5",
-            resolve: fn menu, _, _ -> ExUssd.set(menu, title: "menu 5") end
-          )
-        )
-      end
-
-      %{menu: ExUssd.new(name: Faker.Company.name(), resolve: resolve)}
+      %{
+        menu: ExUssd.new(name: Faker.Company.name(), resolve: &ExUssd.Example.simple/3),
+        session: "#{System.unique_integer()}"
+      }
     end
 
-    test "successfully navigates to the first layer", %{menu: menu} do
+    test "successfully navigates to the first layer", %{menu: menu, session: session} do
       assert {:ok,
               %{
                 menu_string: "Welcome\n1:menu 1\n2:menu 2\n3:menu 3\n4:menu 4\n5:menu 5",
                 should_close: false
               }} ==
                ExUssd.goto(%{
-                 api_parameters: %{session_id: "session_01", text: "", service_code: "*544#"},
+                 api_parameters: %{session_id: session, text: "", service_code: "*544#"},
                  menu: menu
                })
     end
 
-    test "successfully navigates to the first menu option", %{menu: menu} do
+    test "successfully navigates to the first menu option", %{menu: menu, session: session} do
       assert {:ok, %{menu_string: "menu 1", should_close: false}} ==
                ExUssd.goto(%{
-                 api_parameters: %{session_id: "session_01", text: "1", service_code: "*544#"},
+                 api_parameters: %{session_id: session, text: "1", service_code: "*544#"},
+                 menu: menu
+               })
+    end
+
+    test "successfully navigates to the home menu", %{menu: menu, session: session} do
+      assert {:ok,
+              %{
+                menu_string: "Welcome\n1:menu 1\n2:menu 2\n3:menu 3\n4:menu 4\n5:menu 5",
+                should_close: false
+              }} ==
+               ExUssd.goto(%{
+                 api_parameters: %{session_id: session, text: "00", service_code: "*544#"},
+                 menu: menu
+               })
+    end
+  end
+
+  describe "goto/1 with callback" do
+    setup do
+      %{
+        menu: ExUssd.new(name: Faker.Company.name(), resolve: ExUssd.Example),
+        session: "#{System.unique_integer()}"
+      }
+    end
+
+    test "successfully navigates to the first menu", %{menu: menu, session: session} do
+      assert {:ok, %{menu_string: "Enter your PIN", should_close: false}} ==
+               ExUssd.goto(%{
+                 api_parameters: %{session_id: session, text: "", service_code: "*444#"},
+                 menu: menu
+               })
+    end
+
+    test "successfully calls the 'ussd_callback/3' function", %{menu: menu, session: session} do
+      assert {:ok, %{menu_string: "You have Entered the Secret Number, 5555", should_close: true}} ==
+               ExUssd.goto(%{
+                 api_parameters: %{session_id: session, text: "5555", service_code: "*444#"},
                  menu: menu
                })
     end

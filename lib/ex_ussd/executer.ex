@@ -12,7 +12,8 @@ defmodule ExUssd.Executer do
     end
   end
 
-  def execute(%ExUssd{name: name, resolve: resolve} = menu, api_parameters, metadata) do
+  def execute(%ExUssd{name: name, resolve: resolve} = menu, api_parameters, metadata)
+      when is_atom(resolve) do
     if function_exported?(resolve, :ussd_init, 3) do
       with %ExUssd{} = menu <- apply(resolve, :ussd_init, [menu, api_parameters, metadata]),
            do: {:ok, menu}
@@ -22,7 +23,7 @@ defmodule ExUssd.Executer do
   end
 
   def execute_callback(%ExUssd{resolve: resolve} = menu, api_parameters, metadata)
-      when not is_function(resolve) do
+      when is_atom(resolve) do
     if function_exported?(resolve, :ussd_callback, 3) do
       with %ExUssd{} = menu <- apply(resolve, :ussd_callback, [menu, api_parameters, metadata]),
            do: {:skip, menu}
@@ -32,7 +33,7 @@ defmodule ExUssd.Executer do
   def execute_callback(_, _, _), do: nil
 
   def execute_after_callback(%ExUssd{resolve: resolve} = menu, api_parameters, metadata)
-      when not is_function(resolve) do
+      when is_atom(resolve) do
     if function_exported?(resolve, :ussd_after_callback, 3) do
       with %ExUssd{} = menu <-
              apply(resolve, :ussd_after_callback, [menu, api_parameters, metadata]),
