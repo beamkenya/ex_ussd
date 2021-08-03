@@ -26,7 +26,7 @@ defmodule ExUssd.Display do
 
     %{depth: depth} = List.first(route)
 
-    total_length = length(menu_list)
+    total_length = Enum.count(menu_list)
 
     menu_list = Enum.reverse(menu_list)
 

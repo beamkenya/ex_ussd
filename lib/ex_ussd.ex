@@ -4,7 +4,8 @@ defmodule ExUssd do
 
   @type t :: %__MODULE__{
           name: String.t(),
-          resolve: any(),
+          resolve: fun() | mfa(),
+          navigate: fun(),
           title: String.t(),
           parent: ExUssd.t(),
           data: any(),
@@ -20,6 +21,7 @@ defmodule ExUssd do
   defstruct [
     :name,
     :resolve,
+    :navigate,
     :title,
     :parent,
     :data,
@@ -48,11 +50,6 @@ defmodule ExUssd do
   @type api_parameters() :: map()
   @type metadata() :: map()
 
-  @callback ussd_before_init(
-              menu :: menu(),
-              api_parameters :: api_parameters()
-            ) :: menu()
-
   @callback ussd_init(
               menu :: menu(),
               api_parameters :: api_parameters()
@@ -70,8 +67,7 @@ defmodule ExUssd do
               metadata :: metadata()
             ) :: any()
 
-  @optional_callbacks ussd_before_init: 2,
-                      ussd_callback: 3,
+  @optional_callbacks ussd_callback: 3,
                       ussd_after_callback: 3
 
   defmacro __using__([]) do

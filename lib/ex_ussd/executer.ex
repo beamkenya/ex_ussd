@@ -3,6 +3,16 @@ defmodule ExUssd.Executer do
   This module provides the executer for the USSD lib.
   """
 
+  def execute_navigate(%ExUssd{navigate: navigate} = menu, api_parameters)
+      when is_function(navigate, 2) do
+    case apply(navigate, [menu, api_parameters]) do
+      %ExUssd{} = menu -> %{menu | navigate: nil}
+      _ -> menu
+    end
+  end
+
+  def execute_navigate(menu, _), do: menu
+
   def execute(%ExUssd{resolve: resolve} = menu, api_parameters)
       when is_function(resolve) do
     if is_function(resolve, 2) do
@@ -12,13 +22,12 @@ defmodule ExUssd.Executer do
     end
   end
 
-  def execute(%ExUssd{name: name, resolve: resolve} = menu, api_parameters)
-      when is_atom(resolve) do
+  def execute(%ExUssd{name: name, resolve: resolve} = menu, api_parameters) do
     if function_exported?(resolve, :ussd_init, 2) do
       with %ExUssd{} = menu <- apply(resolve, :ussd_init, [menu, api_parameters]),
            do: {:ok, menu}
     else
-      raise %ArgumentError{message: "resolve module for #{name} does not export ussd_init/3"}
+      raise %ArgumentError{message: "resolve module for #{name} does not export ussd_init/2"}
     end
   end
 

@@ -85,11 +85,7 @@ defmodule ExUssd.OpTest do
     end
 
     test "raise ArgumentError if opt is not a key wordlist", %{resolve: resolve} do
-      opts = %{resolve: resolve}
-
-      assert_raise ArgumentError, "Expected a keyword list opts found #{inspect(opts)}", fn ->
-        ExUssd.new(opts)
-      end
+      assert_raise ArgumentError, fn -> ExUssd.new(%{resolve: resolve}) end
     end
   end
 
@@ -102,9 +98,7 @@ defmodule ExUssd.OpTest do
     end
 
     test "raise ArgumentError if opts value is not part of the allowed_fields", %{menu: menu} do
-      assert_raise ArgumentError,
-                   "Expected field in allowable fields [:error, :title, :next, :previous, :should_close, :split, :delimiter, :default_error, :show_navigation, :data] found [:close]",
-                   fn -> ExUssd.set(menu, close: true) end
+      assert_raise ArgumentError, fn -> ExUssd.set(menu, close: true) end
     end
   end
 
@@ -143,7 +137,8 @@ defmodule ExUssd.OpTest do
   describe "goto/1 simple" do
     setup do
       %{
-        menu: ExUssd.new(name: Faker.Company.name(), resolve: &ExUssd.OpTest.Module.simple/2),
+        menu:
+          ExUssd.new(fn menu, _ -> menu |> ExUssd.set(resolve: &ExUssd.OpTest.Module.simple/2) end),
         session: "#{System.unique_integer()}"
       }
     end

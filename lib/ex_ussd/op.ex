@@ -14,7 +14,8 @@ defmodule ExUssd.Op do
     :delimiter,
     :default_error,
     :show_navigation,
-    :data
+    :data,
+    :resolve
   ]
 
   @doc """
@@ -27,7 +28,19 @@ defmodule ExUssd.Op do
   ## Example
     iex> ExUssd.new(orientation: :vertical, name: "home", resolve: MyHomeResolver)
     iex> ExUssd.new(orientation: :horizontal, name: "home", resolve: fn menu, _api_parameters -> menu |> ExUssd.set(title: "Welcome") end)
+
+    iex> ExUssd.new(fn menu, api_parameters ->
+      if is_registered?(phone_number: api_parameters[:phone_number]) do
+        menu |> ExUssd.set(resolve: HomeResolver)
+      else
+        menu |> ExUssd.set(resolve: GuestResolver)
+      end
+    end)
   """
+  def new(fun) when is_function(fun, 2) do
+    ExUssd.new(navigate: fun, name: "")
+  end
+
   def new(opts) do
     fun = fn opts ->
       if Keyword.keyword?(opts) do
@@ -38,7 +51,7 @@ defmodule ExUssd.Op do
             &{&1, Utils.truncate(&1, length: 140, omission: "...")}
           )
 
-        struct!(ExUssd, Keyword.take(opts, [:data, :resolve, :name, :orientation]))
+        struct!(ExUssd, Keyword.take(opts, [:data, :resolve, :name, :orientation, :navigate]))
       end
     end
 
@@ -48,7 +61,8 @@ defmodule ExUssd.Op do
   end
 
   defp validate_new(nil, opts) do
-    {:error, "Expected a keyword list opts found #{inspect(opts)}"}
+    {:error,
+     "Expected a keyword list opts or callback function with arity of 2, found #{inspect(opts)}"}
   end
 
   defp validate_new(%ExUssd{orientation: orientation} = menu, opts)
@@ -95,6 +109,21 @@ defmodule ExUssd.Op do
       index ->
         Map.put(menu, :nav, List.update_at(menu.nav, index, fn _ -> nav end))
     end
+  end
+
+  def set(%ExUssd{resolve: existing_resolve} = menu, resolve: resolve)
+      when not is_nil(existing_resolve) do
+    raise %RuntimeError{message: "resolve already exist, cannot set #{inspect(resolve)}"}
+  end
+
+  def set(%ExUssd{resolve: nil} = menu, resolve: resolve) do
+    %{menu | resolve: resolve}
+  end
+
+  def set(%ExUssd{resolve: nil} = menu, resolve: resolve) do
+    raise %ArgumentError{
+      message: "resolve should be a function or a resolver module, found #{inspect(resolve)}"
+    }
   end
 
   def set(%ExUssd{}, nav: %ExUssd.Nav{type: type}) do

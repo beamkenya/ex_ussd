@@ -41,7 +41,12 @@ defmodule ExUssd.Navigation do
        )
        when is_map(route) do
     Registry.add(session, route)
-    {_, home} = Executer.execute(menu, api_parameters)
+
+    {_, home} =
+      menu
+      |> Executer.execute_navigate(api_parameters)
+      |> Executer.execute(api_parameters)
+
     {:ok, Registry.set_home(session, %{home | parent: fn -> home end})}
   end
 
@@ -86,12 +91,16 @@ defmodule ExUssd.Navigation do
          %ExUssd{menu_list: menu_list} = menu,
          %{session_id: session} = api_parameters
        ) do
+    menu = Executer.execute_navigate(menu, api_parameters)
+
     with nil <- Executer.execute_callback(menu, api_parameters, %{metadata: true}) do
       case Enum.at(Enum.reverse(menu_list), position - 1) do
         # invoke the child init callback
         %ExUssd{} = menu ->
           Registry.add(session, route)
+
           {_, current_menu} = Executer.execute(menu, api_parameters)
+
           {:ok, %{current_menu | parent: fn -> menu end}}
 
         nil ->
