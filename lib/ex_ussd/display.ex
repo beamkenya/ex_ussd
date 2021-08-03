@@ -22,7 +22,7 @@ defmodule ExUssd.Display do
         %{route: route},
         opts
       ) do
-    _session = Keyword.get(opts, :session)
+    session = Keyword.get(opts, :session)
 
     %{depth: depth} = List.first(route)
 
@@ -56,7 +56,7 @@ defmodule ExUssd.Display do
           ])
 
         _ ->
-          # set current depth: Registry.depth(session, total_length + 1)
+          ExUssd.Registry.set_depth(session, total_length + 1)
           IO.iodata_to_binary([default_error, navigation])
       end
 

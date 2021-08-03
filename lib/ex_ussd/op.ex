@@ -111,16 +111,17 @@ defmodule ExUssd.Op do
     end
   end
 
-  def set(%ExUssd{resolve: existing_resolve} = menu, resolve: resolve)
+  def set(%ExUssd{resolve: existing_resolve}, resolve: resolve)
       when not is_nil(existing_resolve) do
     raise %RuntimeError{message: "resolve already exist, cannot set #{inspect(resolve)}"}
   end
 
-  def set(%ExUssd{resolve: nil} = menu, resolve: resolve) do
+  def set(%ExUssd{resolve: nil} = menu, resolve: resolve)
+      when is_function(resolve) or is_atom(resolve) do
     %{menu | resolve: resolve}
   end
 
-  def set(%ExUssd{resolve: nil} = menu, resolve: resolve) do
+  def set(%ExUssd{resolve: nil}, resolve: resolve) do
     raise %ArgumentError{
       message: "resolve should be a function or a resolver module, found #{inspect(resolve)}"
     }

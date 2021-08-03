@@ -40,7 +40,7 @@ defmodule ExUssd.Navigation do
          %ExUssd{orientation: :vertical} = menu
        )
        when is_map(route) do
-    Registry.add(session, route)
+    Registry.add_route(session, route)
 
     {_, home} =
       menu
@@ -62,11 +62,11 @@ defmodule ExUssd.Navigation do
         {:ok, Registry.fetch_home(session)}
 
       605_356_150_351_840_375_921_999_017_933 ->
-        Registry.next(session)
+        Registry.next_route(session)
         {:ok, menu}
 
       128_977_754_852_657_127_041_634_246_588 ->
-        %{depth: depth} = Registry.back(session)
+        %{depth: depth} = Registry.route_back(session)
 
         if depth == 1 do
           {:ok, menu.parent.()}
@@ -97,7 +97,7 @@ defmodule ExUssd.Navigation do
       case Enum.at(Enum.reverse(menu_list), position - 1) do
         # invoke the child init callback
         %ExUssd{} = menu ->
-          Registry.add(session, route)
+          Registry.add_route(session, route)
 
           {_, current_menu} = Executer.execute(menu, api_parameters)
 
