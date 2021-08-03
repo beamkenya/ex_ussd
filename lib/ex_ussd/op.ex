@@ -15,7 +15,9 @@ defmodule ExUssd.Op do
     :default_error,
     :show_navigation,
     :data,
-    :resolve
+    :resolve,
+    :orientation,
+    :name
   ]
 
   @doc """
@@ -31,9 +33,13 @@ defmodule ExUssd.Op do
 
     iex> ExUssd.new(fn menu, api_parameters ->
       if is_registered?(phone_number: api_parameters[:phone_number]) do
-        menu |> ExUssd.set(resolve: HomeResolver)
+        menu 
+        |> ExUssd.set(name: "home")
+        |> ExUssd.set(resolve: HomeResolver)
       else
-        menu |> ExUssd.set(resolve: GuestResolver)
+        menu 
+        |> ExUssd.set(name: "guest")
+        |> ExUssd.set(resolve: GuestResolver)
       end
     end)
   """
