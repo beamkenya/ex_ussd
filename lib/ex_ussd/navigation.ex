@@ -2,6 +2,8 @@ defmodule ExUssd.Navigation do
   @moduledoc false
   alias ExUssd.{Executer, Registry, Route, Utils}
 
+  defguard is_menu(value) when is_tuple(value) and is_struct(elem(value, 1), ExUssd)
+
   def navigate(routes, menu, %{session_id: session_id} = api_parameters) do
     fun = fn
       %Route{mode: :parallel, route: route}, api_parameters, session_id, menu ->
@@ -75,12 +77,18 @@ defmodule ExUssd.Navigation do
         end
 
       position ->
-        get_menu(position, route, menu, api_parameters)
+        {_, current_menu} = menu = get_menu(position, route, menu, api_parameters)
+
+        case Executer.execute_after_callback(current_menu, api_parameters, %{metadata: true}) do
+          %ExUssd{} = current_menu -> {:skip, current_menu}
+          _ -> menu
+        end
     end
   end
 
   defp get_menu(_pos, _route, %ExUssd{menu_list: []} = menu, api_parameters) do
-    with nil <- Executer.execute_callback(menu, api_parameters, %{metadata: true}) do
+    with response when not is_menu(response) <-
+           Executer.execute_callback(menu, api_parameters, %{metadata: true}) do
       {:skip, menu}
     end
   end
@@ -93,7 +101,8 @@ defmodule ExUssd.Navigation do
        ) do
     menu = Executer.execute_navigate(menu, api_parameters)
 
-    with nil <- Executer.execute_callback(menu, api_parameters, %{metadata: true}) do
+    with response when not is_menu(response) <-
+           Executer.execute_callback(menu, api_parameters, %{metadata: true}) do
       case Enum.at(Enum.reverse(menu_list), position - 1) do
         # invoke the child init callback
         %ExUssd{} = menu ->

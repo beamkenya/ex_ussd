@@ -46,7 +46,7 @@ defmodule ExUssd.Executer do
     if function_exported?(resolve, :ussd_after_callback, 3) do
       with %ExUssd{} = menu <-
              apply(resolve, :ussd_after_callback, [menu, api_parameters, metadata]),
-           do: {:skip, menu}
+           do: menu
     end
   end
 
