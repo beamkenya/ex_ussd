@@ -1,151 +1,147 @@
 defmodule ExUssd.Display do
-  alias ExUssd.Registry
+  @moduledoc """
+  This module provides the display functions for the ExUssd lib.
+  """
 
-  def new(fields) when is_list(fields),
-    do: new(Enum.into(fields, %{}))
+  @doc """
+  Its used to tranform ExUssd menu struct to string.
 
-  def new(%{
-        menu: menu,
-        routes: routes,
-        api_parameters: api_parameters
-      }) do
-    builder(menu, routes, api_parameters)
-  end
+  ## Parameters
 
-  def new(%{menu: menu, routes: routes}) do
-    builder(menu, routes, Map.new())
-  end
+    - `menu` - menu to transform to string
+    - `route` - route 
+    - `opts` - optional session args
 
-  defp builder(
-         %ExUssd{
-           orientation: :horizontal,
-           menu_list: {menu_list, _},
-           default_error: {default_error, _},
-           next: {%{delimiter: next_display_style, next: next, name: next_name}, _},
-           previous:
-             {%{
-                delimiter: previous_display_style,
-                previous: previous,
-                name: previous_name
-              }, _}
-         } = menu,
-         routes,
-         %{session_id: session_id}
-       ) do
-    %{depth: depth} = List.first(routes)
-    total_length = length(menu_list)
+  ## Examples
 
-    previous_navigation = "#{previous}#{previous_display_style}#{previous_name}"
-    next_navigation = "#{next}#{next_display_style}#{next_name}"
+      iex> menu = ExUssd.new(name: "home", resolve: fn menu, _api_parameters, _metadata -> menu |> ExUssd.set(title: "Welcome") end)
+      iex> ExUssd.Display.to_string(menu, ExUssd.Route.get_route(%{text: "*544#", service_code: "*544#"}))
+      {:ok, %{menu_string: "Welcome", should_close: false}}
+  """
 
-    menu =
-      cond do
-        depth > total_length ->
-          Registry.depth(session_id, total_length + 1)
-          menu_string = default_error <> previous_navigation
-          %{menu_string: menu_string, should_close: false}
+  def to_string(_, _, opts \\ [])
 
-        depth < total_length ->
-          %{name: name} = Enum.at(menu_list, depth - 1)
+  @spec to_string(%ExUssd{orientation: :horizontal}, map()) ::
+          {:ok, %{menu_string: String.t(), should_close: boolean()}}
+  def to_string(
+        %ExUssd{
+          orientation: :horizontal,
+          delimiter: delimiter,
+          menu_list: menu_list,
+          nav: nav,
+          should_close: should_close,
+          default_error: default_error
+        },
+        %{route: route},
+        opts
+      ) do
+    session = Keyword.get(opts, :session)
 
-          menu_string =
-            "#{depth}/#{total_length}\n#{name}\n#{previous_navigation} #{next_navigation}"
+    %{depth: depth} = List.first(route)
 
-          %{menu_string: menu_string, should_close: false}
+    total_length = Enum.count(menu_list)
 
-        depth == total_length ->
-          %{name: name} = Enum.at(menu_list, depth - 1)
-          menu_string = "#{depth}/#{total_length}\n#{name}\n#{previous_navigation}"
-          {should_close, _} = menu.should_close
-          %{menu_string: menu_string, should_close: should_close}
-      end
+    menu_list = Enum.reverse(menu_list)
 
-    {:ok, menu}
-  end
+    navigation =
+      nav
+      |> Enum.reduce("", &reduce_nav(&1, &2, nav, menu_list, depth + 1, depth - 1))
+      |> String.trim_trailing()
 
-  defp builder(
-         %ExUssd{
-           orientation: :vertical,
-           delimiter: {delimiter_style, _},
-           error: {error, _},
-           menu_list: {menu_list, _},
-           next: {%{delimiter: next_display_style, next: next, name: next_name}, _},
-           previous:
-             {%{
-                delimiter: previous_display_style,
-                previous: previous,
-                name: previous_name
-              }, _},
-           should_close: {should_close, _},
-           show_navigation: {show_navigation, _},
-           split: {split, _},
-           title: {title, _}
-         } = menu,
-         routes,
-         _api_parameters
-       ) do
-    %{depth: page} = List.first(routes)
-
-    # {0, 6}
-    {min, max} = {split * (page - 1), page * split - 1}
-
-    # [0, 1, 2, 3, 4, 5, 6]
-    selection = Enum.into(min..max, [])
-
-    # [{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}]
-    positions = selection |> Enum.with_index()
-
-    menus =
-      Enum.map(positions, fn x ->
-        case Enum.at(Enum.reverse(menu_list), elem(x, 0)) do
-          nil ->
-            nil
-
-          current_menu ->
-            %{name: name} = current_menu
-            "#{elem(x, 1) + 1 + min}#{delimiter_style}#{name}"
-        end
-      end)
-      |> Enum.filter(fn value -> value != nil end)
-
-    previous_navigation =
-      cond do
-        length(routes) == 1 and page == 1 ->
-          ""
-
-        length(routes) == 1 and page > 1 ->
-          "\n" <> "#{previous}#{previous_display_style}#{previous_name}"
-
-        length(routes) > 1 and should_close == false ->
-          "\n" <> "#{previous}#{previous_display_style}#{previous_name}"
-
-        length(routes) > 1 and should_close == true ->
-          ""
-      end
-
-    next_navigation =
-      cond do
-        Enum.at(menu_list, max + 1) == nil -> ""
-        length(routes) == 1 -> "\n#{next}#{next_display_style}#{next_name}"
-        length(routes) > 1 -> " " <> "#{next}#{next_display_style}#{next_name}"
+    should_close =
+      if depth == total_length do
+        should_close
+      else
+        false
       end
 
     menu_string =
-      cond do
-        menus == [] and show_navigation == true ->
-          "#{error}#{title}" <> previous_navigation <> next_navigation
+      case Enum.at(menu_list, depth - 1) do
+        %ExUssd{name: name} ->
+          IO.iodata_to_binary(["#{depth}", delimiter, "#{total_length}", "\n", name, navigation])
 
-        menus == [] and show_navigation == false ->
-          "#{error}#{title}"
-
-        menus != [] and show_navigation == true ->
-          "#{error}#{title}\n" <> Enum.join(menus, "\n") <> previous_navigation <> next_navigation
-
-        menus != [] and show_navigation == false ->
-          "#{error}#{title}\n" <> Enum.join(menus, "\n")
+        _ ->
+          ExUssd.Registry.set_depth(session, total_length + 1)
+          IO.iodata_to_binary([default_error, navigation])
       end
 
-    {should_close, _} = menu.should_close
     {:ok, %{menu_string: menu_string, should_close: should_close}}
+  end
+
+  @spec to_string(ExUssd.t(), map(), keyword()) ::
+          {:ok, %{menu_string: String.t(), should_close: boolean()}}
+  def to_string(
+        %ExUssd{
+          orientation: :vertical,
+          delimiter: delimiter,
+          error: error,
+          menu_list: menu_list,
+          nav: nav,
+          should_close: should_close,
+          show_navigation: show_navigation,
+          split: split,
+          title: title
+        },
+        %{route: route},
+        _opts
+      ) do
+    %{depth: depth} = List.first(route)
+
+    # {0, 6}
+    {min, max} = {split * (depth - 1), depth * split - 1}
+
+    # [0, 1, 2, 3, 4, 5, 6]
+    selection = Enum.into(min..max, [])
+    menu_list = Enum.reverse(menu_list)
+
+    menus =
+      selection
+      |> Enum.with_index()
+      |> Enum.map(&transform(menu_list, min, delimiter, &1))
+      |> Enum.reject(&is_nil(&1))
+
+    navigation =
+      nav
+      |> Enum.reduce("", &reduce_nav(&1, &2, nav, menu_list, depth, max))
+      |> String.trim_trailing()
+
+    title_error = IO.iodata_to_binary(["#{error}", "#{title}"])
+
+    menu_string =
+      cond do
+        Enum.empty?(menus) and show_navigation == false ->
+          title_error
+
+        Enum.empty?(menus) and show_navigation == true ->
+          IO.iodata_to_binary([title_error, navigation])
+
+        show_navigation == false ->
+          IO.iodata_to_binary([title_error, "\n", Enum.join(menus, "\n")])
+
+        show_navigation == true ->
+          IO.iodata_to_binary([title_error, "\n", Enum.join(menus, "\n"), navigation])
+      end
+
+    {:ok, %{menu_string: menu_string, should_close: should_close}}
+  end
+
+  @spec reduce_nav(map(), String.t(), ExUssd.Nav.t(), list(ExUssd.t()), integer(), integer()) ::
+          String.t()
+  defp reduce_nav(%{type: type}, acc, nav, menu_list, depth, max) do
+    navigation =
+      ExUssd.Nav.to_string(Enum.find(nav, &(&1.type == type)), depth, Enum.at(menu_list, max + 1))
+
+    IO.iodata_to_binary([acc, navigation])
+  end
+
+  @spec transform([ExUssd.t()], integer(), String.t(), {integer(), integer()}) :: nil | binary()
+  defp transform(menu_list, min, delimiter, {position, index}) do
+    case Enum.at(menu_list, position) do
+      %ExUssd{name: name} ->
+        "#{index + 1 + min}#{delimiter}#{name}"
+
+      nil ->
+        nil
+    end
   end
 end

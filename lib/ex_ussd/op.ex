@@ -1,6 +1,8 @@
 defmodule ExUssd.Op do
-  alias ExUssd.{Utils, Registry, Ops, Display, Route, Error}
-  require ExUssd.Utils
+  @moduledoc """
+  Contains all ExUssd Public API functions
+  """
+  alias ExUssd.Utils
 
   @allowed_fields [
     :error,
@@ -12,207 +14,305 @@ defmodule ExUssd.Op do
     :delimiter,
     :default_error,
     :show_navigation,
-    :data
+    :data,
+    :resolve,
+    :orientation,
+    :name
   ]
 
-  def new(fields) when is_list(fields),
-    do: new(Enum.into(fields, %{data: Keyword.get(fields, :data)}))
+  @doc """
+  Returns the ExUssd struct for the given keyword list opts.
 
-  def new(%{name: name, handler: handler, data: data}) do
-    validation_menu =
-      if is_nil(Utils.can_invoke_before_route?(handler)) do
-        nil
+  ## Parameters
+   - `opts` — keyword lists, must include name field
+
+  ## Example
+
+    iex> ExUssd.new(orientation: :vertical, name: "home", resolve: MyHomeResolver)
+    iex> ExUssd.new(orientation: :horizontal, name: "home", resolve: fn menu, _api_parameters -> menu |> ExUssd.set(title: "Welcome") end)
+
+    iex> ExUssd.new(fn menu, api_parameters ->
+      if is_registered?(phone_number: api_parameters[:phone_number]) do
+        menu 
+        |> ExUssd.set(name: "home")
+        |> ExUssd.set(resolve: HomeResolver)
       else
-        %ExUssd{name: "", handler: handler}
+        menu 
+        |> ExUssd.set(name: "guest")
+        |> ExUssd.set(resolve: GuestResolver)
       end
+    end)
+  """
 
-    args = %{
-      name: name,
-      handler: handler,
-      data: data,
-      validation_menu: {validation_menu, false}
+  @spec new(fun()) :: ExUssd.t()
+  def new(fun) when is_function(fun, 2) do
+    ExUssd.new(navigate: fun, name: "")
+  end
+
+  @spec new(keyword()) :: ExUssd.t()
+  def new(opts) do
+    fun = fn opts ->
+      if Keyword.keyword?(opts) do
+        {_, opts} =
+          Keyword.get_and_update(
+            opts,
+            :name,
+            &{&1, Utils.truncate(&1, length: 140, omission: "...")}
+          )
+
+        struct!(ExUssd, Keyword.take(opts, [:data, :resolve, :name, :orientation, :navigate]))
+      end
+    end
+
+    with {:error, message} <- apply(fun, [opts]) |> validate_new(opts) do
+      raise %ArgumentError{message: message}
+    end
+  end
+
+  @spec validate_new(nil | ExUssd.t(), any()) :: ExUssd.t() | {:error, String.t()}
+  defp validate_new(menu, opts)
+
+  defp validate_new(nil, opts) do
+    {:error,
+     "Expected a keyword list opts or callback function with arity of 2, found #{inspect(opts)}"}
+  end
+
+  defp validate_new(%ExUssd{orientation: orientation} = menu, opts)
+       when orientation in [:vertical, :horizontal] do
+    fun = fn opts, key ->
+      if not Keyword.has_key?(opts, key) do
+        {:error, "Expected #{inspect(key)} in opts, found #{inspect(Keyword.keys(opts))}"}
+      end
+    end
+
+    Enum.reduce_while([:name], menu, fn key, _ ->
+      case apply(fun, [opts, key]) do
+        nil -> {:cont, menu}
+        error -> {:halt, error}
+      end
+    end)
+  end
+
+  defp validate_new(%ExUssd{orientation: orientation}, _opts) do
+    {:error, "Unknown orientation value, #{inspect(orientation)}"}
+  end
+
+  @doc """
+  Sets the allowed fields on ExUssd struct.
+
+  ## Parameters
+   - `:menu` — ExUssd Menu
+   - `:opts` — Keyword list. Keys should be in the @allowed_fields
+
+   @allowed_fields [
+    :error,
+    :title,
+    :next,
+    :previous,
+    :should_close,
+    :split,
+    :delimiter,
+    :default_error,
+    :show_navigation,
+    :data,
+    :resolve,
+    :orientation,
+    :name
+  ]
+
+  ## Example
+    iex> menu = ExUssd.new(name: "Home", resolve: &HomeResolver.welcome_menu/2)
+    iex> menu |> ExUssd.set(title: "Welcome", data: %{a: 1}, should_close: true)
+    iex> menu |> ExUssd.set(nav: ExUssd.Nav.new(type: :back, name: "BACK", match: "*"))
+    iex> menu |> ExUssd.set(nav: [ExUssd.Nav.new(type: :back, name: "BACK", match: "*")])
+  """
+
+  @spec set(ExUssd.t(), keyword()) :: ExUssd.t()
+  def set(menu, opts)
+
+  def set(%ExUssd{} = menu, nav: %ExUssd.Nav{type: type} = nav)
+      when type in [:home, :next, :back] do
+    case Enum.find_index(menu.nav, fn nav -> nav.type == type end) do
+      nil ->
+        menu
+
+      index ->
+        Map.put(menu, :nav, List.update_at(menu.nav, index, fn _ -> nav end))
+    end
+  end
+
+  def set(%ExUssd{resolve: existing_resolve}, resolve: resolve)
+      when not is_nil(existing_resolve) do
+    raise %RuntimeError{message: "resolve already exist, cannot set #{inspect(resolve)}"}
+  end
+
+  def set(%ExUssd{resolve: nil} = menu, resolve: resolve)
+      when is_function(resolve) or is_atom(resolve) do
+    %{menu | resolve: resolve}
+  end
+
+  def set(%ExUssd{resolve: nil}, resolve: resolve) do
+    raise %ArgumentError{
+      message: "resolve should be a function or a resolver module, found #{inspect(resolve)}"
     }
-
-    struct(ExUssd, args)
   end
 
-  def new(%{name: name, data: data}) do
-    name = Utils.truncate(name, length: 140, omission: "...")
-    struct(ExUssd, %{name: name, data: data})
+  def set(%ExUssd{}, nav: %ExUssd.Nav{type: type}) do
+    raise %ArgumentError{message: "nav has unknown type #{inspect(type)}"}
   end
 
-  def add(%ExUssd{orientation: :vertical} = menu, %ExUssd{} = child) do
-    {menu_list, _state} = Map.get(menu, :menu_list, {[], true})
-
-    Map.merge(menu, %{menu_list: {[child | menu_list], true}})
-  end
-
-  def add(%ExUssd{orientation: :horizontal}, _child) do
-    message = "the menu orientation is set to :vertical"
-    raise Error, message: message
-  end
-
-  def dynamic(%ExUssd{} = menu, fields) when is_list(fields),
-    do: dynamic(menu, Enum.into(fields, %{}))
-
-  def dynamic(menu, %{menus: menus, handler: handler, orientation: :vertical})
-      when menus != [] do
-    menu_list =
-      Enum.map(menus, fn menu ->
-        Map.merge(menu, %{handler: handler})
-      end)
-
-    Map.merge(menu, %{menu_list: {Enum.reverse(menu_list), true}})
-  end
-
-  def dynamic(_, %{menus: menus, orientation: :vertical}) when menus != [] do
-    message = "vertical menus: Handler not provided"
-    raise Error, message: message
-  end
-
-  def dynamic(%ExUssd{menu_list: {[], _}} = menu, %{
-        menus: menus,
-        orientation: :horizontal
-      })
-      when menus != [] do
-    Map.merge(menu, %{menu_list: {menus, true}, orientation: :horizontal})
-  end
-
-  def dynamic(_menu, %{menus: _menus, orientation: :horizontal}) do
-    message = "the menu orientation is set to :vertical, comment out `ExUssd.add/2`"
-    raise Error, message: message
-  end
-
-  def dynamic(_menu, %{menus: menus, orientation: _}) when menus == [] do
-    message = "menus Cannot to an empty list"
-    raise Error, message: message
-  end
-
-  def dynamic(_menu, %{menus: menus, orientation: _}) when not is_list(menus) do
-    message = "menus should be a list of %ExUssd{} found #{menus}"
-    raise Error, message: message
-  end
-
-  def navigate(%ExUssd{} = menu, fields) when is_list(fields),
-    do: navigate(menu, Enum.into(fields, %{data: Keyword.get(fields, :data)}))
-
-  def navigate(%ExUssd{data: data} = menu, %{handler: handler}) when not is_nil(data) do
-    get_menu(menu, handler, data)
-  end
-
-  def navigate(%ExUssd{} = menu, %{handler: handler, data: data}) do
-    get_menu(menu, handler, data)
-  end
-
-  defp get_menu(menu, handler, data) do
-    args =
-      menu
-      |> Map.from_struct()
-      |> Map.take(@allowed_fields)
-      |> Map.merge(%{parent: menu.parent, data: data, handler: handler, name: ""})
-
-    validation_menu = struct(ExUssd, args)
-
-    menu = ExUssd.set(menu, data: data)
-
-    Map.merge(menu, %{validation_menu: {validation_menu, true}, to_navigate: true})
-  end
-
-  def set(%ExUssd{data: nil} = menu, [data: _data] = field) do
-    Map.merge(menu, Enum.into(field, %{}, fn {k, v} -> {k, v} end))
-  end
-
-  def set(%ExUssd{data: data} = menu, [data: _data] = field) do
-    Map.merge(menu, Enum.into(field, %{}, fn {k, v} -> {k, Map.merge(data, v)} end))
-  end
-
-  def set(%ExUssd{} = menu, fields) do
-    if MapSet.subset?(MapSet.new(Keyword.keys(fields)), MapSet.new(@allowed_fields)) do
-      Map.merge(menu, Enum.into(fields, %{}, fn {k, v} -> {k, {v, true}} end))
+  def set(%ExUssd{} = menu, nav: nav) when is_list(nav) do
+    if Enum.all?(nav, &is_struct(&1, ExUssd.Nav)) do
+      Map.put(menu, :nav, Enum.uniq_by(nav ++ menu.nav, fn n -> n.type end))
     else
-      raise Error,
-        message:
-          "Expected field allowable fields #{inspect(@allowed_fields)} found #{inspect(Keyword.keys(fields))}"
+      raise %ArgumentError{
+        message: "nav should be a list of ExUssd.Nav struct, found #{inspect(nav)}"
+      }
     end
   end
 
+  def set(%ExUssd{} = menu, opts) do
+    fun = fn menu, opts ->
+      if MapSet.subset?(MapSet.new(Keyword.keys(opts)), MapSet.new(@allowed_fields)) do
+        Map.merge(menu, Enum.into(opts, %{}))
+      end
+    end
+
+    with nil <- apply(fun, [menu, opts]) do
+      message =
+        "Expected field in allowable fields #{inspect(@allowed_fields)} found #{inspect(Keyword.keys(opts))}"
+
+      raise %ArgumentError{message: message}
+    end
+  end
+
+  @doc """
+  Add menu to ExUssd menu list.
+
+  ## Parameters
+    - `menu` — ExUssd Menu
+    - `menu` — ExUssd or List of ExUssd
+    - `opts` — Keyword list
+
+  ## Example
+    iex> menu = ExUssd.new(name: "Home", resolve: MyHomeResolver)
+    iex> ExUssd.add(menu, ExUssd.new(name: "Product A", resolve: ProductResolver)))
+
+  Add menus to to ExUssd menu list.
+  Note: The menus with `orientation: :vertical` share one resolver
+
+  ## Example
+    iex> menu = ExUssd.new(orientation: :vertical, name: "Home", resolve: MyHomeResolver)
+    iex> menu |> ExUssd.add([ExUssd.new(name: "Nairobi", data: %{city: "Nairobi", code: 47})], resolve: &CountyResolver.city_menu/2))
+  """
+  @spec add(ExUssd.t(), ExUssd.t() | [ExUssd.t()], keyword()) :: ExUssd.t()
+  def add(_, _, opts \\ [])
+
+  def add(%ExUssd{} = menu, %ExUssd{} = child, _opts) do
+    fun = fn menu, child ->
+      Map.get_and_update(menu, :menu_list, fn menu_list -> {:ok, [child | menu_list]} end)
+    end
+
+    with {:ok, menu} <- apply(fun, [menu, child]), do: menu
+  end
+
+  def add(%ExUssd{} = menu, menus, opts) do
+    resolve = Keyword.get(opts, :resolve)
+
+    fun = fn
+      _menu, menus, _ when not is_list(menus) ->
+        {:error, "menus should be a list, found #{inspect(menus)}"}
+
+      _menu, menus, _ when menus == [] ->
+        {:error, "menus should not be empty, found #{inspect(menu)}"}
+
+      %ExUssd{orientation: :vertical}, _menus, nil ->
+        {:error, "resolve callback not found in opts keyword list"}
+
+      %ExUssd{} = menu, menus, resolve ->
+        if Enum.all?(menus, &is_struct(&1, ExUssd)) do
+          menu_list = Enum.map(menus, fn menu -> Map.put(menu, :resolve, resolve) end)
+          Map.put(menu, :menu_list, Enum.reverse(menu_list))
+        else
+          {:error, "menus should be a list of ExUssd menus, found #{inspect(menus)}"}
+        end
+    end
+
+    with {:error, message} <- apply(fun, [menu, menus, resolve]) do
+      raise %ArgumentError{message: message}
+    end
+  end
+
+  @doc """
+  Teminates session the gateway session id.
+  """
+  @spec end_session(keyword()) :: no_return()
   def end_session(session_id: session_id) do
-    Registry.stop(session_id)
+    ExUssd.Registry.stop(session_id)
   end
 
-  defp loop(menu, %{session_id: session_id} = api_parameters, route) do
-    case Registry.lookup(session_id) do
-      {:error, :not_found} ->
-        Registry.start(session_id)
-        Registry.add(session_id, route)
+  @doc """
+  Returns
+  menu_string: to be used as gateway response string.
+  should_close: indicates if the gateway should close the session.
 
-        current_menu = Ops.circle(Enum.reverse(route), menu, api_parameters)
+  ## Parameters
+   - `opts` — keyword list / map
 
-        Registry.set_current(session_id, current_menu)
-        current_menu
+  ## Example
+  iex> case ExUssd.goto(menu: menu, api_parameters: api_parameters) do
+    {:ok, %{menu_string: menu_string, should_close: false}} ->
+      "CON " <> menu_string
 
-      {:ok, _pid} ->
-        {_, current_menu} = Registry.get_current(session_id)
-        current_menu = Ops.circle(route, current_menu, api_parameters, menu)
-        Registry.set_current(session_id, current_menu)
-        current_menu
+    {:ok, %{menu_string: menu_string, should_close: true}} ->
+      # End Session
+      ExUssd.end_session(session_id: session_id)
+
+      "END " <> menu_string
     end
-  end
+  """
+  @spec goto(map() | keyword()) :: {:ok, %{menu_string: String.t(), should_close: boolean()}}
+  def goto(opts)
 
   def goto(fields) when is_list(fields),
     do: goto(Enum.into(fields, %{}))
 
   def goto(%{
         api_parameters:
-          %{"text" => text, "session_id" => session_id, "service_code" => service_code} =
-            api_parameters,
+          %{text: text, session_id: session, service_code: service_code} = api_parameters,
         menu: menu
       }) do
-    api_parameters = Utils.format_map(api_parameters)
-
-    route = Route.get_route(%{text: text, service_code: service_code, session_id: session_id})
-
-    {_, current_menu} = loop(menu, api_parameters, route)
-
-    Display.new(
-      menu: current_menu,
-      routes: Registry.get(session_id),
-      api_parameters: api_parameters
-    )
+    route = ExUssd.Route.get_route(%{text: text, service_code: service_code, session: session})
+    current_menu = ExUssd.Navigation.navigate(route, menu, api_parameters)
+    ExUssd.Display.to_string(current_menu, ExUssd.Registry.fetch_state(session))
   end
 
   def goto(%{
-        api_parameters: %{text: text, session_id: session_id, service_code: service_code},
+        api_parameters: %{"text" => _, "session_id" => _, "service_code" => _} = api_parameters,
         menu: menu
       }) do
-    api_parameters = %{
-      "text" => text,
-      "session_id" => session_id,
-      "service_code" => service_code
-    }
-
-    goto(%{api_parameters: api_parameters, menu: menu})
+    goto(%{api_parameters: Utils.format(api_parameters), menu: menu})
   end
 
   def goto(%{api_parameters: %{"session_id" => _, "service_code" => _} = api_parameters, menu: _}) do
     message = "'text' not found in api_parameters #{inspect(api_parameters)}"
-    raise Error, message: message
+    raise %ArgumentError{message: message}
   end
 
   def goto(%{api_parameters: %{"text" => _, "service_code" => _} = api_parameters, menu: _}) do
     message = "'session_id' not found in api_parameters #{inspect(api_parameters)}"
-    raise Error, message: message
+    raise %ArgumentError{message: message}
   end
 
   def goto(%{api_parameters: %{"text" => _, "session_id" => _} = api_parameters, menu: _}) do
     message = "'service_code' not found in api_parameters #{inspect(api_parameters)}"
-    raise Error, message: message
+    raise %ArgumentError{message: message}
   end
 
   def goto(%{api_parameters: api_parameters, menu: _}) do
     message =
       "'text', 'service_code', 'session_id',  not found in api_parameters #{inspect(api_parameters)}"
 
-    raise Error, message: message
+    raise %ArgumentError{message: message}
   end
 end
