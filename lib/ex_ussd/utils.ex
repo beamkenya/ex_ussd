@@ -8,18 +8,18 @@ defmodule ExUssd.Utils do
   def to_int({0, _}, menu, input_value), do: to_int({@default_value, ""}, menu, input_value)
 
   def to_int({value, ""}, %ExUssd{nav: nav}, input_value) do
-    %ExUssd.Nav{match: next} = Enum.find(nav, &(&1.type == :next))
-    %ExUssd.Nav{match: home} = Enum.find(nav, &(&1.type == :home))
-    %ExUssd.Nav{match: back} = Enum.find(nav, &(&1.type == :back))
+    %ExUssd.Nav{match: next, show: show_next} = Enum.find(nav, &(&1.type == :next))
+    %ExUssd.Nav{match: home, show: show_home} = Enum.find(nav, &(&1.type == :home))
+    %ExUssd.Nav{match: back, show: show_back} = Enum.find(nav, &(&1.type == :back))
 
     case input_value do
-      v when v == next ->
+      v when v == next and show_next ->
         605_356_150_351_840_375_921_999_017_933
 
-      v when v == back ->
+      v when v == back and show_back ->
         128_977_754_852_657_127_041_634_246_588
 
-      v when v == home ->
+      v when v == home and show_home ->
         705_897_792_423_629_962_208_442_626_284
 
       _ ->
