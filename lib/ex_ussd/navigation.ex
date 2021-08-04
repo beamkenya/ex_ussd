@@ -79,9 +79,9 @@ defmodule ExUssd.Navigation do
       position ->
         {_, current_menu} = menu = get_menu(position, route, menu, api_parameters)
 
-        case Executer.execute_after_callback(current_menu, api_parameters, %{metadata: true}) do
-          %ExUssd{} = current_menu -> {:skip, current_menu}
-          _ -> menu
+        with response when not is_menu(response) <-
+               Executer.execute_after_callback(current_menu, api_parameters, %{metadata: true}) do
+          menu
         end
     end
   end
@@ -89,14 +89,14 @@ defmodule ExUssd.Navigation do
   defp get_menu(_pos, _route, %ExUssd{menu_list: []} = menu, api_parameters) do
     with response when not is_menu(response) <-
            Executer.execute_callback(menu, api_parameters, %{metadata: true}) do
-      {:skip, menu}
+      {:ok, menu}
     end
   end
 
   defp get_menu(
          position,
          route,
-         %ExUssd{menu_list: menu_list} = menu,
+         %ExUssd{default_error: default_error, menu_list: menu_list} = menu,
          %{session_id: session} = api_parameters
        ) do
     menu = Executer.execute_navigate(menu, api_parameters)
@@ -113,7 +113,7 @@ defmodule ExUssd.Navigation do
           {:ok, %{current_menu | parent: fn -> menu end}}
 
         nil ->
-          {:skip, menu}
+          {:skip, %{menu | error: default_error}}
       end
     end
   end

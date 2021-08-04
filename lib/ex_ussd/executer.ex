@@ -34,19 +34,35 @@ defmodule ExUssd.Executer do
   def execute_callback(%ExUssd{resolve: resolve} = menu, api_parameters, metadata)
       when is_atom(resolve) do
     if function_exported?(resolve, :ussd_callback, 3) do
-      with %ExUssd{} = menu <- apply(resolve, :ussd_callback, [menu, api_parameters, metadata]),
-           do: {:skip, menu}
+      with %ExUssd{error: error} = menu <-
+             apply(resolve, :ussd_callback, [menu, api_parameters, metadata]) do
+        if(is_bitstring(error), do: {:skip, menu}, else: {:ok, menu})
+      end
     end
   end
 
   def execute_callback(_, _, _), do: nil
 
-  def execute_after_callback(%ExUssd{resolve: resolve} = menu, api_parameters, metadata)
+  def execute_after_callback(
+        %ExUssd{error: original_error, resolve: resolve} = menu,
+        api_parameters,
+        metadata
+      )
       when is_atom(resolve) do
     if function_exported?(resolve, :ussd_after_callback, 3) do
-      with %ExUssd{} = menu <-
-             apply(resolve, :ussd_after_callback, [menu, api_parameters, metadata]),
-           do: menu
+      with %ExUssd{error: error} = menu <-
+             apply(resolve, :ussd_after_callback, [%{menu | error: nil}, api_parameters, metadata]) do
+        cond do
+          is_bitstring(error) ->
+            {:skip, menu}
+
+          is_bitstring(original_error) ->
+            {:skip, %{menu | error: original_error}}
+
+          true ->
+            {:ok, menu}
+        end
+      end
     end
   end
 
