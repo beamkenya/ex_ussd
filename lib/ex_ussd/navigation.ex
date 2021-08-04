@@ -29,7 +29,7 @@ defmodule ExUssd.Navigation do
       [head | tail], api_parameters, menu ->
         case execute_navigation(head, api_parameters, menu) do
           {:ok, current_menu} -> execute_navigation(tail, api_parameters, current_menu)
-          {:skip, current_menu} -> {:ok, current_menu}
+          {:halt, current_menu} -> {:ok, current_menu}
         end
     end
 
@@ -113,7 +113,7 @@ defmodule ExUssd.Navigation do
           {:ok, %{current_menu | parent: fn -> menu end}}
 
         nil ->
-          {:skip, %{menu | error: default_error}}
+          {:halt, %{menu | error: default_error}}
       end
     end
   end

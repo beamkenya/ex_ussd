@@ -33,7 +33,7 @@ defmodule ExUssd.Display do
     navigation =
       nav
       |> Enum.reduce("", &reduce_nav(&1, &2, nav, menu_list, depth + 1, depth - 1))
-      |> String.trim()
+      |> String.trim_trailing()
 
     should_close =
       if depth == total_length do
@@ -45,15 +45,7 @@ defmodule ExUssd.Display do
     menu_string =
       case Enum.at(menu_list, depth - 1) do
         %ExUssd{name: name} ->
-          IO.iodata_to_binary([
-            "#{depth}",
-            delimiter,
-            "#{total_length}",
-            "\n",
-            name,
-            "\n",
-            navigation
-          ])
+          IO.iodata_to_binary(["#{depth}", delimiter, "#{total_length}", "\n", name, navigation])
 
         _ ->
           ExUssd.Registry.set_depth(session, total_length + 1)
@@ -96,7 +88,7 @@ defmodule ExUssd.Display do
     navigation =
       nav
       |> Enum.reduce("", &reduce_nav(&1, &2, nav, menu_list, depth, max))
-      |> String.trim(" ")
+      |> String.trim_trailing()
 
     title_error = IO.iodata_to_binary(["#{error}", title])
 

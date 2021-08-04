@@ -36,7 +36,7 @@ defmodule ExUssd.Executer do
     if function_exported?(resolve, :ussd_callback, 3) do
       with %ExUssd{error: error} = menu <-
              apply(resolve, :ussd_callback, [menu, api_parameters, metadata]) do
-        if(is_bitstring(error), do: {:skip, menu}, else: {:ok, menu})
+        if(is_bitstring(error), do: {:halt, menu}, else: {:ok, menu})
       end
     end
   end
@@ -54,10 +54,10 @@ defmodule ExUssd.Executer do
              apply(resolve, :ussd_after_callback, [%{menu | error: nil}, api_parameters, metadata]) do
         cond do
           is_bitstring(error) ->
-            {:skip, menu}
+            {:halt, menu}
 
           is_bitstring(original_error) ->
-            {:skip, %{menu | error: original_error}}
+            {:halt, %{menu | error: original_error}}
 
           true ->
             {:ok, menu}
