@@ -1,15 +1,28 @@
 defmodule ExUssd.Display do
   @moduledoc """
   This module provides the display functions for the ExUssd lib.
+  """
+
+  @doc """
+  Its used to tranform ExUssd menu struct to string.
+
+  ## Parameters
+
+    - `menu` - menu to transform to string
+    - `route` - route 
+    - `opts` - optional session args
 
   ## Examples
-  ``` iex> menu = ExUssd.new(name: Faker.Company.name(), resolve: fn menu, _api_parameters, _metadata -> menu |> ExUssd.set(title: "Welcome") end)
+
+      iex> menu = ExUssd.new(name: "home", resolve: fn menu, _api_parameters, _metadata -> menu |> ExUssd.set(title: "Welcome") end)
       iex> ExUssd.Display.to_string(menu, ExUssd.Route.get_route(%{text: "*544#", service_code: "*544#"}))
       {:ok, %{menu_string: "Welcome", should_close: false}}
   """
 
   def to_string(_, _, opts \\ [])
 
+  @spec to_string(%ExUssd{orientation: :horizontal}, map()) ::
+          {:ok, %{menu_string: String.t(), should_close: boolean()}}
   def to_string(
         %ExUssd{
           orientation: :horizontal,
@@ -55,6 +68,8 @@ defmodule ExUssd.Display do
     {:ok, %{menu_string: menu_string, should_close: should_close}}
   end
 
+  @spec to_string(ExUssd.t(), map(), keyword()) ::
+          {:ok, %{menu_string: String.t(), should_close: boolean()}}
   def to_string(
         %ExUssd{
           orientation: :vertical,
@@ -90,7 +105,7 @@ defmodule ExUssd.Display do
       |> Enum.reduce("", &reduce_nav(&1, &2, nav, menu_list, depth, max))
       |> String.trim_trailing()
 
-    title_error = IO.iodata_to_binary(["#{error}", title])
+    title_error = IO.iodata_to_binary(["#{error}", "#{title}"])
 
     menu_string =
       cond do
@@ -110,6 +125,8 @@ defmodule ExUssd.Display do
     {:ok, %{menu_string: menu_string, should_close: should_close}}
   end
 
+  @spec reduce_nav(map(), String.t(), ExUssd.Nav.t(), list(ExUssd.t()), integer(), integer()) ::
+          String.t()
   defp reduce_nav(%{type: type}, acc, nav, menu_list, depth, max) do
     navigation =
       ExUssd.Nav.to_string(Enum.find(nav, &(&1.type == type)), depth, Enum.at(menu_list, max + 1))
@@ -117,6 +134,7 @@ defmodule ExUssd.Display do
     IO.iodata_to_binary([acc, navigation])
   end
 
+  @spec transform([ExUssd.t()], integer(), String.t(), {integer(), integer()}) :: nil | binary()
   defp transform(menu_list, min, delimiter, {position, index}) do
     case Enum.at(menu_list, position) do
       %ExUssd{name: name} ->

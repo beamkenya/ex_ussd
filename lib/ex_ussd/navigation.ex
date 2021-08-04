@@ -1,9 +1,21 @@
 defmodule ExUssd.Navigation do
-  @moduledoc false
+  @moduledoc """
+  USSD Navigation Module
+  """
   alias ExUssd.{Executer, Registry, Route, Utils}
 
   defguard is_menu(value) when is_tuple(value) and is_struct(elem(value, 1), ExUssd)
 
+  @doc """
+  Its used to navigate ExUssd menus.
+
+  ## Parameters
+
+    - `route` - route to navigate
+    - `menu` - menu to navigate
+    - `api_parameters` - gateway response value
+  """
+  @spec navigate(ExUssd.Route.t(), ExUssd.t(), map()) :: ExUssd.t()
   def navigate(routes, menu, %{session_id: session_id} = api_parameters) do
     fun = fn
       %Route{mode: :parallel, route: route}, api_parameters, session_id, menu ->
@@ -17,6 +29,9 @@ defmodule ExUssd.Navigation do
     with {:ok, menu} <- apply(fun, [routes, api_parameters, session_id, menu]),
          do: Registry.set_current(session_id, menu)
   end
+
+  @spec execute_navigation(map() | list(), map(), ExUssd.t()) :: {term(), ExUssd.t()}
+  defp execute_navigation(route, api_parameters, menu)
 
   defp execute_navigation(route, api_parameters, menu) when is_list(route) do
     fun = fn
@@ -44,7 +59,7 @@ defmodule ExUssd.Navigation do
        when is_map(route) do
     Registry.add_route(session, route)
 
-    {_, home} =
+    {:ok, home} =
       menu
       |> Executer.execute_navigate(api_parameters)
       |> Executer.execute(api_parameters)
@@ -55,7 +70,7 @@ defmodule ExUssd.Navigation do
   defp execute_navigation(
          route,
          %{session_id: session} = api_parameters,
-         %ExUssd{orientation: :vertical} = menu
+         %ExUssd{orientation: :vertical, parent: parent} = menu
        )
        when is_map(route) do
     case Utils.to_int(Integer.parse(route[:text]), menu, route[:text]) do
@@ -71,7 +86,8 @@ defmodule ExUssd.Navigation do
         %{depth: depth} = Registry.route_back(session)
 
         if depth == 1 do
-          {:ok, menu.parent.()}
+          current = if(is_nil(parent), do: menu, else: parent.())
+          {:ok, current}
         else
           {:ok, menu}
         end
@@ -86,20 +102,27 @@ defmodule ExUssd.Navigation do
     end
   end
 
-  defp get_menu(_pos, _route, %ExUssd{menu_list: []} = menu, api_parameters) do
+  defp execute_navigation(_, _, nil),
+    do:
+      raise(%RuntimeError{message: "menu not found, something went wrong with resolve callback"})
+
+  @spec get_menu(integer(), map(), ExUssd.t(), map()) :: {:ok | :halt, ExUssd.t()}
+  defp get_menu(pos, route, menu, api_parameters)
+
+  defp get_menu(_pos, _route, %ExUssd{default_error: error, menu_list: []} = menu, api_parameters) do
     with response when not is_menu(response) <-
            Executer.execute_callback(menu, api_parameters, %{metadata: true}) do
-      {:ok, menu}
+      {:halt, %{menu | error: error}}
     end
   end
 
   defp get_menu(
          position,
          route,
-         %ExUssd{default_error: default_error, menu_list: menu_list} = menu,
+         %ExUssd{default_error: default_error, menu_list: menu_list} = parent_menu,
          %{session_id: session} = api_parameters
        ) do
-    menu = Executer.execute_navigate(menu, api_parameters)
+    menu = Executer.execute_navigate(parent_menu, api_parameters)
 
     with response when not is_menu(response) <-
            Executer.execute_callback(menu, api_parameters, %{metadata: true}) do
@@ -108,9 +131,9 @@ defmodule ExUssd.Navigation do
         %ExUssd{} = menu ->
           Registry.add_route(session, route)
 
-          {_, current_menu} = Executer.execute(menu, api_parameters)
+          {:ok, current_menu} = Executer.execute(menu, api_parameters)
 
-          {:ok, %{current_menu | parent: fn -> menu end}}
+          {:ok, %{current_menu | parent: fn -> parent_menu end}}
 
         nil ->
           {:halt, %{menu | error: default_error}}

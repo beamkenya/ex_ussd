@@ -23,11 +23,11 @@ defmodule ExUssd.Op do
   @doc """
   Returns the ExUssd struct for the given keyword list opts.
 
-  ## Options
-  These options are required;
-  * `:opts` — keyword lists includes (name, resolve)
+  ## Parameters
+   - `opts` — keyword lists, must include name field
 
   ## Example
+
     iex> ExUssd.new(orientation: :vertical, name: "home", resolve: MyHomeResolver)
     iex> ExUssd.new(orientation: :horizontal, name: "home", resolve: fn menu, _api_parameters -> menu |> ExUssd.set(title: "Welcome") end)
 
@@ -43,10 +43,13 @@ defmodule ExUssd.Op do
       end
     end)
   """
+
+  @spec new(fun()) :: ExUssd.t()
   def new(fun) when is_function(fun, 2) do
     ExUssd.new(navigate: fun, name: "")
   end
 
+  @spec new(keyword()) :: ExUssd.t()
   def new(opts) do
     fun = fn opts ->
       if Keyword.keyword?(opts) do
@@ -65,6 +68,9 @@ defmodule ExUssd.Op do
       raise %ArgumentError{message: message}
     end
   end
+
+  @spec validate_new(nil | ExUssd.t(), any()) :: ExUssd.t() | {:error, String.t()}
+  defp validate_new(menu, opts)
 
   defp validate_new(nil, opts) do
     {:error,
@@ -94,10 +100,25 @@ defmodule ExUssd.Op do
   @doc """
   Sets the allowed fields on ExUssd struct.
 
-  ## Options
-  These options are required;
-  * `:menu` — ExUssd Menu
-  * `:opts` — Keyword list includes @allowed_fields
+  ## Parameters
+   - `:menu` — ExUssd Menu
+   - `:opts` — Keyword list. Keys should be in the @allowed_fields
+
+   @allowed_fields [
+    :error,
+    :title,
+    :next,
+    :previous,
+    :should_close,
+    :split,
+    :delimiter,
+    :default_error,
+    :show_navigation,
+    :data,
+    :resolve,
+    :orientation,
+    :name
+  ]
 
   ## Example
     iex> menu = ExUssd.new(name: "Home", resolve: &HomeResolver.welcome_menu/2)
@@ -105,6 +126,9 @@ defmodule ExUssd.Op do
     iex> menu |> ExUssd.set(nav: ExUssd.Nav.new(type: :back, name: "BACK", match: "*"))
     iex> menu |> ExUssd.set(nav: [ExUssd.Nav.new(type: :back, name: "BACK", match: "*")])
   """
+
+  @spec set(ExUssd.t(), keyword()) :: ExUssd.t()
+  def set(menu, opts)
 
   def set(%ExUssd{} = menu, nav: %ExUssd.Nav{type: type} = nav)
       when type in [:home, :next, :back] do
@@ -165,25 +189,23 @@ defmodule ExUssd.Op do
   @doc """
   Add menu to ExUssd menu list.
 
-  ## Options
-  These options are required;
-  * `:menu` — ExUssd Menu
-  * `:child` — ExUssd add to menu list
-  * `:menus` — List of ExUssd menu
-  * `:opts` — Keyword list includes (resolve)
+  ## Parameters
+    - `menu` — ExUssd Menu
+    - `menu` — ExUssd or List of ExUssd
+    - `opts` — Keyword list
 
   ## Example
     iex> menu = ExUssd.new(name: "Home", resolve: MyHomeResolver)
     iex> ExUssd.add(menu, ExUssd.new(name: "Product A", resolve: ProductResolver)))
 
   Add menus to to ExUssd menu list.
-  Note: The menus share one resolver
+  Note: The menus with `orientation: :vertical` share one resolver
 
   ## Example
     iex> menu = ExUssd.new(orientation: :vertical, name: "Home", resolve: MyHomeResolver)
     iex> menu |> ExUssd.add([ExUssd.new(name: "Nairobi", data: %{city: "Nairobi", code: 47})], resolve: &CountyResolver.city_menu/2))
   """
-
+  @spec add(ExUssd.t(), ExUssd.t() | [ExUssd.t()], keyword()) :: ExUssd.t()
   def add(_, _, opts \\ [])
 
   def add(%ExUssd{} = menu, %ExUssd{} = child, _opts) do
@@ -220,6 +242,37 @@ defmodule ExUssd.Op do
       raise %ArgumentError{message: message}
     end
   end
+
+  @doc """
+  Teminates session the gateway session id.
+  """
+  @spec end_session(keyword()) :: no_return()
+  def end_session(session_id: session_id) do
+    ExUssd.Registry.stop(session_id)
+  end
+
+  @doc """
+  Returns
+  menu_string: to be used as gateway response string.
+  should_close: indicates if the gateway should close the session.
+
+  ## Parameters
+   - `opts` — keyword list / map
+
+  ## Example
+  iex> case ExUssd.goto(menu: menu, api_parameters: api_parameters) do
+    {:ok, %{menu_string: menu_string, should_close: false}} ->
+      "CON " <> menu_string
+
+    {:ok, %{menu_string: menu_string, should_close: true}} ->
+      # End Session
+      ExUssd.end_session(session_id: session_id)
+
+      "END " <> menu_string
+    end
+  """
+  @spec goto(map() | keyword()) :: {:ok, %{menu_string: String.t(), should_close: boolean()}}
+  def goto(opts)
 
   def goto(fields) when is_list(fields),
     do: goto(Enum.into(fields, %{}))

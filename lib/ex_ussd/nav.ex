@@ -3,6 +3,20 @@ defmodule ExUssd.Nav do
   USSD Nav module
   """
 
+  @type t :: %__MODULE__{
+          name: String.t(),
+          match: String.t(),
+          type: term(),
+          orientation: term(),
+          delimiter: String.t(),
+          reverse: boolean(),
+          top: integer(),
+          bottom: integer(),
+          right: integer(),
+          left: integer(),
+          show: boolean()
+        }
+
   @enforce_keys [:name, :match, :type]
 
   defstruct [
@@ -16,7 +30,6 @@ defmodule ExUssd.Nav do
     bottom: 0,
     right: 0,
     left: 0,
-    nav_list: [],
     show: true
   ]
 
@@ -35,8 +48,31 @@ defmodule ExUssd.Nav do
   ]
 
   @doc """
-  ## Creates a new Nav struct
+  Its used to create a new ExUssd Nav menu.
+
+  ## Parameters
+
+    - `opts` - Nav arguments
+    
+  ## Example 
+
+  iex> ExUssd.new(name: "home") |> ExUssd.set(Nav.new(type: :next, name: "MORE", match: "98"))
+
+  iex> ExUssd.new(name: "home") 
+      |> ExUssd.set([
+       ExUssd.Nav.new(
+        type: :home,
+        name: "HOME",
+        match: "00",
+        reverse: true,
+        orientation: :vertical
+      ),
+      ExUssd.Nav.new(type: :back, name: "BACK", match: "0", right: 1),
+      ExUssd.Nav.new(type: :next, name: "MORE", match: "98")
+    ])
   """
+
+  @spec new(keyword()) :: %ExUssd.Nav{}
   def new(opts) do
     if Keyword.get(opts, :type) in [:home, :next, :back] do
       struct!(__MODULE__, Keyword.take(opts, @allowed_fields))
@@ -46,10 +82,21 @@ defmodule ExUssd.Nav do
   end
 
   @doc """
-  ## convert the USSD navigation menu to string
+   Convert the USSD navigation menu to string
+
+   ## Parameters
+    - `nav` - Nav Struct
+    - `depth` - depth of the nav menu
+    - `max` - max value of the menu list
+
+  ## Example 
+
+  iex> Nav.new(type: :next, name: "MORE", match: "98") |> Nav.to_string()
+  "MORE:98"
   """
 
-  def to_string(%ExUssd.Nav{} = nav, depth \\ 2, max \\ true) do
+  @spec to_string(ExUssd.Nav.t(), integer(), integer()) :: String.t()
+  def to_string(%ExUssd.Nav{} = nav, depth \\ 2, max \\ 999) do
     fun = fn
       _, %ExUssd.Nav{show: false} ->
         ""
@@ -79,6 +126,9 @@ defmodule ExUssd.Nav do
       |> padding(:bottom, nav)
     end
   end
+
+  @spec padding(String.t(), term(), ExUssd.Nav.t()) :: String.t()
+  defp padding(string, direction, nav)
 
   defp padding(string, :left, %ExUssd.Nav{left: amount}) do
     String.pad_leading(string, String.length(string) + amount)

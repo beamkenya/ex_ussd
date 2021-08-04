@@ -5,6 +5,9 @@ defmodule ExUssd.Utils do
 
   @default_value 436_739_010_658_356_127_157_159_114_145
 
+  @spec to_int(term() | {integer(), String.t()}, ExUssd.t(), String.t()) :: integer()
+  def to_int(input, menu, input_value)
+
   def to_int({0, _}, menu, input_value), do: to_int({@default_value, ""}, menu, input_value)
 
   def to_int({value, ""}, %ExUssd{nav: nav}, input_value) do
@@ -29,8 +32,7 @@ defmodule ExUssd.Utils do
 
   def to_int(:error, _menu, _input_value), do: @default_value
 
-  def to_int({_value, _}, _menu, _input_value), do: @default_value
-
+  @spec truncate(String.t(), keyword()) :: String.t()
   def truncate(text, options \\ []) do
     len = options[:length] || 30
     omi = options[:omission] || "..."
@@ -49,6 +51,7 @@ defmodule ExUssd.Utils do
     end
   end
 
+  @spec format(map()) :: map()
   def format(api_parameters) do
     Map.new(api_parameters, fn {key, val} ->
       try do

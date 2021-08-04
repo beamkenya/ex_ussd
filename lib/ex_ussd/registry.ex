@@ -22,7 +22,7 @@ defmodule ExUssd.Registry do
     end
   end
 
-  def end_session(session_id: session_id) do
+  def stop(session_id) do
     case lookup(session_id) do
       {:ok, pid} -> Process.exit(pid, :shutdown)
       _ -> {:error, :not_found}
@@ -67,7 +67,7 @@ defmodule ExUssd.Registry do
     else
       new_head = Map.put(head, :depth, depth - 1)
       new_state = [new_head | tail]
-      {:reply, head, Map.put(state, :routes, new_state)}
+      {:reply, new_head, Map.put(state, :route, new_state)}
     end
   end
 

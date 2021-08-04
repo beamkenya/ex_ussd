@@ -14,7 +14,7 @@ defmodule ExUssd do
           should_close: boolean(),
           delimiter: String.t(),
           default_error: String.t(),
-          orientation: atom(),
+          orientation: term(),
           menu_list: list(ExUssd.t())
         }
 
@@ -80,6 +80,6 @@ defmodule ExUssd do
   defdelegate set(menu, opts), to: ExUssd.Op
   defdelegate add(menu, child), to: ExUssd.Op
   defdelegate add(menu, menus, opts), to: ExUssd.Op
-  defdelegate end_session(opts), to: ExUssd.Registry
+  defdelegate end_session(opts), to: ExUssd.Op
   defdelegate goto(opts), to: ExUssd.Op
 end

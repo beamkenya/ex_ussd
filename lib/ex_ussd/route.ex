@@ -1,17 +1,25 @@
 defmodule ExUssd.Route do
-  defstruct mode: :serial, route: []
-
   @moduledoc """
     Route for USSD session.
   """
+
   alias __MODULE__
   alias ExUssd.Registry
+
+  @type t :: %__MODULE__{
+          mode: term(),
+          route: list()
+        }
+  defstruct mode: :serial, route: []
 
   @doc """
     Initialize the route.
     
+    ## Parameters
+    - `opts` - contains text string and the USSD service code.
+
      ## Examples
-      iex> ExUssd.Route.get_route(%{text: "*544#", service_code: "*544#"})
+      iex> ExUssd.Route.get_route(%{text: "", service_code: "*544#"})
       %Route{mode: :parallel, route: [%{depth: 1, text: "555"}]}
 
       iex> ExUssd.Route.get_route(%{text: "2", service_code: "*544#"})
@@ -21,6 +29,7 @@ defmodule ExUssd.Route do
       %Route{mode: :parallel, route: [%{depth: 1, text: "3"}, %{depth: 1, text: "2"}, %{depth: 1, text: "555"}]}
   """
 
+  @spec get_route(%{text: String.t(), session: String.t(), service_code: String.t()}) :: %Route{}
   def get_route(%{text: text, service_code: service_code} = opts) do
     text = String.replace(text, "#", "")
 
@@ -75,6 +84,7 @@ defmodule ExUssd.Route do
     apply(fun, [opts])
   end
 
+  @spec reduce_route(String.t(), list(Route.t())) :: list(Route.t())
   defp reduce_route(text, acc) do
     if String.equivalent?(text, "") do
       acc

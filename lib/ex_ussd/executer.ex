@@ -1,17 +1,39 @@
 defmodule ExUssd.Executer do
   @moduledoc """
-  This module provides the executer for the USSD lib.
+  This module invokes ExUssd callback functions.
   """
 
+  @doc """
+  'execute_navigate/2' function
+  It invoke's anonymous function set on navigate field.
+  Params:
+    - menu: ExUssd struct menu
+    - api_parameters: gateway response map
+  """
+
+  @spec execute_navigate(ExUssd.t(), map()) :: ExUssd.t()
+  def execute_navigate(menu, api_parameters)
+
   def execute_navigate(%ExUssd{navigate: navigate} = menu, api_parameters)
-      when is_function(navigate, 2) do
+      when is_function(navigate) do
     case apply(navigate, [menu, api_parameters]) do
       %ExUssd{} = menu -> %{menu | navigate: nil}
       _ -> menu
     end
   end
 
-  def execute_navigate(menu, _), do: menu
+  def execute_navigate(%ExUssd{} = menu, _), do: menu
+
+  @doc """
+   It invoke's the callback function on the resolve field.
+
+  ## Parameters
+
+    - `menu` - ExUssd struct menu
+    - `api_parameters` - gateway response map
+  """
+  @spec execute(ExUssd.t(), map()) :: {:ok, ExUssd.t()}
+  def execute(menu, api_parameters)
 
   def execute(%ExUssd{resolve: resolve} = menu, api_parameters)
       when is_function(resolve) do
@@ -31,6 +53,19 @@ defmodule ExUssd.Executer do
     end
   end
 
+  @doc """
+   It invoke's 'ussd_callback/3' callback function on the resolver module.
+
+  ## Parameters
+
+    - `menu` - ExUssd struct menu
+    - `api_parameters` - gateway response map
+    - `metadata` - ExUssd metadata map
+  """
+
+  @spec execute_callback(%ExUssd{}, map(), map()) :: {:ok, ExUssd.t()} | any()
+  def execute_callback(menu, api_parameters, metadata)
+
   def execute_callback(%ExUssd{resolve: resolve} = menu, api_parameters, metadata)
       when is_atom(resolve) do
     if function_exported?(resolve, :ussd_callback, 3) do
@@ -42,6 +77,19 @@ defmodule ExUssd.Executer do
   end
 
   def execute_callback(_, _, _), do: nil
+
+  @doc """
+   It invoke's 'ussd_after_callback/3' callback function on the resolver module.
+
+  ## Parameters
+
+    - `menu` - ExUssd struct menu
+    - `api_parameters` - gateway response map
+    - `metadata` - ExUssd metadata map
+  """
+
+  @spec execute_after_callback(%ExUssd{}, map(), map()) :: {:ok | :halt, ExUssd.t()} | any()
+  def execute_after_callback(menu, api_parameters, metadata)
 
   def execute_after_callback(
         %ExUssd{error: original_error, resolve: resolve} = menu,
