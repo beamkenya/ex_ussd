@@ -68,14 +68,14 @@ end
 ## Contribution
 
 If you'd like to contribute, start by searching through the [issues](https://github.com/beamkenya/ex_ussd/issues) and [pull requests](https://github.com/beamkenya/ex_ussd/pulls) to see whether someone else has raised a similar idea or question.
-If you don't see your idea listed, [Open an issue](https://github.com/beamkenya/ex_pesa/issues).
+If you don't see your idea listed, [Open an issue](https://github.com/beamkenya/ex_ussd/issues).
 
 Check the [Contribution guide](contributing.md) on how to contribute.
 
 ## Contributors
 
 Auto-populated from:
-[contributors-img](https://contributors-img.firebaseapp.com/image?repo=beamkenya/ex_ussc)
+[contributors-img](https://contributors-img.firebaseapp.com/image?repo=beamkenya/ex_ussd)
 
 <a href="https://github.com/beamkenya/ex_pesa/graphs/contributors">
   <img src="https://contributors-img.firebaseapp.com/image?repo=beamkenya/ex_pesa" />
