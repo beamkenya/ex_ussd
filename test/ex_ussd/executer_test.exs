@@ -12,7 +12,7 @@ defmodule ExUssd.ExecuterTest do
         )
 
       title = "Welcome"
-      assert {:ok, %ExUssd{title: ^title}} = Executer.execute(menu, Map.new())
+      assert {:ok, %ExUssd{title: ^title}} = Executer.execute_init_callback(menu, Map.new())
     end
 
     test "raise BadArityError if resolve function does not take arity of 2" do
@@ -22,7 +22,7 @@ defmodule ExUssd.ExecuterTest do
           resolve: fn menu, _api_parameters, _metadata -> menu |> ExUssd.set(title: "Welcome") end
         )
 
-      assert_raise BadArityError, fn -> Executer.execute(menu, Map.new()) end
+      assert_raise BadArityError, fn -> Executer.execute_init_callback(menu, Map.new()) end
     end
   end
 end

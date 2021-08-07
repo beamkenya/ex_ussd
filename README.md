@@ -35,6 +35,7 @@ end
 
 ```elixir
 defmodule HomeResolver do
+  use ExUssd
   def ussd_init(menu, _) do
     menu
     |> ExUssd.set(title: "Enter your PIN")

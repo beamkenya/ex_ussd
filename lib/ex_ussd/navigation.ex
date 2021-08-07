@@ -26,7 +26,7 @@ defmodule ExUssd.Navigation do
         execute_navigation(route, api_parameters, Registry.fetch_current(session_id))
     end
 
-    with {:ok, menu} <- apply(fun, [routes, api_parameters, session_id, menu]),
+    with {_, menu} <- apply(fun, [routes, api_parameters, session_id, menu]),
          do: Registry.set_current(session_id, menu)
   end
 
@@ -62,7 +62,7 @@ defmodule ExUssd.Navigation do
     {:ok, home} =
       menu
       |> Executer.execute_navigate(api_parameters)
-      |> Executer.execute(api_parameters)
+      |> Executer.execute_init_callback(api_parameters)
 
     {:ok, Registry.set_home(session, %{home | parent: fn -> home end})}
   end
@@ -131,7 +131,10 @@ defmodule ExUssd.Navigation do
         %ExUssd{} = menu ->
           Registry.add_route(session, route)
 
-          {:ok, current_menu} = Executer.execute(menu, api_parameters)
+          {:ok, current_menu} =
+            menu
+            |> Executer.execute_navigate(api_parameters)
+            |> Executer.execute_init_callback(api_parameters)
 
           {:ok, %{current_menu | parent: fn -> parent_menu end}}
 

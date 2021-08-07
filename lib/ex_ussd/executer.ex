@@ -25,17 +25,17 @@ defmodule ExUssd.Executer do
   def execute_navigate(%ExUssd{} = menu, _), do: menu
 
   @doc """
-   It invoke's the callback function on the resolve field.
+   It invoke's the init callback function on the resolve field.
 
   ## Parameters
 
     - `menu` - ExUssd struct menu
     - `api_parameters` - gateway response map
   """
-  @spec execute(ExUssd.t(), map()) :: {:ok, ExUssd.t()}
-  def execute(menu, api_parameters)
+  @spec execute_init_callback(ExUssd.t(), map()) :: {:ok, ExUssd.t()}
+  def execute_init_callback(menu, api_parameters)
 
-  def execute(%ExUssd{resolve: resolve} = menu, api_parameters)
+  def execute_init_callback(%ExUssd{resolve: resolve} = menu, api_parameters)
       when is_function(resolve) do
     if is_function(resolve, 2) do
       with %ExUssd{} = menu <- apply(resolve, [menu, api_parameters]), do: {:ok, menu}
@@ -44,7 +44,7 @@ defmodule ExUssd.Executer do
     end
   end
 
-  def execute(%ExUssd{name: name, resolve: resolve} = menu, api_parameters) do
+  def execute_init_callback(%ExUssd{name: name, resolve: resolve} = menu, api_parameters) do
     if function_exported?(resolve, :ussd_init, 2) do
       with %ExUssd{} = menu <- apply(resolve, :ussd_init, [menu, api_parameters]),
            do: {:ok, menu}
