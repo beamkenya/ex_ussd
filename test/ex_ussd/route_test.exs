@@ -38,7 +38,11 @@ defmodule ExUssd.RouteTest do
                mode: :serial,
                route: %{depth: 1, text: "2"}
              } =
-               ExUssd.Route.get_route(%{text: "3*2", service_code: "*544#", session: "session_01"})
+               ExUssd.Route.get_route(%{
+                 text: "3*2",
+                 service_code: "*544#",
+                 session_id: "session_01"
+               })
     end
   end
 end

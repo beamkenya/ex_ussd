@@ -278,13 +278,13 @@ defmodule ExUssd.Op do
     do: goto(Enum.into(fields, %{}))
 
   def goto(%{
-        api_parameters:
-          %{text: text, session_id: session, service_code: service_code} = api_parameters,
+        api_parameters: %{text: _, session_id: session, service_code: _} = api_parameters,
         menu: menu
       }) do
-    route = ExUssd.Route.get_route(%{text: text, service_code: service_code, session: session})
-    current_menu = ExUssd.Navigation.navigate(route, menu, api_parameters)
-    ExUssd.Display.to_string(current_menu, ExUssd.Registry.fetch_state(session))
+    api_parameters
+    |> ExUssd.Route.get_route()
+    |> ExUssd.Navigation.navigate(menu, api_parameters)
+    |> ExUssd.Display.to_string(ExUssd.Registry.fetch_state(session))
   end
 
   def goto(%{

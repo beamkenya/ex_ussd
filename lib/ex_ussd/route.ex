@@ -35,7 +35,7 @@ defmodule ExUssd.Route do
 
     service_code = String.replace(service_code, "#", "")
 
-    session = Map.get(opts, :session, "#{System.unique_integer()}")
+    session = Map.get(opts, :session_id, "#{System.unique_integer()}")
 
     mode =
       case Registry.lookup(session) do

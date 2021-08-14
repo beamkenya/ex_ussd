@@ -77,7 +77,7 @@ defmodule ExUssd.Registry do
   end
 
   def handle_call({:set_current, menu}, _from, state) do
-    {:reply, menu, Map.put(state, :current, menu)}
+    {:reply, menu, Map.put(state, :current, %{menu | error: nil})}
   end
 
   def handle_call({:set_home, menu}, _from, state) do
