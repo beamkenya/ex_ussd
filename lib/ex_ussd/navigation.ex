@@ -73,9 +73,11 @@ defmodule ExUssd.Navigation do
          %ExUssd{orientation: :vertical, parent: parent} = menu
        )
        when is_map(route) do
-    case Utils.to_int(Integer.parse(route[:text]), menu, route[:text]) do
+    api_parameters = %{api_parameters | text: route[:text]}
+
+    case Utils.to_int(Integer.parse(route[:text]), menu, api_parameters, route[:text]) do
       705_897_792_423_629_962_208_442_626_284 ->
-        Registry.set(session, [%{depth: 1, text: "555"}])
+        Registry.set(session, [%ExUssd.Route.State{depth: 1, text: "555"}])
         {:ok, Registry.fetch_home(session)}
 
       605_356_150_351_840_375_921_999_017_933 ->
@@ -86,6 +88,7 @@ defmodule ExUssd.Navigation do
         %{depth: depth} = Registry.route_back(session)
 
         if depth == 1 do
+          Registry.reset_attempt(session)
           current = if(is_nil(parent), do: menu, else: parent.())
           {:ok, current}
         else
@@ -93,10 +96,9 @@ defmodule ExUssd.Navigation do
         end
 
       position ->
-        {_, current_menu} = menu = get_menu(position, route, menu, api_parameters)
-
-        with response when not is_menu(response) <-
-               Executer.execute_after_callback(current_menu, api_parameters, %{metadata: true}) do
+        with {_, current_menu} = menu <- get_menu(position, route, menu, api_parameters),
+             response when not is_menu(response) <-
+               Executer.execute_after_callback(current_menu, api_parameters) do
           menu
         end
     end
@@ -109,9 +111,15 @@ defmodule ExUssd.Navigation do
   @spec get_menu(integer(), map(), ExUssd.t(), map()) :: {:ok | :halt, ExUssd.t()}
   defp get_menu(pos, route, menu, api_parameters)
 
-  defp get_menu(_pos, _route, %ExUssd{default_error: error, menu_list: []} = menu, api_parameters) do
+  defp get_menu(
+         _pos,
+         route,
+         %ExUssd{default_error: error, menu_list: []} = menu,
+         %{session_id: session} = api_parameters
+       ) do
     with response when not is_menu(response) <-
-           Executer.execute_callback(menu, api_parameters, %{metadata: true}) do
+           Executer.execute_callback(menu, api_parameters) do
+      Registry.add_attempt(session, route[:text])
       {:halt, %{menu | error: error}}
     end
   end
@@ -122,10 +130,9 @@ defmodule ExUssd.Navigation do
          %ExUssd{default_error: default_error, menu_list: menu_list} = parent_menu,
          %{session_id: session} = api_parameters
        ) do
-    menu = Executer.execute_navigate(parent_menu, api_parameters)
-
-    with response when not is_menu(response) <-
-           Executer.execute_callback(menu, api_parameters, %{metadata: true}) do
+    with menu <- Executer.execute_navigate(parent_menu, api_parameters),
+         response when not is_menu(response) <-
+           Executer.execute_callback(menu, api_parameters) do
       case Enum.at(Enum.reverse(menu_list), position - 1) do
         # invoke the child init callback
         %ExUssd{} = menu ->
@@ -139,6 +146,7 @@ defmodule ExUssd.Navigation do
           {:ok, %{current_menu | parent: fn -> parent_menu end}}
 
         nil ->
+          Registry.add_attempt(session, route[:text])
           {:halt, %{menu | error: default_error}}
       end
     end

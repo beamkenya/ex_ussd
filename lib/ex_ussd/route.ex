@@ -8,9 +8,24 @@ defmodule ExUssd.Route do
 
   @type t :: %__MODULE__{
           mode: term(),
-          route: list()
+          route: list() | map()
         }
-  defstruct mode: :serial, route: []
+  defstruct [:route, mode: :serial]
+
+  defmodule State do
+    @moduledoc """
+    Route value struct
+    """
+    @behaviour Access
+
+    # Structs by default do not implement this. It's easy to delegate this to the Map implementation however.
+    defdelegate get(coin, key, default), to: Map
+    defdelegate fetch(coin, key), to: Map
+    defdelegate get_and_update(coin, key, func), to: Map
+    defdelegate pop(coin, key), to: Map
+
+    defstruct [:depth, :text, attempt: %{count: 0, inputs: []}]
+  end
 
   @doc """
     Initialize the route.
@@ -56,12 +71,12 @@ defmodule ExUssd.Route do
 
     fun = fn
       %{text: _text, mode: :parallel, equivalent: true, contains: true} ->
-        %Route{mode: :parallel, route: [%{depth: 1, text: "555"}]}
+        %Route{mode: :parallel, route: [%State{depth: 1, text: "555"}]}
 
       %{text: text, mode: :parallel, equivalent: false, contains: false} ->
         list = String.split(text, "*")
 
-        route = Enum.reduce(list, [%{depth: 1, text: "555"}], &reduce_route/2)
+        route = Enum.reduce(list, [%State{depth: 1, text: "555"}], &reduce_route/2)
 
         %Route{mode: :parallel, route: route}
 
@@ -69,17 +84,17 @@ defmodule ExUssd.Route do
         list = list -- String.split(code, "*")
 
         route =
-          Enum.reduce(list, [%{depth: 1, text: "555"}], fn text, acc ->
-            [%{depth: 1, text: text} | acc]
+          Enum.reduce(list, [%State{depth: 1, text: "555"}], fn text, acc ->
+            [%State{depth: 1, text: text} | acc]
           end)
 
         %Route{mode: :parallel, route: route}
 
       %{text: text, mode: :serial, equivalent: false, contains: false, text_list: [_ | []]} ->
-        %Route{route: %{depth: 1, text: text}}
+        %Route{route: %State{depth: 1, text: text}}
 
       %{text: _text, mode: :serial, text_list: text_list} ->
-        %Route{route: %{depth: 1, text: List.last(text_list)}}
+        %Route{route: %State{depth: 1, text: List.last(text_list)}}
     end
 
     apply(fun, [opts])
@@ -90,7 +105,7 @@ defmodule ExUssd.Route do
     if String.equivalent?(text, "") do
       acc
     else
-      [%{depth: 1, text: text} | acc]
+      [%State{depth: 1, text: text} | acc]
     end
   end
 end

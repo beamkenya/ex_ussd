@@ -11,6 +11,8 @@ defmodule ExUssd.Executer do
     - api_parameters: gateway response map
   """
 
+  alias ExUssd.Utils
+
   @spec execute_navigate(ExUssd.t(), map()) :: ExUssd.t()
   def execute_navigate(menu, api_parameters)
 
@@ -60,23 +62,28 @@ defmodule ExUssd.Executer do
 
     - `menu` - ExUssd struct menu
     - `api_parameters` - gateway response map
-    - `metadata` - ExUssd metadata map
   """
 
-  @spec execute_callback(%ExUssd{}, map(), map()) :: {:ok, ExUssd.t()} | any()
-  def execute_callback(menu, api_parameters, metadata)
+  @spec execute_callback(%ExUssd{}, map()) :: {:ok, ExUssd.t()} | any()
+  def execute_callback(menu, api_parameters)
 
-  def execute_callback(%ExUssd{resolve: resolve} = menu, api_parameters, metadata)
+  def execute_callback(%ExUssd{resolve: resolve} = menu, api_parameters)
       when is_atom(resolve) do
     if function_exported?(resolve, :ussd_callback, 3) do
-      with %ExUssd{error: error} = menu <-
-             apply(resolve, :ussd_callback, [menu, api_parameters, metadata]) do
-        if(is_bitstring(error), do: {:halt, menu}, else: {:ok, menu})
+      metadata = Utils.fetch_metadata(api_parameters)
+
+      with %ExUssd{error: error} = current_menu <-
+             apply(resolve, :ussd_callback, [%{menu | resolve: nil}, api_parameters, metadata]) do
+        if is_bitstring(error) do
+          build_response_menu(:halt, current_menu, menu, api_parameters)
+        else
+          build_response_menu(:ok, current_menu, menu, api_parameters)
+        end
       end
     end
   end
 
-  def execute_callback(_, _, _), do: nil
+  def execute_callback(_menu, _api_parameters), do: nil
 
   @doc """
    It invoke's 'ussd_after_callback/3' callback function on the resolver module.
@@ -85,34 +92,52 @@ defmodule ExUssd.Executer do
 
     - `menu` - ExUssd struct menu
     - `api_parameters` - gateway response map
-    - `metadata` - ExUssd metadata map
   """
 
-  @spec execute_after_callback(%ExUssd{}, map(), map()) :: {:ok | :halt, ExUssd.t()} | any()
-  def execute_after_callback(menu, api_parameters, metadata)
+  @spec execute_after_callback(%ExUssd{}, map()) :: {:ok | :halt, ExUssd.t()} | any()
+  def execute_after_callback(menu, api_parameters)
 
   def execute_after_callback(
         %ExUssd{error: original_error, resolve: resolve} = menu,
-        api_parameters,
-        metadata
+        api_parameters
       )
       when is_atom(resolve) do
     if function_exported?(resolve, :ussd_after_callback, 3) do
-      with %ExUssd{error: error} = menu <-
-             apply(resolve, :ussd_after_callback, [%{menu | error: nil}, api_parameters, metadata]) do
+      metadata = Utils.fetch_metadata(api_parameters)
+
+      with %ExUssd{error: error} = current_menu <-
+             apply(resolve, :ussd_after_callback, [
+               %{menu | resolve: nil, error: nil},
+               api_parameters,
+               metadata
+             ]) do
         cond do
           is_bitstring(error) ->
-            {:halt, menu}
+            build_response_menu(:halt, current_menu, menu, api_parameters)
 
           is_bitstring(original_error) ->
-            {:halt, %{menu | error: original_error}}
+            build_response_menu(
+              :halt,
+              %{current_menu | error: original_error},
+              menu,
+              api_parameters
+            )
 
           true ->
-            {:ok, menu}
+            build_response_menu(:ok, current_menu, menu, api_parameters)
         end
       end
     end
   end
 
-  def execute_after_callback(_, _, _), do: nil
+  def execute_after_callback(_menu, _api_parameters), do: nil
+
+  defp build_response_menu(:halt, current_menu, %{resolve: resolve}, _api_parameters),
+    do: {:halt, %{current_menu | resolve: resolve}}
+
+  defp build_response_menu(:ok, current_menu, menu, %{session_id: session} = api_parameters) do
+    %{route: route} = ExUssd.Route.get_route(api_parameters)
+    ExUssd.Registry.add_route(session, route)
+    {:ok, %{current_menu | parent: fn -> menu end}}
+  end
 end
