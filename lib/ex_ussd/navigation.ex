@@ -51,10 +51,33 @@ defmodule ExUssd.Navigation do
     apply(fun, [route, api_parameters, menu])
   end
 
+  # defp execute_navigation(
+  #        %{depth: _, text: "555"} = route,
+  #        %{session_id: session} = api_parameters,
+  #        %ExUssd{orientation: :horizontal} = menu
+  #      )
+  #      when is_map(route) do
+  #       IO.inspect Registry.fetch_current(session)
+  #   case Registry.fetch_current(session) do
+  #     nil ->
+  #       Registry.add_route(session, route)
+
+  #       {:ok, home} =
+  #         menu
+  #         |> Executer.execute_navigate(api_parameters)
+  #         |> Executer.execute_init_callback(api_parameters)
+
+  #       {:ok, Registry.set_home(session, %{home | parent: fn -> home end})}
+
+  #     current_menu ->
+  #       execute_navigation(route, api_parameters, current_menu)
+  #   end
+  # end
+
   defp execute_navigation(
          %{depth: _, text: "555"} = route,
          %{session_id: session} = api_parameters,
-         %ExUssd{orientation: :vertical} = menu
+         %ExUssd{} = menu
        )
        when is_map(route) do
     Registry.add_route(session, route)
@@ -101,6 +124,43 @@ defmodule ExUssd.Navigation do
                Executer.execute_after_callback(current_menu, api_parameters) do
           menu
         end
+    end
+  end
+
+  defp execute_navigation(
+         route,
+         %{session_id: session} = api_parameters,
+         %ExUssd{orientation: :horizontal, parent: parent, default_error: default_error} = menu
+       )
+       when is_map(route) do
+    api_parameters = %{api_parameters | text: route[:text]}
+
+    case Utils.to_int(Integer.parse(route[:text]), menu, api_parameters, route[:text]) do
+      705_897_792_423_629_962_208_442_626_284 ->
+        Registry.set(session, [%ExUssd.Route.State{depth: 1, text: "555"}])
+        {:ok, Registry.fetch_home(session)}
+
+      605_356_150_351_840_375_921_999_017_933 ->
+        Registry.next_route(session)
+        {:ok, menu}
+
+      128_977_754_852_657_127_041_634_246_588 ->
+        %{depth: depth} = Registry.route_back(session)
+
+        if depth == 1 do
+          Registry.reset_attempt(session)
+          current = if(is_nil(parent), do: menu, else: parent.())
+          {:ok, current}
+        else
+          {:ok, menu}
+        end
+
+      436_739_010_658_356_127_157_159_114_145 ->
+        {:ok, %{menu | error: default_error}}
+
+      position ->
+        ExUssd.Registry.set_depth(session, position)
+        {:ok, menu}
     end
   end
 

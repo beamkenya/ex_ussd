@@ -13,7 +13,7 @@ defmodule ExUssd.Utils do
 
   def to_int(
         {value, ""},
-        %ExUssd{split: split, nav: nav, menu_list: menu_list},
+        %ExUssd{split: split, nav: nav, menu_list: menu_list, orientation: orientation},
         %{session_id: session},
         input_value
       ) do
@@ -30,9 +30,14 @@ defmodule ExUssd.Utils do
     position = depth * split
 
     element = Enum.at(menu_list, position)
+    menu = Enum.at(menu_list, value - 1)
 
     case input_value do
-      v when v == next and show_next and not is_nil(element) ->
+      v
+      when v == next and show_next and orientation == :horizontal and depth < length(menu_list) ->
+        605_356_150_351_840_375_921_999_017_933
+
+      v when v == next and show_next and orientation == :vertical and not is_nil(element) ->
         605_356_150_351_840_375_921_999_017_933
 
       v when v == back and show_back ->
@@ -40,6 +45,9 @@ defmodule ExUssd.Utils do
 
       v when v == home and show_home ->
         705_897_792_423_629_962_208_442_626_284
+
+      _v when orientation == :horizontal and is_nil(menu) ->
+        @default_value
 
       _ ->
         value

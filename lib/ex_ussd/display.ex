@@ -26,6 +26,7 @@ defmodule ExUssd.Display do
   def to_string(
         %ExUssd{
           orientation: :horizontal,
+          error: error,
           delimiter: delimiter,
           menu_list: menu_list,
           nav: nav,
@@ -65,7 +66,8 @@ defmodule ExUssd.Display do
           IO.iodata_to_binary([default_error, navigation])
       end
 
-    {:ok, %{menu_string: menu_string, should_close: should_close}}
+    {:ok,
+     %{menu_string: IO.iodata_to_binary(["#{error}", menu_string]), should_close: should_close}}
   end
 
   @spec to_string(ExUssd.t(), map(), keyword()) ::
