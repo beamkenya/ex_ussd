@@ -94,7 +94,10 @@ defmodule ExUssd.Display do
 
     # [0, 1, 2, 3, 4, 5, 6]
     selection = Enum.into(min..max, [])
-    menu_list = Enum.reverse(menu_list) |> Enum.map(fn menu -> ExUssd.Executer.execute_navigate(menu, Map.new(opts)) end)
+
+    menu_list =
+      Enum.reverse(menu_list)
+      |> Enum.map(fn menu -> ExUssd.Executer.execute_navigate(menu, Map.new(opts)) end)
 
     menus =
       selection
