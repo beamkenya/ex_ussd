@@ -67,6 +67,14 @@ defmodule ExUssd.Executer do
   @spec execute_callback(%ExUssd{}, map()) :: {:ok, ExUssd.t()} | any()
   def execute_callback(menu, api_parameters)
 
+  def execute_callback(%ExUssd{navigate: navigate} = menu, api_parameters)
+      when not is_nil(navigate) do
+    menu
+    |> Map.put(:resolve, navigate)
+    |> Map.put(:navigate, nil)
+    |> execute_init_callback(api_parameters)
+  end
+
   def execute_callback(%ExUssd{resolve: resolve} = menu, api_parameters)
       when is_atom(resolve) do
     if function_exported?(resolve, :ussd_callback, 3) do
@@ -79,6 +87,13 @@ defmodule ExUssd.Executer do
         else
           build_response_menu(:ok, current_menu, menu, api_parameters)
         end
+      end
+      |> case do
+        {_, %ExUssd{resolve: resolve} = menu} when not is_nil(resolve) ->
+          execute_init_callback(menu, api_parameters)
+
+        result ->
+          result
       end
     end
   end
