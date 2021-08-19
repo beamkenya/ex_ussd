@@ -71,7 +71,7 @@ defmodule ExUssd.Executer do
       when not is_nil(navigate) do
     menu
     |> Map.put(:resolve, navigate)
-    |> Map.put(:navigate, nil)
+    |> Map.delete(:navigate)
     |> execute_init_callback(api_parameters)
   end
 
