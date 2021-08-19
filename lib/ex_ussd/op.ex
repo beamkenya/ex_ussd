@@ -16,6 +16,7 @@ defmodule ExUssd.Op do
     :show_navigation,
     :data,
     :resolve,
+    :navigate,
     :orientation,
     :name
   ]
@@ -33,11 +34,11 @@ defmodule ExUssd.Op do
 
     iex> ExUssd.new(fn menu, api_parameters ->
       if is_registered?(phone_number: api_parameters[:phone_number]) do
-        menu 
+        menu
         |> ExUssd.set(name: "home")
         |> ExUssd.set(resolve: HomeResolver)
       else
-        menu 
+        menu
         |> ExUssd.set(name: "guest")
         |> ExUssd.set(resolve: GuestResolver)
       end
@@ -284,7 +285,7 @@ defmodule ExUssd.Op do
     api_parameters
     |> ExUssd.Route.get_route()
     |> ExUssd.Navigation.navigate(menu, api_parameters)
-    |> ExUssd.Display.to_string(ExUssd.Registry.fetch_state(session))
+    |> ExUssd.Display.to_string(ExUssd.Registry.fetch_state(session), Keyword.new(api_parameters))
   end
 
   def goto(%{

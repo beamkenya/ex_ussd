@@ -9,7 +9,7 @@ defmodule ExUssd.Display do
   ## Parameters
 
     - `menu` - menu to transform to string
-    - `route` - route 
+    - `route` - route
     - `opts` - optional session args
 
   ## Examples
@@ -85,7 +85,7 @@ defmodule ExUssd.Display do
           title: title
         },
         %{route: route},
-        _opts
+        opts
       ) do
     %{depth: depth} = List.first(route)
 
@@ -94,7 +94,10 @@ defmodule ExUssd.Display do
 
     # [0, 1, 2, 3, 4, 5, 6]
     selection = Enum.into(min..max, [])
-    menu_list = Enum.reverse(menu_list)
+
+    menu_list =
+      Enum.reverse(menu_list)
+      |> Enum.map(fn menu -> ExUssd.Executer.execute_navigate(menu, Map.new(opts)) end)
 
     menus =
       selection

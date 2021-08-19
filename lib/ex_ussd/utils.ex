@@ -56,6 +56,8 @@ defmodule ExUssd.Utils do
 
   def to_int(:error, _menu, _, _input_value), do: @default_value
 
+  def to_int(_, _, _, _), do: @default_value
+
   @spec truncate(String.t(), keyword()) :: String.t()
   def truncate(text, options \\ []) do
     len = options[:length] || 30
