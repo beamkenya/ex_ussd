@@ -143,7 +143,7 @@ defmodule ExUssd.Op do
 
   def set(%ExUssd{resolve: existing_resolve} = menu, resolve: resolve)
       when not is_nil(existing_resolve) do
-    %{menu | navigate: true, resolve: resolve}
+    %{menu | navigate: resolve}
   end
 
   def set(%ExUssd{resolve: nil} = menu, resolve: resolve)
