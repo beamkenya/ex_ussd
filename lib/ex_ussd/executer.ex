@@ -89,7 +89,7 @@ defmodule ExUssd.Executer do
         end
       end
       |> case do
-        {_, %ExUssd{resolve: resolve} = menu} when not is_nil(resolve) ->
+        {:ok, %ExUssd{resolve: resolve} = menu} when not is_nil(resolve) ->
           execute_init_callback(menu, api_parameters)
 
         result ->
