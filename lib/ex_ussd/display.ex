@@ -36,13 +36,16 @@ defmodule ExUssd.Display do
         %{route: route},
         opts
       ) do
-    session = Keyword.get(opts, :session)
+    session = Keyword.get(opts, :session_id)
 
     %{depth: depth} = List.first(route)
 
     total_length = Enum.count(menu_list)
 
-    menu_list = Enum.reverse(menu_list)
+    menu_list =
+      menu_list
+      |> Enum.map(fn menu -> ExUssd.Executer.execute_navigate(menu, Map.new(opts)) end)
+      |> Enum.reverse()
 
     navigation =
       nav
@@ -96,8 +99,9 @@ defmodule ExUssd.Display do
     selection = Enum.into(min..max, [])
 
     menu_list =
-      Enum.reverse(menu_list)
+      menu_list
       |> Enum.map(fn menu -> ExUssd.Executer.execute_navigate(menu, Map.new(opts)) end)
+      |> Enum.reverse()
 
     menus =
       selection

@@ -16,7 +16,6 @@ defmodule ExUssd.Op do
     :show_navigation,
     :data,
     :resolve,
-    :navigate,
     :orientation,
     :name
   ]
@@ -144,7 +143,7 @@ defmodule ExUssd.Op do
 
   def set(%ExUssd{resolve: existing_resolve}, resolve: resolve)
       when not is_nil(existing_resolve) do
-    raise %RuntimeError{message: "resolve already exist, cannot set #{inspect(resolve)}"}
+    %{menu | navigate: true, resolve: resolve}
   end
 
   def set(%ExUssd{resolve: nil} = menu, resolve: resolve)

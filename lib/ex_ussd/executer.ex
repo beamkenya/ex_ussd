@@ -67,13 +67,8 @@ defmodule ExUssd.Executer do
   @spec execute_callback(%ExUssd{}, map()) :: {:ok, ExUssd.t()} | any()
   def execute_callback(menu, api_parameters)
 
-  def execute_callback(%ExUssd{navigate: navigate} = menu, api_parameters)
-      when not is_nil(navigate) do
-    menu
-    |> Map.put(:resolve, navigate)
-    |> Map.delete(:navigate)
-    |> execute_init_callback(api_parameters)
-  end
+  def execute_callback(%ExUssd{navigate: true} = menu, api_parameters),
+    do: fetch_next_menu(menu, api_parameters)
 
   def execute_callback(%ExUssd{resolve: resolve} = menu, api_parameters)
       when is_atom(resolve) do
@@ -89,8 +84,8 @@ defmodule ExUssd.Executer do
         end
       end
       |> case do
-        {_, %ExUssd{resolve: resolve} = menu} when not is_nil(resolve) ->
-          execute_init_callback(menu, api_parameters)
+        {:ok, %ExUssd{resolve: resolve} = menu} when not is_nil(resolve) ->
+          fetch_next_menu(menu, api_parameters)
 
         result ->
           result
@@ -154,5 +149,16 @@ defmodule ExUssd.Executer do
     %{route: route} = ExUssd.Route.get_route(api_parameters)
     ExUssd.Registry.add_route(session, route)
     {:ok, %{current_menu | parent: fn -> menu end}}
+  end
+
+  defp fetch_next_menu(
+         %ExUssd{orientation: orientation, data: data, name: name, resolve: resolve} = menu,
+         api_parameters
+       ) do
+    {:ok, current_menu} =
+      ExUssd.new(orientation: orientation, name: name, resolve: resolve, data: data)
+      |> execute_init_callback(api_parameters)
+
+    build_response_menu(:ok, current_menu, menu, api_parameters)
   end
 end

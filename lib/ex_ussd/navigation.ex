@@ -51,29 +51,6 @@ defmodule ExUssd.Navigation do
     apply(fun, [route, api_parameters, menu])
   end
 
-  # defp execute_navigation(
-  #        %{depth: _, text: "555"} = route,
-  #        %{session_id: session} = api_parameters,
-  #        %ExUssd{orientation: :horizontal} = menu
-  #      )
-  #      when is_map(route) do
-  #       IO.inspect Registry.fetch_current(session)
-  #   case Registry.fetch_current(session) do
-  #     nil ->
-  #       Registry.add_route(session, route)
-
-  #       {:ok, home} =
-  #         menu
-  #         |> Executer.execute_navigate(api_parameters)
-  #         |> Executer.execute_init_callback(api_parameters)
-
-  #       {:ok, Registry.set_home(session, %{home | parent: fn -> home end})}
-
-  #     current_menu ->
-  #       execute_navigation(route, api_parameters, current_menu)
-  #   end
-  # end
-
   defp execute_navigation(
          %{depth: _, text: "555"} = route,
          %{session_id: session} = api_parameters,
