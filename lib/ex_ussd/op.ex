@@ -2,7 +2,7 @@ defmodule ExUssd.Op do
   @moduledoc """
   Contains all ExUssd Public API functions
   """
-  alias ExUssd.Utils
+  alias ExUssd.{Utils, Executer, Display, Route}
 
   @allowed_fields [
     :error,
@@ -19,6 +19,38 @@ defmodule ExUssd.Op do
     :orientation,
     :name
   ]
+
+  @doc """
+  Returns Menu string
+
+  ## Example
+    iex> menu =  ExUssd.new(name: "home", resolve: fn menu, _api_parameters -> menu |> ExUssd.set(title: "Welcome") end)
+    iex> ExUssd.to_string(menu, [api_parameters: %{text: "1", phoneNumber: "254722000000"}])
+    iex> {:ok, %{menu_string: "Welcome", should_close: false}}
+  """
+
+  @spec to_string(ExUssd.t(), keyword()) ::
+          {:ok, %{menu_string: String.t(), should_close: boolean()}}
+  def to_string(%ExUssd{} = menu, opts) do
+    api_parameters =
+      opts
+      |> Keyword.get(:api_parameters, %{text: "1", phone_number: "254722000000"})
+      |> Map.merge(%{session_id: 1234, service_code: "*544#"})
+
+    {_, current_menu} =
+      menu
+      |> Executer.execute_navigate(api_parameters)
+      |> Executer.execute_init_callback(api_parameters)
+
+    case Executer.execute_callback(current_menu, api_parameters) do
+      {:ok, menu} ->
+        menu
+
+      nil ->
+        current_menu
+    end
+    |> Display.to_string(Route.get_route(%{text: "*544#", service_code: "*544#"}))
+  end
 
   @doc """
   Returns the ExUssd struct for the given keyword list opts.
