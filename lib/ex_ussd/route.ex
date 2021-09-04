@@ -16,16 +16,15 @@ defmodule ExUssd.Route do
     @moduledoc """
     Route value struct
     """
-    @behaviour Access
+    defstruct [:depth, :text, attempt: %{count: 0, inputs: []}]
 
+    @behaviour Access
     # https://gist.github.com/andykingking/4982353b8c69ea301c698e97f6d34635
     # Structs by default do not implement this. It's easy to delegate this to the Map implementation however.
-    defdelegate get(coin, key, default), to: Map
-    defdelegate fetch(coin, key), to: Map
-    defdelegate get_and_update(coin, key, func), to: Map
-    defdelegate pop(coin, key), to: Map
-
-    defstruct [:depth, :text, attempt: %{count: 0, inputs: []}]
+    defdelegate get(route, key, default), to: Map
+    defdelegate fetch(route, key), to: Map
+    defdelegate get_and_update(route, key, func), to: Map
+    defdelegate pop(route, key), to: Map
   end
 
   @doc """
