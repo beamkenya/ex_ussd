@@ -89,8 +89,7 @@ defmodule ExUssd.Executer do
       when not is_nil(navigate) do
     menu
     |> Map.put(:resolve, navigate)
-    |> Map.delete(:navigate)
-    |> fetch_next_menu(api_parameters, opts)
+    |> resolve(api_parameters, opts)
   end
 
   def execute_callback(%ExUssd{resolve: resolve} = menu, api_parameters, opts)
@@ -107,13 +106,7 @@ defmodule ExUssd.Executer do
           build_response_menu(:ok, current_menu, menu, api_parameters, opts)
         end
       end
-      |> case do
-        {:ok, %ExUssd{resolve: resolve} = menu} when not is_nil(resolve) ->
-          fetch_next_menu(menu, api_parameters, opts)
-
-        result ->
-          result
-      end
+      |> resolve(api_parameters, opts)
     end
   end
 
@@ -146,30 +139,22 @@ defmodule ExUssd.Executer do
       )
       when is_atom(resolve) do
     if function_exported?(resolve, :ussd_after_callback, 3) do
+      error_state = if is_bitstring(original_error), do: true
+
       metadata =
         if(Keyword.get(opts, :state), do: Utils.fetch_metadata(api_parameters), else: Map.new())
 
       with %ExUssd{error: error} = current_menu <-
              apply(resolve, :ussd_after_callback, [
-               %{menu | resolve: nil, error: nil},
+               %{menu | resolve: nil, error: error_state},
                api_parameters,
                metadata
              ]) do
-        cond do
-          is_bitstring(error) ->
-            build_response_menu(:halt, current_menu, menu, api_parameters, opts)
-
-          is_bitstring(original_error) ->
-            build_response_menu(
-              :halt,
-              %{current_menu | error: original_error},
-              menu,
-              api_parameters,
-              opts
-            )
-
-          true ->
-            build_response_menu(:ok, current_menu, menu, api_parameters, opts)
+        if is_bitstring(error) do
+          build_response_menu(:halt, current_menu, menu, api_parameters, opts)
+        else
+          build_response_menu(:ok, current_menu, menu, api_parameters, opts)
+          |> resolve(api_parameters, opts)
         end
       end
     end
@@ -197,13 +182,26 @@ defmodule ExUssd.Executer do
     {:ok, %{current_menu | parent: fn -> menu end}}
   end
 
+  defp resolve(menu, api_parameters, opts) do
+    case menu do
+      {:ok, %ExUssd{resolve: resolve} = menu} when not is_nil(resolve) ->
+        fetch_next_menu(menu, api_parameters, opts)
+
+      %ExUssd{} = menu ->
+        fetch_next_menu(menu, api_parameters, opts)
+
+      menu ->
+        menu
+    end
+  end
+
   defp fetch_next_menu(
-         %ExUssd{orientation: orientation, data: data, name: name, resolve: resolve} = menu,
+         %ExUssd{orientation: orientation, data: data, resolve: resolve} = menu,
          api_parameters,
          opts
        ) do
     {:ok, current_menu} =
-      ExUssd.new(orientation: orientation, name: name, resolve: resolve, data: data)
+      ExUssd.new(orientation: orientation, name: "#{resolve}", resolve: resolve, data: data)
       |> execute_init_callback(api_parameters)
 
     build_response_menu(:ok, current_menu, menu, api_parameters, opts)
