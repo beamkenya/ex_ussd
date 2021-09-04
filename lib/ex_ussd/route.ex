@@ -45,8 +45,7 @@ defmodule ExUssd.Route do
       %Route{mode: :parallel, route: [%{depth: 1, text: "3"}, %{depth: 1, text: "2"}, %{depth: 1, text: "555"}]}
   """
 
-  @spec get_route(%{text: String.t(), session_id: String.t(), service_code: String.t()}) ::
-          Route.t()
+  @spec get_route(map()) :: Route.t()
   def get_route(%{text: text, service_code: service_code} = opts) do
     text = String.replace(text, "#", "")
 
