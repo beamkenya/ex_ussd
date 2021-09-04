@@ -201,7 +201,7 @@ defmodule ExUssd.Executer do
          opts
        ) do
     {:ok, current_menu} =
-      ExUssd.new(orientation: orientation, name: "#{resolve}", resolve: resolve, data: data)
+      ExUssd.new(orientation: orientation, name: "#{inspect(resolve)}", resolve: resolve, data: data)
       |> execute_init_callback(api_parameters)
 
     build_response_menu(:ok, current_menu, menu, api_parameters, opts)
