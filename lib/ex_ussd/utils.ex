@@ -8,8 +8,8 @@ defmodule ExUssd.Utils do
   @spec to_int(term() | {integer(), String.t()}, ExUssd.t(), map(), String.t()) :: integer()
   def to_int(input, menu, _, input_value)
 
-  def to_int({0, _}, menu, api_parameters, input_value),
-    do: to_int({@default_value, ""}, menu, api_parameters, input_value)
+  def to_int({0, _}, menu, payload, input_value),
+    do: to_int({@default_value, ""}, menu, payload, input_value)
 
   def to_int(
         {value, ""},
@@ -83,8 +83,8 @@ defmodule ExUssd.Utils do
   def new_id, do: "#{System.unique_integer()}"
 
   @spec format(map()) :: map()
-  def format(api_parameters) do
-    Map.new(api_parameters, fn {key, val} ->
+  def format(payload) do
+    Map.new(payload, fn {key, val} ->
       try do
         {String.to_existing_atom(key), val}
       rescue

@@ -24,7 +24,7 @@ defmodule ExUssd.Op do
   Returns Menu string
 
   ## Example
-    iex> menu = ExUssd.new(name: "home", resolve: fn menu, _api_parameters -> menu |> ExUssd.set(title: "Welcome") end)
+    iex> menu = ExUssd.new(name: "home", resolve: fn menu, _payload -> menu |> ExUssd.set(title: "Welcome") end)
     
     iex> ExUssd.to_string(menu, [])
     {:ok, %{menu_string: "Welcome", should_close: false}}
@@ -40,7 +40,7 @@ defmodule ExUssd.Op do
     iex> ExUssd.to_string(menu, :ussd_callback, [])
     {:ok, %{menu_string: "Invalid Choice\nEnter your PIN", should_close: false}}
 
-    iex> opts = [api_parameters: %{text: "5555", phoneNumber: "254722000000"}]
+    iex> opts = [payload: %{text: "5555", phoneNumber: "254722000000"}]
 
     iex> ExUssd.to_string(menu, :ussd_callback, opts)
     {:ok, %{menu_string: "You have Entered the Secret Number, 5555", should_close: true}}
@@ -54,68 +54,68 @@ defmodule ExUssd.Op do
   @spec to_string(ExUssd.t(), atom(), keyword()) ::
           {:ok, %{menu_string: String.t(), should_close: boolean()}}
   def to_string(%ExUssd{} = menu, :ussd_init, opts) do
-    api_parameters =
-      Keyword.get(opts, :api_parameters, %{
+    payload =
+      Keyword.get(opts, :payload, %{
         text: "set_text_value_through_opts_args",
         phone_number: "254722000000"
       })
 
-    fun = fn menu, api_parameters ->
+    fun = fn menu, payload ->
       menu
-      |> Executer.execute_navigate(api_parameters)
-      |> Executer.execute_init_callback!(api_parameters)
+      |> Executer.execute_navigate(payload)
+      |> Executer.execute_init_callback!(payload)
       |> Display.to_string(Route.get_route(%{text: "*544#", service_code: "*544#"}))
     end
 
-    apply(fun, [menu, api_parameters])
+    apply(fun, [menu, payload])
   end
 
   @spec to_string(ExUssd.t(), atom(), keyword()) ::
           {:ok, %{menu_string: String.t(), should_close: boolean()}}
   def to_string(%ExUssd{default_error: error} = menu, :ussd_callback, opts) do
-    api_parameters =
+    payload =
       opts
-      |> Keyword.get(:api_parameters, %{
+      |> Keyword.get(:payload, %{
         text: "set_text_value_through_opts_args",
         phone_number: "254722000000"
       })
       |> Map.merge(%{session_id: ExUssd.Utils.new_id(), service_code: "*544#"})
 
-    fun = fn menu, api_parameters ->
-      init_menu = Executer.execute_init_callback!(menu, api_parameters)
+    fun = fn menu, payload ->
+      init_menu = Executer.execute_init_callback!(menu, payload)
 
       callback_menu =
-        with nil <- Executer.execute_callback!(init_menu, api_parameters, state: false) do
+        with nil <- Executer.execute_callback!(init_menu, payload, state: false) do
           %{init_menu | error: error}
         end
 
       Display.to_string(callback_menu, Route.get_route(%{text: "*544#", service_code: "*544#"}))
     end
 
-    apply(fun, [menu, api_parameters])
+    apply(fun, [menu, payload])
   end
 
   @spec to_string(ExUssd.t(), atom(), keyword()) ::
           {:ok, %{menu_string: String.t(), should_close: boolean()}}
   def to_string(%ExUssd{default_error: error} = menu, :ussd_after_callback, opts) do
-    api_parameters =
+    payload =
       opts
-      |> Keyword.get(:api_parameters, %{
+      |> Keyword.get(:payload, %{
         text: "set_text_value_through_opts_args",
         phone_number: "254722000000"
       })
       |> Map.merge(%{session_id: ExUssd.Utils.new_id(), service_code: "*544#"})
 
-    fun = fn menu, api_parameters ->
-      init_menu = Executer.execute_init_callback!(menu, api_parameters)
+    fun = fn menu, payload ->
+      init_menu = Executer.execute_init_callback!(menu, payload)
 
       callback_menu =
-        with nil <- Executer.execute_callback!(init_menu, api_parameters, state: false) do
+        with nil <- Executer.execute_callback!(init_menu, payload, state: false) do
           %{init_menu | error: error}
         end
 
       after_callback_menu =
-        with nil <- Executer.execute_after_callback!(callback_menu, api_parameters, state: false) do
+        with nil <- Executer.execute_after_callback!(callback_menu, payload, state: false) do
           callback_menu
         end
 
@@ -125,7 +125,7 @@ defmodule ExUssd.Op do
       )
     end
 
-    apply(fun, [menu, api_parameters])
+    apply(fun, [menu, payload])
   end
 
   @doc """
@@ -137,10 +137,10 @@ defmodule ExUssd.Op do
   ## Example
 
     iex> ExUssd.new(orientation: :vertical, name: "home", resolve: MyHomeResolver)
-    iex> ExUssd.new(orientation: :horizontal, name: "home", resolve: fn menu, _api_parameters -> menu |> ExUssd.set(title: "Welcome") end)
+    iex> ExUssd.new(orientation: :horizontal, name: "home", resolve: fn menu, _payload -> menu |> ExUssd.set(title: "Welcome") end)
 
-    iex> ExUssd.new(fn menu, api_parameters ->
-      if is_registered?(phone_number: api_parameters[:phone_number]) do
+    iex> ExUssd.new(fn menu, payload ->
+      if is_registered?(phone_number: payload[:phone_number]) do
         menu
         |> ExUssd.set(name: "home")
         |> ExUssd.set(resolve: HomeResolver)
@@ -368,7 +368,7 @@ defmodule ExUssd.Op do
    - `opts` — keyword list / map
 
   ## Example
-  iex> case ExUssd.goto(menu: menu, api_parameters: api_parameters) do
+  iex> case ExUssd.goto(menu: menu, payload: payload) do
     {:ok, %{menu_string: menu_string, should_close: false}} ->
       "CON " <> menu_string
 
@@ -386,40 +386,39 @@ defmodule ExUssd.Op do
     do: goto(Enum.into(fields, %{}))
 
   def goto(%{
-        api_parameters: %{text: _, session_id: session, service_code: _} = api_parameters,
+        payload: %{text: _, session_id: session, service_code: _} = payload,
         menu: menu
       }) do
-    api_parameters
+    payload
     |> ExUssd.Route.get_route()
-    |> ExUssd.Navigation.navigate(menu, api_parameters)
-    |> ExUssd.Display.to_string(ExUssd.Registry.fetch_state(session), Keyword.new(api_parameters))
+    |> ExUssd.Navigation.navigate(menu, payload)
+    |> ExUssd.Display.to_string(ExUssd.Registry.fetch_state(session), Keyword.new(payload))
   end
 
   def goto(%{
-        api_parameters: %{"text" => _, "session_id" => _, "service_code" => _} = api_parameters,
+        payload: %{"text" => _, "session_id" => _, "service_code" => _} = payload,
         menu: menu
       }) do
-    goto(%{api_parameters: Utils.format(api_parameters), menu: menu})
+    goto(%{payload: Utils.format(payload), menu: menu})
   end
 
-  def goto(%{api_parameters: %{"session_id" => _, "service_code" => _} = api_parameters, menu: _}) do
-    message = "'text' not found in api_parameters #{inspect(api_parameters)}"
+  def goto(%{payload: %{"session_id" => _, "service_code" => _} = payload, menu: _}) do
+    message = "'text' not found in payload #{inspect(payload)}"
     raise %ArgumentError{message: message}
   end
 
-  def goto(%{api_parameters: %{"text" => _, "service_code" => _} = api_parameters, menu: _}) do
-    message = "'session_id' not found in api_parameters #{inspect(api_parameters)}"
+  def goto(%{payload: %{"text" => _, "service_code" => _} = payload, menu: _}) do
+    message = "'session_id' not found in payload #{inspect(payload)}"
     raise %ArgumentError{message: message}
   end
 
-  def goto(%{api_parameters: %{"text" => _, "session_id" => _} = api_parameters, menu: _}) do
-    message = "'service_code' not found in api_parameters #{inspect(api_parameters)}"
+  def goto(%{payload: %{"text" => _, "session_id" => _} = payload, menu: _}) do
+    message = "'service_code' not found in payload #{inspect(payload)}"
     raise %ArgumentError{message: message}
   end
 
-  def goto(%{api_parameters: api_parameters, menu: _}) do
-    message =
-      "'text', 'service_code', 'session_id',  not found in api_parameters #{inspect(api_parameters)}"
+  def goto(%{payload: payload, menu: _}) do
+    message = "'text', 'service_code', 'session_id',  not found in payload #{inspect(payload)}"
 
     raise %ArgumentError{message: message}
   end

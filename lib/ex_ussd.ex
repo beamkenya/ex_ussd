@@ -47,23 +47,23 @@ defmodule ExUssd do
   ]
 
   @type menu() :: ExUssd.t()
-  @type api_parameters() :: map()
+  @type payload() :: map()
   @type metadata() :: map()
 
   @callback ussd_init(
               menu :: menu(),
-              api_parameters :: api_parameters()
+              payload :: payload()
             ) :: menu()
 
   @callback ussd_callback(
               menu :: menu(),
-              api_parameters :: api_parameters(),
+              payload :: payload(),
               metadata :: metadata()
             ) :: menu()
 
   @callback ussd_after_callback(
               menu :: menu(),
-              api_parameters :: api_parameters(),
+              payload :: payload(),
               metadata :: metadata()
             ) :: any()
 

@@ -5,8 +5,8 @@ defmodule ExUssd.OpTest.Module do
     |> ExUssd.set(title: "Enter your PIN")
   end
 
-  def ussd_callback(menu, api_parameters, _) do
-    if api_parameters.text == "5555" do
+  def ussd_callback(menu, payload, _) do
+    if payload.text == "5555" do
       menu
       |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
       |> ExUssd.set(should_close: true)
@@ -55,7 +55,7 @@ defmodule ExUssd.OpTest do
   use ExUnit.Case
 
   setup do
-    resolve = fn menu, _api_parameters -> menu |> ExUssd.set(title: "Welcome") end
+    resolve = fn menu, _payload -> menu |> ExUssd.set(title: "Welcome") end
 
     menu = ExUssd.new(name: Faker.Company.name(), resolve: resolve)
 
@@ -150,7 +150,7 @@ defmodule ExUssd.OpTest do
                 should_close: false
               }} ==
                ExUssd.goto(%{
-                 api_parameters: %{session_id: session, text: "", service_code: "*544#"},
+                 payload: %{session_id: session, text: "", service_code: "*544#"},
                  menu: menu
                })
     end
@@ -162,7 +162,7 @@ defmodule ExUssd.OpTest do
                 should_close: false
               }} ==
                ExUssd.goto(%{
-                 api_parameters: %{session_id: session, text: "1", service_code: "*544#"},
+                 payload: %{session_id: session, text: "1", service_code: "*544#"},
                  menu: ExUssd.set(menu, split: 3)
                })
     end
@@ -174,7 +174,7 @@ defmodule ExUssd.OpTest do
                 should_close: false
               }} ==
                ExUssd.goto(%{
-                 api_parameters: %{session_id: session, text: "98", service_code: "*544#"},
+                 payload: %{session_id: session, text: "98", service_code: "*544#"},
                  menu: ExUssd.set(menu, split: 3)
                })
     end
@@ -186,7 +186,7 @@ defmodule ExUssd.OpTest do
                 should_close: false
               }} ==
                ExUssd.goto(%{
-                 api_parameters: %{session_id: session, text: "0", service_code: "*544#"},
+                 payload: %{session_id: session, text: "0", service_code: "*544#"},
                  menu: ExUssd.set(menu, split: 3)
                })
     end
@@ -198,7 +198,7 @@ defmodule ExUssd.OpTest do
                 should_close: false
               }} ==
                ExUssd.goto(%{
-                 api_parameters: %{session_id: session, text: "0", service_code: "*544#"},
+                 payload: %{session_id: session, text: "0", service_code: "*544#"},
                  menu: menu
                })
     end
@@ -210,7 +210,7 @@ defmodule ExUssd.OpTest do
                 should_close: false
               }} ==
                ExUssd.goto(%{
-                 api_parameters: %{session_id: session, text: "00", service_code: "*544#"},
+                 payload: %{session_id: session, text: "00", service_code: "*544#"},
                  menu: menu
                })
     end
@@ -227,7 +227,7 @@ defmodule ExUssd.OpTest do
     test "successfully navigates to the first menu", %{menu: menu, session: session} do
       assert {:ok, %{menu_string: "Enter your PIN", should_close: false}} ==
                ExUssd.goto(%{
-                 api_parameters: %{session_id: session, text: "", service_code: "*444#"},
+                 payload: %{session_id: session, text: "", service_code: "*444#"},
                  menu: menu
                })
     end
@@ -235,7 +235,7 @@ defmodule ExUssd.OpTest do
     test "successfully calls the 'ussd_callback/3' function", %{menu: menu, session: session} do
       assert {:ok, %{menu_string: "You have Entered the Secret Number, 5555", should_close: true}} ==
                ExUssd.goto(%{
-                 api_parameters: %{session_id: session, text: "5555", service_code: "*444#"},
+                 payload: %{session_id: session, text: "5555", service_code: "*444#"},
                  menu: menu
                })
     end

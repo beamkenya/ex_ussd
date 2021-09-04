@@ -14,7 +14,7 @@ defmodule ExUssd.Display do
 
   ## Examples
 
-      iex> menu = ExUssd.new(name: "home", resolve: fn menu, _api_parameters, _metadata -> menu |> ExUssd.set(title: "Welcome") end)
+      iex> menu = ExUssd.new(name: "home", resolve: fn menu, _payload, _metadata -> menu |> ExUssd.set(title: "Welcome") end)
       iex> ExUssd.Display.to_string(menu, ExUssd.Route.get_route(%{text: "*544#", service_code: "*544#"}))
       {:ok, %{menu_string: "Welcome", should_close: false}}
   """
