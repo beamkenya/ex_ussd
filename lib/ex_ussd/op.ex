@@ -2,7 +2,7 @@ defmodule ExUssd.Op do
   @moduledoc """
   Contains all ExUssd Public API functions
   """
-  alias ExUssd.{Utils, Executer, Display, Route}
+  alias ExUssd.{Executer, Display, Route, Utils}
 
   @allowed_fields [
     :error,
@@ -79,7 +79,7 @@ defmodule ExUssd.Op do
         text: "set_text_value_through_opts_args",
         phone_number: "254722000000"
       })
-      |> Map.merge(%{session_id: ExUssd.Utils.new_id(), service_code: "*544#"})
+      |> Map.merge(%{session_id: Utils.new_id(), service_code: "*544#"})
 
     fun = fn menu, payload ->
       init_menu = Executer.execute_init_callback!(menu, payload)
@@ -104,7 +104,7 @@ defmodule ExUssd.Op do
         text: "set_text_value_through_opts_args",
         phone_number: "254722000000"
       })
-      |> Map.merge(%{session_id: ExUssd.Utils.new_id(), service_code: "*544#"})
+      |> Map.merge(%{session_id: Utils.new_id(), service_code: "*544#"})
 
     fun = fn menu, payload ->
       init_menu = Executer.execute_init_callback!(menu, payload)
