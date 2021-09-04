@@ -89,7 +89,7 @@ defmodule ExUssd.Executer do
       when not is_nil(navigate) do
     menu
     |> Map.put(:resolve, navigate)
-    |> resolve(api_parameters, opts)
+    |> get_next_menu(api_parameters, opts)
   end
 
   def execute_callback(%ExUssd{resolve: resolve} = menu, api_parameters, opts)
@@ -104,9 +104,9 @@ defmodule ExUssd.Executer do
           build_response_menu(:halt, current_menu, menu, api_parameters, opts)
         else
           build_response_menu(:ok, current_menu, menu, api_parameters, opts)
+          |> get_next_menu(api_parameters, opts)
         end
       end
-      |> resolve(api_parameters, opts)
     end
   end
 
@@ -154,7 +154,7 @@ defmodule ExUssd.Executer do
           build_response_menu(:halt, current_menu, menu, api_parameters, opts)
         else
           build_response_menu(:ok, current_menu, menu, api_parameters, opts)
-          |> resolve(api_parameters, opts)
+          |> get_next_menu(api_parameters, opts)
         end
       end
     end
@@ -182,33 +182,37 @@ defmodule ExUssd.Executer do
     {:ok, %{current_menu | parent: fn -> menu end}}
   end
 
-  defp resolve(menu, api_parameters, opts) do
-    case menu do
-      {:ok, %ExUssd{resolve: resolve} = menu} when not is_nil(resolve) ->
-        fetch_next_menu(menu, api_parameters, opts)
+  defp get_next_menu(menu, api_parameters, opts) do
+    fun = fn
+      %ExUssd{orientation: orientation, data: data, resolve: resolve} ->
+        new_menu =
+          ExUssd.new(
+            orientation: orientation,
+            name: "#{inspect(resolve)}",
+            resolve: resolve,
+            data: data
+          )
 
-      %ExUssd{} = menu ->
-        fetch_next_menu(menu, api_parameters, opts)
+        current_menu = execute_init_callback!(new_menu, api_parameters)
 
-      menu ->
-        menu
+        build_response_menu(:ok, current_menu, menu, api_parameters, opts)
+
+      response ->
+        response
     end
-  end
 
-  defp fetch_next_menu(
-         %ExUssd{orientation: orientation, data: data, resolve: resolve} = menu,
-         api_parameters,
-         opts
-       ) do
-    {:ok, current_menu} =
-      ExUssd.new(
-        orientation: orientation,
-        name: "#{inspect(resolve)}",
-        resolve: resolve,
-        data: data
-      )
-      |> execute_init_callback(api_parameters)
+    current_response =
+      case menu do
+        {:ok, %ExUssd{resolve: resolve} = menu} when not is_nil(resolve) ->
+          menu
 
-    build_response_menu(:ok, current_menu, menu, api_parameters, opts)
+        %ExUssd{} = menu ->
+          menu
+
+        menu ->
+          menu
+      end
+
+    apply(fun, [current_response])
   end
 end
