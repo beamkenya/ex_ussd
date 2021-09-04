@@ -1,11 +1,11 @@
 defmodule HomeResolver do
     use ExUssd
 
-    def product_a(menu, _api_parameters), do: menu |> ExUssd.set(title: "selected product a")
-    def product_b(menu, _api_parameters), do: menu |> ExUssd.set(title: "selected product b")
-    def product_c(menu, _api_parameters), do: menu |> ExUssd.set(title: "selected product c")
+    def product_a(menu, _payload), do: menu |> ExUssd.set(title: "selected product a")
+    def product_b(menu, _payload), do: menu |> ExUssd.set(title: "selected product b")
+    def product_c(menu, _payload), do: menu |> ExUssd.set(title: "selected product c")
 
-    def home(menu, _api_parameters) do
+    def home(menu, _payload) do
       menu 
       |> ExUssd.set(title: "Welcome")
       |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
@@ -19,9 +19,8 @@ defmodule HomeResolver do
       |> ExUssd.set(title: "Enter your PIN")
     end
 
-    def ussd_callback(menu, api_parameters, metadata) do
-      IO.inspect metadata
-      if api_parameters.text == "5555" do
+    def ussd_callback(menu, payload, _metadata) do
+      if payload.text == "5555" do
         menu
         |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
         |> ExUssd.set(should_close: true)

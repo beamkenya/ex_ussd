@@ -8,7 +8,7 @@ defmodule ExUssd.ExecuterTest do
       menu =
         ExUssd.new(
           name: Faker.Company.name(),
-          resolve: fn menu, _api_parameters -> menu |> ExUssd.set(title: "Welcome") end
+          resolve: fn menu, _payload -> menu |> ExUssd.set(title: "Welcome") end
         )
 
       title = "Welcome"
@@ -19,7 +19,7 @@ defmodule ExUssd.ExecuterTest do
       menu =
         ExUssd.new(
           name: Faker.Company.name(),
-          resolve: fn menu, _api_parameters, _metadata -> menu |> ExUssd.set(title: "Welcome") end
+          resolve: fn menu, _payload, _metadata -> menu |> ExUssd.set(title: "Welcome") end
         )
 
       assert_raise BadArityError, fn -> Executer.execute_init_callback(menu, Map.new()) end

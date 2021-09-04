@@ -47,23 +47,23 @@ defmodule ExUssd do
   ]
 
   @type menu() :: ExUssd.t()
-  @type api_parameters() :: map()
+  @type payload() :: map()
   @type metadata() :: map()
 
   @callback ussd_init(
               menu :: menu(),
-              api_parameters :: api_parameters()
+              payload :: payload()
             ) :: menu()
 
   @callback ussd_callback(
               menu :: menu(),
-              api_parameters :: api_parameters(),
+              payload :: payload(),
               metadata :: metadata()
             ) :: menu()
 
   @callback ussd_after_callback(
               menu :: menu(),
-              api_parameters :: api_parameters(),
+              payload :: payload(),
               metadata :: metadata()
             ) :: any()
 
@@ -82,4 +82,6 @@ defmodule ExUssd do
   defdelegate add(menu, menus, opts), to: ExUssd.Op
   defdelegate end_session(opts), to: ExUssd.Op
   defdelegate goto(opts), to: ExUssd.Op
+  defdelegate to_string(menu, opts), to: ExUssd.Op
+  defdelegate to_string(menu, atom, opts), to: ExUssd.Op
 end

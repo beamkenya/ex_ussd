@@ -4,7 +4,7 @@ defmodule ExUssd.DisplayTest do
   alias ExUssd.Display
 
   setup do
-    resolve = fn menu, _api_parameters, _metadata -> menu end
+    resolve = fn menu, _payload, _metadata -> menu end
 
     menu =
       ExUssd.new(name: Faker.Company.name(), resolve: resolve)

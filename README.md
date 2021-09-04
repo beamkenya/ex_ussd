@@ -41,8 +41,8 @@ defmodule HomeResolver do
     |> ExUssd.set(title: "Enter your PIN")
   end
 
-  def ussd_callback(menu, api_parameters, _) do
-    if api_parameters.text == "5555" do
+  def ussd_callback(menu, payload, _) do
+    if payload.text == "5555" do
       menu
       |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
       |> ExUssd.set(should_close: true)
@@ -52,7 +52,7 @@ end
   
 menu = ExUssd.new(name: "Home", resolve: HomeResolver)
 
-case ExUssd.goto(menu: menu, api_parameters: %{service_code: "*544#", session_id: "se1",text: ""}) do
+case ExUssd.goto(menu: menu, payload: %{service_code: "*544#", session_id: "se1",text: ""}) do
   {:ok, %{menu_string: menu_string, should_close: false}} ->
     "CON " <> menu_string
 
