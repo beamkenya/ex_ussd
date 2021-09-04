@@ -34,7 +34,7 @@ end
 ##### Resolver module
 
 ```elixir
-defmodule HomeResolver do
+defmodule Api.HomeResolver do
   use ExUssd
   def ussd_init(menu, _) do
     menu
@@ -49,9 +49,25 @@ defmodule HomeResolver do
     end
   end
 end
-  
-menu = ExUssd.new(name: "Home", resolve: HomeResolver)
 
+menu = ExUssd.new(name: "Home", resolve: Api.HomeResolver)
+```
+
+##### Resolver function
+```elixir
+defmodule Api.HomeResolver do
+  use ExUssd
+  def welcome(menu, payload) do
+    menu
+    |> ExUssd.set(title: "Welcome, Your account is now active")
+  end
+end
+
+menu = ExUssd.new(name: "Home", resolve: &Api.HomeResolver.welcome/2)
+```
+
+##### Gateway Response
+```elixir
 case ExUssd.goto(menu: menu, payload: %{service_code: "*544#", session_id: "se1",text: ""}) do
   {:ok, %{menu_string: menu_string, should_close: false}} ->
     "CON " <> menu_string
@@ -63,7 +79,31 @@ case ExUssd.goto(menu: menu, payload: %{service_code: "*544#", session_id: "se1"
     "END " <> menu_string
 end
 
-"CON Enter your PIN"
+"CON Enter your PIN" / "CON Welcome, Your account is now active"
+```
+
+## Test
+##### Resolver module
+```elixir
+...
+iex> menu = ExUssd.new(name: "Home", resolve: HomeResolver)
+
+iex> ExUssd.to_string(menu, :ussd_init, [])
+{:ok, %{menu_string: "Enter your PIN", should_close: false}}
+
+iex> ExUssd.to_string(menu, :ussd_callback, [payload: %{text: "5555", phoneNumber: "254722000000"}])
+{:ok, %{menu_string: "You have Entered the Secret Number, 5555", should_close: true}}
+```
+##### Resolver function
+```elixir
+...
+iex> menu = ExUssd.new(name: "Home", resolve: &Api.HomeResolver.welcome/2)
+
+iex> ExUssd.to_string(menu, [])
+{:ok, %{menu_string: "Welcome, Your account is now active", should_close: false}}
+
+iex> ExUssd.to_string(menu, :ussd_init, [])
+{:ok, %{menu_string: "Welcome, Your account is now active", should_close: false}}
 ```
 
 ## Contribution
