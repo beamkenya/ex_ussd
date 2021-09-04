@@ -37,12 +37,10 @@ defmodule ExUssd.Op do
     iex> ExUssd.to_string(menu, :ussd_init, [])
     {:ok, %{menu_string: "Enter your PIN", should_close: false}}
 
-    iex> ExUssd.to_string(menu, :ussd_callback, [])
+    iex> ExUssd.to_string(menu, :ussd_callback, [payload: %{text: "1"}, init_text: "1"])
     {:ok, %{menu_string: "Invalid Choice\nEnter your PIN", should_close: false}}
 
-    iex> opts = [payload: %{text: "5555", phoneNumber: "254722000000"}]
-
-    iex> ExUssd.to_string(menu, :ussd_callback, opts)
+    iex> ExUssd.to_string(menu, :ussd_callback, [payload: %{text: "5555"}, init_text: "1"])
     {:ok, %{menu_string: "You have Entered the Secret Number, 5555", should_close: true}}
 
   """
@@ -54,17 +52,14 @@ defmodule ExUssd.Op do
   @spec to_string(ExUssd.t(), :ussd_init, keyword()) ::
           {:ok, %{menu_string: String.t(), should_close: boolean()}}
   def to_string(%ExUssd{} = menu, :ussd_init, opts) do
-    payload =
-      Keyword.get(opts, :payload, %{
-        text: "set_text_value_through_opts_args",
-        phone_number: "254722000000"
-      })
+    payload = Keyword.get(opts, :payload, %{text: "set_opts_payload_text"})
 
-    fun = fn menu, payload ->
-      menu
-      |> Executer.execute_navigate(payload)
-      |> Executer.execute_init_callback!(payload)
-      |> Display.to_string(Route.get_route(%{text: "*544#", service_code: "*544#"}))
+    fun = fn
+      menu, payload ->
+        menu
+        |> Executer.execute_navigate(payload)
+        |> Executer.execute_init_callback!(payload)
+        |> Display.to_string(Route.get_route(%{text: "*544#", service_code: "*544#"}))
     end
 
     apply(fun, [menu, payload])
@@ -73,59 +68,81 @@ defmodule ExUssd.Op do
   @spec to_string(ExUssd.t(), :ussd_callback, keyword()) ::
           {:ok, %{menu_string: String.t(), should_close: boolean()}}
   def to_string(%ExUssd{default_error: error} = menu, :ussd_callback, opts) do
-    payload =
-      opts
-      |> Keyword.get(:payload, %{
-        text: "set_text_value_through_opts_args",
-        phone_number: "254722000000"
-      })
-      |> Map.merge(%{session_id: Utils.new_id(), service_code: "*544#"})
+    payload = Keyword.get(opts, :payload)
 
-    fun = fn menu, payload ->
-      init_menu = Executer.execute_init_callback!(menu, payload)
+    fun = fn
+      _menu, opts, nil ->
+        raise ArgumentError, "`:payload` not found, #{inspect(Keyword.new(opts))}"
 
-      callback_menu =
-        with nil <- Executer.execute_callback!(init_menu, payload, state: false) do
-          %{init_menu | error: error}
-        end
+      menu, %{init_text: init_text}, %{text: _} = payload ->
+        init_payload = Map.put(payload, :text, init_text)
 
-      Display.to_string(callback_menu, Route.get_route(%{text: "*544#", service_code: "*544#"}))
+        init_menu =
+          menu
+          |> Executer.execute_navigate(init_payload)
+          |> Executer.execute_init_callback!(init_payload)
+
+        callback_menu =
+          with nil <- Executer.execute_callback!(init_menu, payload, state: false) do
+            %{init_menu | error: error}
+          end
+
+        Display.to_string(callback_menu, Route.get_route(%{text: "*544#", service_code: "*544#"}))
+
+      _menu, opts, %{text: _} ->
+        raise ArgumentError, "opts missing `:init_text`, #{inspect(Keyword.new(opts))}"
+
+      _menu, _, payload ->
+        raise ArgumentError, "payload missing `:text`, #{inspect(payload)}"
     end
 
-    apply(fun, [menu, payload])
+    apply(fun, [menu, Map.new(opts), payload])
   end
 
   @spec to_string(ExUssd.t(), :ussd_after_callback, keyword()) ::
           {:ok, %{menu_string: String.t(), should_close: boolean()}}
   def to_string(%ExUssd{default_error: error} = menu, :ussd_after_callback, opts) do
-    payload =
-      opts
-      |> Keyword.get(:payload, %{
-        text: "set_text_value_through_opts_args",
-        phone_number: "254722000000"
-      })
-      |> Map.merge(%{session_id: Utils.new_id(), service_code: "*544#"})
+    payload = Keyword.get(opts, :payload)
 
-    fun = fn menu, payload ->
-      init_menu = Executer.execute_init_callback!(menu, payload)
+    fun = fn
+      _menu, opts, nil ->
+        raise ArgumentError, "`:payload` not found, #{inspect(Keyword.new(opts))}"
 
-      callback_menu =
-        with nil <- Executer.execute_callback!(init_menu, payload, state: false) do
-          %{init_menu | error: error}
-        end
+      menu, %{init_text: init_text, callback_text: callback_text}, %{text: _} = payload ->
+        init_payload = Map.put(payload, :text, init_text)
+        callback_payload = Map.put(payload, :text, callback_text)
 
-      after_callback_menu =
-        with nil <- Executer.execute_after_callback!(callback_menu, payload, state: false) do
-          callback_menu
-        end
+        init_menu =
+          menu
+          |> Executer.execute_navigate(init_payload)
+          |> Executer.execute_init_callback!(init_payload)
 
-      Display.to_string(
-        after_callback_menu,
-        Route.get_route(%{text: "*544#", service_code: "*544#"})
-      )
+        callback_menu =
+          with nil <- Executer.execute_callback!(init_menu, callback_payload, state: false) do
+            %{init_menu | error: error}
+          end
+
+        after_callback_menu =
+          with nil <- Executer.execute_after_callback!(callback_menu, payload, state: false) do
+            callback_menu
+          end
+
+        Display.to_string(
+          after_callback_menu,
+          Route.get_route(%{text: "*544#", service_code: "*544#"})
+        )
+
+      _menu, %{callback_text: _} = opts, %{text: _} ->
+        raise ArgumentError, "opts missing `:init_text`, #{inspect(Keyword.new(opts))}"
+
+      _menu, %{init_text: _} = opts, %{text: _} ->
+        raise ArgumentError, "opts missing `:callback_text`, #{inspect(Keyword.new(opts))}"
+
+      _menu, _, payload ->
+        raise ArgumentError, "payload missing `:text`, #{inspect(payload)}"
     end
 
-    apply(fun, [menu, payload])
+    apply(fun, [menu, Map.new(opts), payload])
   end
 
   @doc """

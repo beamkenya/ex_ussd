@@ -91,7 +91,7 @@ iex> menu = ExUssd.new(name: "Home", resolve: HomeResolver)
 iex> ExUssd.to_string(menu, :ussd_init, [])
 {:ok, %{menu_string: "Enter your PIN", should_close: false}}
 
-iex> ExUssd.to_string(menu, :ussd_callback, [payload: %{text: "5555", phoneNumber: "254722000000"}])
+iex> ExUssd.to_string(menu, :ussd_callback, [payload: %{text: "5555"}, init_text: "1"])
 {:ok, %{menu_string: "You have Entered the Secret Number, 5555", should_close: true}}
 ```
 ##### Resolver function

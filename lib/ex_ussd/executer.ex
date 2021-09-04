@@ -171,9 +171,10 @@ defmodule ExUssd.Executer do
   defp build_response_menu(:halt, current_menu, %{resolve: resolve}, _payload, _opts),
     do: {:halt, %{current_menu | resolve: resolve}}
 
-  defp build_response_menu(:ok, current_menu, menu, %{session_id: session} = payload, opts) do
+  defp build_response_menu(:ok, current_menu, menu, payload, opts) do
     if Keyword.get(opts, :state) do
       %{route: route} = ExUssd.Route.get_route(payload)
+      %{session_id: session} = payload
       ExUssd.Registry.add_route(session, route)
     end
 
