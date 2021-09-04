@@ -24,32 +24,108 @@ defmodule ExUssd.Op do
   Returns Menu string
 
   ## Example
-    iex> menu =  ExUssd.new(name: "home", resolve: fn menu, _api_parameters -> menu |> ExUssd.set(title: "Welcome") end)
-    iex> ExUssd.to_string(menu, [api_parameters: %{text: "1", phoneNumber: "254722000000"}])
-    iex> {:ok, %{menu_string: "Welcome", should_close: false}}
+    iex> menu = ExUssd.new(name: "home", resolve: fn menu, _api_parameters -> menu |> ExUssd.set(title: "Welcome") end)
+    
+    iex> ExUssd.to_string(menu, [])
+    {:ok, %{menu_string: "Welcome", should_close: false}}
+
+    iex> ExUssd.to_string(menu, :ussd_init, [])
+    {:ok, %{menu_string: "Welcome", should_close: false}}
+
+    iex> menu = ExUssd.new(name: "home", resolve: HomeResolver)
+
+    iex> ExUssd.to_string(menu, :ussd_init, [])
+    {:ok, %{menu_string: "Enter your PIN", should_close: false}}
+
+    iex> ExUssd.to_string(menu, :ussd_callback, [])
+    {:ok, %{menu_string: "Invalid Choice\nEnter your PIN", should_close: false}}
+
+    iex> opts = [api_parameters: %{text: "5555", phoneNumber: "254722000000"}]
+
+    iex> ExUssd.to_string(menu, :ussd_callback, opts)
+    {:ok, %{menu_string: "You have Entered the Secret Number, 5555", should_close: true}}
+
   """
 
   @spec to_string(ExUssd.t(), keyword()) ::
           {:ok, %{menu_string: String.t(), should_close: boolean()}}
-  def to_string(%ExUssd{} = menu, opts) do
-    api_parameters =
-      opts
-      |> Keyword.get(:api_parameters, %{text: "1", phone_number: "254722000000"})
-      |> Map.merge(%{session_id: 1234, service_code: "*544#"})
+  def to_string(%ExUssd{} = menu, opts), do: to_string(menu, :ussd_init, opts)
 
-    {_, current_menu} =
+  @spec to_string(ExUssd.t(), atom(), keyword()) ::
+          {:ok, %{menu_string: String.t(), should_close: boolean()}}
+  def to_string(%ExUssd{} = menu, :ussd_init, opts) do
+    api_parameters =
+      Keyword.get(opts, :api_parameters, %{
+        text: "set_text_value_through_opts_args",
+        phone_number: "254722000000"
+      })
+
+    fun = fn menu, api_parameters ->
       menu
       |> Executer.execute_navigate(api_parameters)
-      |> Executer.execute_init_callback(api_parameters)
-
-    case Executer.execute_callback(current_menu, api_parameters) do
-      {:ok, menu} ->
-        menu
-
-      nil ->
-        current_menu
+      |> Executer.execute_init_callback!(api_parameters)
+      |> Display.to_string(Route.get_route(%{text: "*544#", service_code: "*544#"}))
     end
-    |> Display.to_string(Route.get_route(%{text: "*544#", service_code: "*544#"}))
+
+    apply(fun, [menu, api_parameters])
+  end
+
+  @spec to_string(ExUssd.t(), atom(), keyword()) ::
+          {:ok, %{menu_string: String.t(), should_close: boolean()}}
+  def to_string(%ExUssd{default_error: error} = menu, :ussd_callback, opts) do
+    api_parameters =
+      opts
+      |> Keyword.get(:api_parameters, %{
+        text: "set_text_value_through_opts_args",
+        phone_number: "254722000000"
+      })
+      |> Map.merge(%{session_id: ExUssd.Utils.new_id(), service_code: "*544#"})
+
+    fun = fn menu, api_parameters ->
+      init_menu = Executer.execute_init_callback!(menu, api_parameters)
+
+      callback_menu =
+        with nil <- Executer.execute_callback!(init_menu, api_parameters, state: false) do
+          %{init_menu | error: error}
+        end
+
+      Display.to_string(callback_menu, Route.get_route(%{text: "*544#", service_code: "*544#"}))
+    end
+
+    apply(fun, [menu, api_parameters])
+  end
+
+  @spec to_string(ExUssd.t(), atom(), keyword()) ::
+          {:ok, %{menu_string: String.t(), should_close: boolean()}}
+  def to_string(%ExUssd{default_error: error} = menu, :ussd_after_callback, opts) do
+    api_parameters =
+      opts
+      |> Keyword.get(:api_parameters, %{
+        text: "set_text_value_through_opts_args",
+        phone_number: "254722000000"
+      })
+      |> Map.merge(%{session_id: ExUssd.Utils.new_id(), service_code: "*544#"})
+
+    fun = fn menu, api_parameters ->
+      init_menu = Executer.execute_init_callback!(menu, api_parameters)
+
+      callback_menu =
+        with nil <- Executer.execute_callback!(init_menu, api_parameters, state: false) do
+          %{init_menu | error: error}
+        end
+
+      after_callback_menu =
+        with nil <- Executer.execute_after_callback!(callback_menu, api_parameters, state: false) do
+          callback_menu
+        end
+
+      Display.to_string(
+        after_callback_menu,
+        Route.get_route(%{text: "*544#", service_code: "*544#"})
+      )
+    end
+
+    apply(fun, [menu, api_parameters])
   end
 
   @doc """

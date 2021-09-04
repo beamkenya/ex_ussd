@@ -77,6 +77,11 @@ defmodule ExUssd.Utils do
     end
   end
 
+  @doc """
+  Generates an unique id.
+  """
+  def new_id, do: "#{System.unique_integer()}"
+
   @spec format(map()) :: map()
   def format(api_parameters) do
     Map.new(api_parameters, fn {key, val} ->

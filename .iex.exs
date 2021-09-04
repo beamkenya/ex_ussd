@@ -19,8 +19,7 @@ defmodule HomeResolver do
       |> ExUssd.set(title: "Enter your PIN")
     end
 
-    def ussd_callback(menu, api_parameters, metadata) do
-      IO.inspect metadata
+    def ussd_callback(menu, api_parameters, _metadata) do
       if api_parameters.text == "5555" do
         menu
         |> ExUssd.set(title: "You have Entered the Secret Number, 5555")

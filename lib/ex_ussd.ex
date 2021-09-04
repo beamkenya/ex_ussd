@@ -83,4 +83,5 @@ defmodule ExUssd do
   defdelegate end_session(opts), to: ExUssd.Op
   defdelegate goto(opts), to: ExUssd.Op
   defdelegate to_string(menu, opts), to: ExUssd.Op
+  defdelegate to_string(menu, atom, opts), to: ExUssd.Op
 end
