@@ -2,7 +2,7 @@ defmodule ExUssd.Op do
   @moduledoc """
   Contains all ExUssd Public API functions
   """
-  alias ExUssd.{Executer, Display, Route, Utils}
+  alias ExUssd.{Display, Executer, Route, Utils}
 
   @allowed_fields [
     :error,
