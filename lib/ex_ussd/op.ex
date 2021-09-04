@@ -51,7 +51,7 @@ defmodule ExUssd.Op do
           {:ok, %{menu_string: String.t(), should_close: boolean()}}
   def to_string(%ExUssd{} = menu, opts), do: to_string(menu, :ussd_init, opts)
 
-  @spec to_string(ExUssd.t(), atom(), keyword()) ::
+  @spec to_string(ExUssd.t(), :ussd_init, keyword()) ::
           {:ok, %{menu_string: String.t(), should_close: boolean()}}
   def to_string(%ExUssd{} = menu, :ussd_init, opts) do
     payload =
@@ -70,7 +70,7 @@ defmodule ExUssd.Op do
     apply(fun, [menu, payload])
   end
 
-  @spec to_string(ExUssd.t(), atom(), keyword()) ::
+  @spec to_string(ExUssd.t(), :ussd_callback, keyword()) ::
           {:ok, %{menu_string: String.t(), should_close: boolean()}}
   def to_string(%ExUssd{default_error: error} = menu, :ussd_callback, opts) do
     payload =
@@ -95,7 +95,7 @@ defmodule ExUssd.Op do
     apply(fun, [menu, payload])
   end
 
-  @spec to_string(ExUssd.t(), atom(), keyword()) ::
+  @spec to_string(ExUssd.t(), :ussd_after_callback, keyword()) ::
           {:ok, %{menu_string: String.t(), should_close: boolean()}}
   def to_string(%ExUssd{default_error: error} = menu, :ussd_after_callback, opts) do
     payload =
