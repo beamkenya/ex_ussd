@@ -66,6 +66,7 @@ end
 menu = ExUssd.new(name: "Home", resolve: &Api.HomeResolver.welcome/2)
 ```
 
+##### Gateway Response
 ```elixir
 case ExUssd.goto(menu: menu, payload: %{service_code: "*544#", session_id: "se1",text: ""}) do
   {:ok, %{menu_string: menu_string, should_close: false}} ->
