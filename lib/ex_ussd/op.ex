@@ -40,7 +40,7 @@ defmodule ExUssd.Op do
     iex> ExUssd.to_string(menu, :ussd_callback, [payload: %{text: "1"}, init_text: "1"])
     {:ok, %{menu_string: "Invalid Choice\nEnter your PIN", should_close: false}}
 
-    iex> ExUssd.to_string(menu, :ussd_callback, [payload: %{text: "5555"}, init_text: "1"])
+    iex> ExUssd.to_string(menu, :ussd_callback, [payload: %{text: "5555"}, init_text: "1", init_data: %{name: "John"}])
     {:ok, %{menu_string: "You have Entered the Secret Number, 5555", should_close: true}}
 
   """
