@@ -52,6 +52,8 @@ defmodule ExUssd.Op do
   @spec to_string(ExUssd.t(), :ussd_init, keyword()) ::
           {:ok, %{menu_string: String.t(), should_close: boolean()}}
   def to_string(%ExUssd{} = menu, :ussd_init, opts) do
+    init_data = Keyword.get(opts, :init_data)
+
     payload = Keyword.get(opts, :payload, %{text: "set_opts_payload_text"})
 
     fun = fn
@@ -62,12 +64,14 @@ defmodule ExUssd.Op do
         |> Display.to_string(Route.get_route(%{text: "*544#", service_code: "*544#"}))
     end
 
-    apply(fun, [menu, payload])
+    apply(fun, [%{menu | data: init_data}, payload])
   end
 
   @spec to_string(ExUssd.t(), :ussd_callback, keyword()) ::
           {:ok, %{menu_string: String.t(), should_close: boolean()}}
   def to_string(%ExUssd{default_error: error} = menu, :ussd_callback, opts) do
+    init_data = Keyword.get(opts, :init_data)
+
     payload = Keyword.get(opts, :payload)
 
     fun = fn
@@ -96,12 +100,14 @@ defmodule ExUssd.Op do
         raise ArgumentError, "payload missing `:text`, #{inspect(payload)}"
     end
 
-    apply(fun, [menu, Map.new(opts), payload])
+    apply(fun, [%{menu | data: init_data}, Map.new(opts), payload])
   end
 
   @spec to_string(ExUssd.t(), :ussd_after_callback, keyword()) ::
           {:ok, %{menu_string: String.t(), should_close: boolean()}}
   def to_string(%ExUssd{default_error: error} = menu, :ussd_after_callback, opts) do
+    init_data = Keyword.get(opts, :init_data)
+
     payload = Keyword.get(opts, :payload)
 
     fun = fn
@@ -142,7 +148,7 @@ defmodule ExUssd.Op do
         raise ArgumentError, "payload missing `:text`, #{inspect(payload)}"
     end
 
-    apply(fun, [menu, Map.new(opts), payload])
+    apply(fun, [%{menu | data: init_data}, Map.new(opts), payload])
   end
 
   @doc """
