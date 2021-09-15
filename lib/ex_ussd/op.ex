@@ -172,9 +172,9 @@ defmodule ExUssd.Op do
         menu |> ExUssd.set(resolve: HomeResolver)
     end)
 
-    Note: ExUssd.new callback function will be called multiple times, so you should use a `resolve` function to set the menu's `name` value.
+    Note: ExUssd.new callback function will be called multiple times to get the `name` value.
     
-    It's advisable to only set the `name` and `resolve` values on the callback like so.
+    It's advisable to only set the `name` and `resolve` values on the callback like so reduce the side effects.
 
     iex> ExUssd.new(fn menu, payload ->
       if is_registered?(phone_number: payload[:phone_number]) do
