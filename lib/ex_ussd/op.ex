@@ -165,6 +165,17 @@ defmodule ExUssd.Op do
     iex> ExUssd.new(orientation: :vertical, name: "home", resolve: MyHomeResolver)
     iex> ExUssd.new(orientation: :horizontal, name: "home", resolve: fn menu, _payload -> menu |> ExUssd.set(title: "Welcome") end)
 
+
+    To have the child menu have a known `name` value, you can pass a string to ExUssd.new.
+
+    iex> ExUssd.new("home", fn menu, payload ->
+        menu |> ExUssd.set(resolve: HomeResolver)
+    end)
+
+    Note: ExUssd.new callback function will be called multiple times, so you should use a `resolve` function to set the menu's `name` value.
+    
+    It's advisable to only set the `name` and `resolve` values on the callback like so.
+
     iex> ExUssd.new(fn menu, payload ->
       if is_registered?(phone_number: payload[:phone_number]) do
         menu
@@ -177,6 +188,19 @@ defmodule ExUssd.Op do
       end
     end)
   """
+
+  @spec new(String.t(), fun()) :: ExUssd.t()
+  def new(name, fun) when is_function(fun, 2) and is_bitstring(name) do
+    ExUssd.new(navigate: fun, name: name)
+  end
+
+  def new(name, fun) when is_function(fun, 2) do
+    raise ArgumentError, "`name` must be a string, #{inspect(name)}"
+  end
+
+  def new(_name, fun) do
+    raise ArgumentError, "expected a function with arity of 2, found #{inspect(fun)}"
+  end
 
   @spec new(fun()) :: ExUssd.t()
   def new(fun) when is_function(fun, 2) do

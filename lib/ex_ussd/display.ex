@@ -42,10 +42,7 @@ defmodule ExUssd.Display do
 
     total_length = Enum.count(menu_list)
 
-    menu_list =
-      menu_list
-      |> Enum.map(fn menu -> ExUssd.Executer.execute_navigate(menu, Map.new(opts)) end)
-      |> Enum.reverse()
+    menu_list = get_menu_list(menu_list)
 
     navigation =
       nav
@@ -98,10 +95,7 @@ defmodule ExUssd.Display do
     # [0, 1, 2, 3, 4, 5, 6]
     selection = Enum.into(min..max, [])
 
-    menu_list =
-      menu_list
-      |> Enum.map(fn menu -> ExUssd.Executer.execute_navigate(menu, Map.new(opts)) end)
-      |> Enum.reverse()
+    menu_list = get_menu_list(menu_list)
 
     menus =
       selection
@@ -152,5 +146,17 @@ defmodule ExUssd.Display do
       nil ->
         nil
     end
+  end
+
+  defp get_menu_list(menu_list) do
+    menu_list
+    |> Enum.map(fn %{name: name} = menu ->
+      if String.equivalent?(name, "") do
+        ExUssd.Executer.execute_navigate(menu, Map.new(opts))
+      else
+        menu
+      end
+    end)
+    |> Enum.reverse()
   end
 end
