@@ -56,17 +56,11 @@ defmodule ExUssd.Nav do
     
   ## Example 
 
-  iex> ExUssd.new(name: "home") |> ExUssd.set(Nav.new(type: :next, name: "MORE", match: "98"))
+  iex> ExUssd.new(name: "home") |> ExUssd.set(nav: Nav.new(type: :next, name: "MORE", match: "98"))
 
   iex> ExUssd.new(name: "home") 
-      |> ExUssd.set([
-       ExUssd.Nav.new(
-        type: :home,
-        name: "HOME",
-        match: "00",
-        reverse: true,
-        orientation: :vertical
-      ),
+      |> ExUssd.set(nav: [
+      ExUssd.Nav.new(type: :home, name: "HOME", match: "00", reverse: true, orientation: :vertical)
       ExUssd.Nav.new(type: :back, name: "BACK", match: "0", right: 1),
       ExUssd.Nav.new(type: :next, name: "MORE", match: "98")
     ])

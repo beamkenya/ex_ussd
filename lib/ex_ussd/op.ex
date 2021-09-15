@@ -61,7 +61,7 @@ defmodule ExUssd.Op do
         menu
         |> Executer.execute_navigate(payload)
         |> Executer.execute_init_callback!(payload)
-        |> Display.to_string(Route.get_route(%{text: "*544#", service_code: "*544#"}))
+        |> Display.to_string(Route.get_route(%{text: "*test#", service_code: "*test#"}))
     end
 
     apply(fun, [%{menu | data: init_data}, payload])
@@ -91,7 +91,10 @@ defmodule ExUssd.Op do
             %{init_menu | error: error}
           end
 
-        Display.to_string(callback_menu, Route.get_route(%{text: "*544#", service_code: "*544#"}))
+        Display.to_string(
+          callback_menu,
+          Route.get_route(%{text: "*test#", service_code: "*test#"})
+        )
 
       _menu, opts, %{text: _} ->
         raise ArgumentError, "opts missing `:init_text`, #{inspect(Keyword.new(opts))}"
@@ -340,8 +343,15 @@ defmodule ExUssd.Op do
   def add(_, _, opts \\ [])
 
   def add(%ExUssd{} = menu, %ExUssd{} = child, _opts) do
-    fun = fn menu, child ->
-      Map.get_and_update(menu, :menu_list, fn menu_list -> {:ok, [child | menu_list]} end)
+    fun = fn
+      %ExUssd{data: data} = menu, %ExUssd{navigate: navigate} = child
+      when is_function(navigate, 2) ->
+        Map.get_and_update(menu, :menu_list, fn menu_list ->
+          {:ok, [%{child | data: data} | menu_list]}
+        end)
+
+      menu, child ->
+        Map.get_and_update(menu, :menu_list, fn menu_list -> {:ok, [child | menu_list]} end)
     end
 
     with {:ok, menu} <- apply(fun, [menu, child]), do: menu
