@@ -42,7 +42,7 @@ defmodule ExUssd.Display do
 
     total_length = Enum.count(menu_list)
 
-    menu_list = get_menu_list(menu_list)
+    menu_list = get_menu_list(menu_list, opts)
 
     navigation =
       nav
@@ -95,7 +95,7 @@ defmodule ExUssd.Display do
     # [0, 1, 2, 3, 4, 5, 6]
     selection = Enum.into(min..max, [])
 
-    menu_list = get_menu_list(menu_list)
+    menu_list = get_menu_list(menu_list, opts)
 
     menus =
       selection
@@ -148,7 +148,7 @@ defmodule ExUssd.Display do
     end
   end
 
-  defp get_menu_list(menu_list) do
+  defp get_menu_list(menu_list, opts) do
     menu_list
     |> Enum.map(fn %{name: name} = menu ->
       if String.equivalent?(name, "") do
