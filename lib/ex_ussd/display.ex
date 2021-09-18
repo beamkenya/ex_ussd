@@ -1,7 +1,5 @@
 defmodule ExUssd.Display do
-  @moduledoc """
-  This module provides the display functions for the ExUssd lib.
-  """
+  @moduledoc false
 
   @doc """
   Its used to tranform ExUssd menu struct to string.

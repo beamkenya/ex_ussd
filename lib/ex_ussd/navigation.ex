@@ -1,7 +1,6 @@
 defmodule ExUssd.Navigation do
-  @moduledoc """
-  USSD Navigation Module
-  """
+  @moduledoc false
+
   alias ExUssd.{Executer, Registry, Route, Utils}
 
   defguard is_menu(value) when is_tuple(value) and is_struct(elem(value, 1), ExUssd)

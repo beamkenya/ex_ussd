@@ -1,7 +1,5 @@
 defmodule ExUssd.Route do
-  @moduledoc """
-    Route for USSD session.
-  """
+  @moduledoc false
 
   alias __MODULE__
   alias ExUssd.Registry
@@ -13,9 +11,8 @@ defmodule ExUssd.Route do
   defstruct [:route, mode: :serial]
 
   defmodule State do
-    @moduledoc """
-    Route value struct
-    """
+    @moduledoc false
+
     defstruct [:depth, :text, attempt: %{count: 0, inputs: []}]
 
     @behaviour Access

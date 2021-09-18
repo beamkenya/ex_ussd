@@ -1,7 +1,5 @@
 defmodule ExUssd.Registry do
-  @moduledoc """
-  Registry for USSD session.
-  """
+  @moduledoc false
   use GenServer
 
   defmodule State do

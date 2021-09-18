@@ -1,5 +1,4 @@
 defmodule ExUssd do
-  @moduledoc false
   alias __MODULE__
 
   @type t :: %__MODULE__{

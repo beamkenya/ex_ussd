@@ -1,7 +1,5 @@
 defmodule ExUssd.Executer do
-  @moduledoc """
-  This module invokes ExUssd callback functions.
-  """
+  @moduledoc false
 
   @doc """
   'execute_navigate/2' function

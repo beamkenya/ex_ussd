@@ -1,7 +1,5 @@
 defmodule ExUssd.Utils do
-  @moduledoc """
-  This module contains utils helpers for `ExUssd`.
-  """
+  @moduledoc false
 
   @default_value 436_739_010_658_356_127_157_159_114_145
 
