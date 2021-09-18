@@ -9,26 +9,25 @@ Goals:
 - A focus on robustness and production-level performance.
 
 
-## Why Use ExUssd?
+### Why Use ExUssd?
  ExUssd lets you create simple, flexible, and customizable USSD interface.
  Under the hood ExUssd uses Elixir Registry to create and route individual USSD session.
 
 https://user-images.githubusercontent.com/23293150/124460086-95ebf080-dd97-11eb-87ab-605f06291563.mp4
 
-# Getting Started
-## Adding ExUssd to an application
+## Installation
 
 To add ExUssd to your application application.
 
 ```elixir
 defp deps do
   [
-    {:ex_ussd, "~> 1.0"}
+    {:ex_ussd, "~> 1.0.0"}
   ]
 end
 ```
 
-## Let's create a custom global values
+### Let's create a custom global values
 
  ```elixir
 # config/config.exs
@@ -42,11 +41,10 @@ config :ex_ussd,
  delimiter: ").",
  default_error: "invalid input,try again\n"
 ```
-# Usage
-## ExUssd Callbacks
+## Usage
+### ExUssd Callbacks
 
 ExUssd provides you with 3 callbacks
-
     - `ussd_init/2` - It's invoked once when the user navigates to that perticular menu
     - `ussd_callback/3` - It's an optional callback that is invoked after `ussd_init/2` to validate the user input.
     - `ussd_after_callback/3` - It's an optional callback that is invoked after `ussd_callback` is invoked.
@@ -80,7 +78,7 @@ end
 
 Lets test the different ExUssd callbacks with `ExUssd.to_string/3`
 
-First create menu
+create menu
 
 ```elixir
 menu = ExUssd.new(name: "PIN", resolve: Api.HomeResolver)
