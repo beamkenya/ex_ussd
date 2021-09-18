@@ -56,6 +56,7 @@ defmodule ExUssd.Nav do
     
   ## Example 
 
+  ```elixir
   iex> ExUssd.new(name: "home") |> ExUssd.set(nav: Nav.new(type: :next, name: "MORE", match: "98"))
 
   iex> ExUssd.new(name: "home") 
@@ -64,6 +65,7 @@ defmodule ExUssd.Nav do
       ExUssd.Nav.new(type: :back, name: "BACK", match: "0", right: 1),
       ExUssd.Nav.new(type: :next, name: "MORE", match: "98")
     ])
+  ```
   """
 
   @spec new(keyword()) :: %ExUssd.Nav{}
@@ -85,17 +87,19 @@ defmodule ExUssd.Nav do
 
   ## Example 
 
+  ```elixir
   iex> Nav.new(type: :next, name: "MORE", match: "98") |> Nav.to_string()
   "MORE:98"
 
-  iex> [
+  iex> nav = [
         ExUssd.Nav.new(type: :home, name: "HOME", match: "00", reverse: true, orientation: :vertical),
         ExUssd.Nav.new(type: :back, name: "BACK", match: "0", right: 1),
         ExUssd.Nav.new(type: :next, name: "MORE", match: "98")
       ]
-      |> ExUssd.Nav.to_string()
+  iex> ExUssd.Nav.to_string(nav)
   "HOME:00
    BACK:0 MORE:98"
+   ```
   """
 
   @spec to_string([ExUssd.Nav.t()]) :: String.t()
