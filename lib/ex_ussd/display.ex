@@ -44,10 +44,7 @@ defmodule ExUssd.Display do
 
     menu_list = get_menu_list(menu_list, opts)
 
-    navigation =
-      nav
-      |> Enum.reduce("", &reduce_nav(&1, &2, nav, menu_list, depth + 1, depth - 1))
-      |> String.trim_trailing()
+    navigation = ExUssd.Nav.to_string(nav, depth + 1, menu_list, depth - 1)
 
     should_close =
       if depth == total_length do
@@ -65,6 +62,8 @@ defmodule ExUssd.Display do
           ExUssd.Registry.set_depth(session, total_length + 1)
           IO.iodata_to_binary([default_error, navigation])
       end
+
+    error = if error != true, do: error
 
     {:ok,
      %{menu_string: IO.iodata_to_binary(["#{error}", menu_string]), should_close: should_close}}
@@ -103,10 +102,8 @@ defmodule ExUssd.Display do
       |> Enum.map(&transform(menu_list, min, delimiter, &1))
       |> Enum.reject(&is_nil(&1))
 
-    navigation =
-      nav
-      |> Enum.reduce("", &reduce_nav(&1, &2, nav, menu_list, depth, max))
-      |> String.trim_trailing()
+    navigation = ExUssd.Nav.to_string(nav, depth, menu_list, max)
+    error = if error != true, do: error
 
     title_error = IO.iodata_to_binary(["#{error}", "#{title}"])
 
@@ -126,15 +123,6 @@ defmodule ExUssd.Display do
       end
 
     {:ok, %{menu_string: menu_string, should_close: should_close}}
-  end
-
-  @spec reduce_nav(map(), String.t(), ExUssd.Nav.t(), list(ExUssd.t()), integer(), integer()) ::
-          String.t()
-  defp reduce_nav(%{type: type}, acc, nav, menu_list, depth, max) do
-    navigation =
-      ExUssd.Nav.to_string(Enum.find(nav, &(&1.type == type)), depth, Enum.at(menu_list, max + 1))
-
-    IO.iodata_to_binary([acc, navigation])
   end
 
   @spec transform([ExUssd.t()], integer(), String.t(), {integer(), integer()}) :: nil | binary()

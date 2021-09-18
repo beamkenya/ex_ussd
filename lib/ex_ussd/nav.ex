@@ -6,8 +6,8 @@ defmodule ExUssd.Nav do
   @type t :: %__MODULE__{
           name: String.t(),
           match: String.t(),
-          type: term(),
-          orientation: term(),
+          type: atom(),
+          orientation: atom(),
           delimiter: String.t(),
           reverse: boolean(),
           top: integer(),
@@ -87,7 +87,27 @@ defmodule ExUssd.Nav do
 
   iex> Nav.new(type: :next, name: "MORE", match: "98") |> Nav.to_string()
   "MORE:98"
+
+  iex> [
+        ExUssd.Nav.new(type: :home, name: "HOME", match: "00", reverse: true, orientation: :vertical),
+        ExUssd.Nav.new(type: :back, name: "BACK", match: "0", right: 1),
+        ExUssd.Nav.new(type: :next, name: "MORE", match: "98")
+      ]
+      |> ExUssd.Nav.to_string()
+  "HOME:00
+   BACK:0 MORE:98"
   """
+
+  def to_string(nav) when is_list(nav) do
+    to_string(nav, 1, Enum.map(1..10, & &1), 0)
+  end
+
+  @spec to_string([ExUssd.Nav.t()], integer(), [ExUssd.t()], integer()) :: String.t()
+  def to_string(navs, depth, menu_list, max) when is_list(navs) do
+    navs
+    |> Enum.reduce("", &reduce_nav(&1, &2, navs, menu_list, depth, max))
+    |> String.trim_trailing()
+  end
 
   @spec to_string(ExUssd.Nav.t(), integer(), integer()) :: String.t()
   def to_string(%ExUssd.Nav{} = nav, depth \\ 2, max \\ 999) do
@@ -121,7 +141,7 @@ defmodule ExUssd.Nav do
     end
   end
 
-  @spec padding(String.t(), term(), ExUssd.Nav.t()) :: String.t()
+  @spec padding(String.t(), atom(), ExUssd.Nav.t()) :: String.t()
   defp padding(string, direction, nav)
 
   defp padding(string, :left, %ExUssd.Nav{left: amount}) do
@@ -150,4 +170,12 @@ defmodule ExUssd.Nav do
   end
 
   defp padding(string, :bottom, %ExUssd.Nav{orientation: :horizontal}), do: string
+
+  @spec reduce_nav(map(), String.t(), ExUssd.Nav.t(), list(ExUssd.t()), integer(), integer()) ::
+          String.t()
+  defp reduce_nav(%{type: type}, acc, nav, menu_list, depth, max) do
+    navigation = to_string(Enum.find(nav, &(&1.type == type)), depth, Enum.at(menu_list, max + 1))
+
+    IO.iodata_to_binary([acc, navigation])
+  end
 end

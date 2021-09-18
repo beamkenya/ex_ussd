@@ -14,7 +14,7 @@ defmodule ExUssd do
           should_close: boolean(),
           delimiter: String.t(),
           default_error: String.t(),
-          orientation: term(),
+          orientation: atom(),
           menu_list: list(ExUssd.t())
         }
 
@@ -26,24 +26,26 @@ defmodule ExUssd do
     :parent,
     :data,
     :error,
-    split: 7,
+    split: Application.get_env(:ex_ussd, :split) || 7,
     show_navigation: true,
     should_close: false,
-    delimiter: ":",
-    default_error: "Invalid Choice\n",
+    delimiter: Application.get_env(:ex_ussd, :delimiter) || ":",
+    default_error: Application.get_env(:ex_ussd, :default_error) || "Invalid Choice\n",
     orientation: :vertical,
     menu_list: [],
-    nav: [
-      ExUssd.Nav.new(
-        type: :home,
-        name: "HOME",
-        match: "00",
-        reverse: true,
-        orientation: :vertical
-      ),
-      ExUssd.Nav.new(type: :back, name: "BACK", match: "0", right: 1),
-      ExUssd.Nav.new(type: :next, name: "MORE", match: "98")
-    ]
+    nav:
+      Application.get_env(:ex_ussd, :nav) ||
+        [
+          ExUssd.Nav.new(
+            type: :home,
+            name: "HOME",
+            match: "00",
+            reverse: true,
+            orientation: :vertical
+          ),
+          ExUssd.Nav.new(type: :back, name: "BACK", match: "0", right: 1),
+          ExUssd.Nav.new(type: :next, name: "MORE", match: "98")
+        ]
   ]
 
   @type menu() :: ExUssd.t()

@@ -15,96 +15,103 @@ Goals:
 
 https://user-images.githubusercontent.com/23293150/124460086-95ebf080-dd97-11eb-87ab-605f06291563.mp4
 
-## Installation
+# Getting Started
+## Adding ExUssd to an application
 
-[available in Hex](https://hexdocs.pm/ex_ussd), the package can be installed
-by adding `ex_ussd` to your list of dependencies in `mix.exs`:
+To add ExUssd to your application application.
 
 ```elixir
-def deps do
+defp deps do
   [
-    {:ex_ussd, "0.2.0"}
+    {:ex_ussd, "~> 1.0"}
   ]
 end
-
 ```
 
-## Quick Examples
+## Let's create a custom global values
 
-##### Resolver module
+ ```elixir
+# config/config.exs
+# TODO: This are example values, replace them with your own
+config :ex_ussd,
+  nav: [
+        ExUssd.Nav.new(type: :home, name: "HOME", match: "00", reverse: true, orientation: :vertical),
+        ExUssd.Nav.new(type: :back, name: "BACK", match: "0", right: 1),
+        ExUssd.Nav.new(type: :next, name: "MORE", match: "98")
+      ],
+ delimiter: ").",
+ default_error: "invalid input,try again\n"
+```
+# Usage
+## ExUssd Callbacks
+
+ExUssd provides you with 3 callbacks
+
+    - `ussd_init/2` - It's invoked once when the user navigates to that perticular menu
+    - `ussd_callback/3` - It's an optional callback that is invoked after `ussd_init/2` to validate the user input.
+    - `ussd_after_callback/3` - It's an optional callback that is invoked after `ussd_callback` is invoked.
+
+Create a new module:
 
 ```elixir
 defmodule Api.HomeResolver do
   use ExUssd
   def ussd_init(menu, _) do
-    menu
-    |> ExUssd.set(title: "Enter your PIN")
+    ExUssd.set(menu, title: "Enter your PIN")
   end
 
-  def ussd_callback(menu, payload, _) do
+  def ussd_callback(menu, payload, %{attempt: attempt}) do
     if payload.text == "5555" do
       menu
       |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
       |> ExUssd.set(should_close: true)
+    else
+      ExUssd.set(menu, error: "Wrong PIN, attempt #{attempt}/3\n")
     end
   end
-end
 
-menu = ExUssd.new(name: "Home", resolve: Api.HomeResolver)
-```
-
-##### Resolver function
-```elixir
-defmodule Api.HomeResolver do
-  use ExUssd
-  def welcome(menu, payload) do
+  def ussd_after_callback(%{error: true} = menu, _payload, %{attempt: 3}) do
     menu
-    |> ExUssd.set(title: "Welcome, Your account is now active")
+    |> ExUssd.set(title: "Account is locked, you have entered the wrong PIN 3 times")
+    |> ExUssd.set(should_close: true)
   end
 end
-
-menu = ExUssd.new(name: "Home", resolve: &Api.HomeResolver.welcome/2)
 ```
 
-##### Gateway Response
+Lets test the different ExUssd callbacks with `ExUssd.to_string/3`
+
+First create menu
+
 ```elixir
-case ExUssd.goto(menu: menu, payload: %{service_code: "*544#", session_id: "se1",text: ""}) do
-  {:ok, %{menu_string: menu_string, should_close: false}} ->
-    "CON " <> menu_string
-
-  {:ok, %{menu_string: menu_string, should_close: true}} ->
-    # End Session
-    ExUssd.end_session(session_id: "se1")
-
-    "END " <> menu_string
-end
-
-"CON Enter your PIN" / "CON Welcome, Your account is now active"
+menu = ExUssd.new(name: "PIN", resolve: Api.HomeResolver)
 ```
 
-## Test
-##### Resolver module
-```elixir
-...
-iex> menu = ExUssd.new(name: "Home", resolve: HomeResolver)
+**`ussd_init/2`**
 
+```elixir
 iex> ExUssd.to_string(menu, :ussd_init, [])
 {:ok, %{menu_string: "Enter your PIN", should_close: false}}
-
-iex> ExUssd.to_string(menu, :ussd_callback, [payload: %{text: "5555"}, init_text: "1", init_data: %{name: "John"}])
-
-{:ok, %{menu_string: "You have Entered the Secret Number, 5555", should_close: true}}
 ```
-##### Resolver function
+
+**`ussd_callback/3`**
+
 ```elixir
-...
-iex> menu = ExUssd.new(name: "Home", resolve: &Api.HomeResolver.welcome/2)
+iex> ExUssd.to_string(menu, :ussd_callback, [payload: %{text: "5555"}, init_text: "1"])
+{:ok, %{menu_string: "You have Entered the Secret Number, 5555", should_close: true}}
 
-iex> ExUssd.to_string(menu, [])
-{:ok, %{menu_string: "Welcome, Your account is now active", should_close: false}}
+iex> ExUssd.to_string(menu, :ussd_callback, [payload: %{text: "42", attempt: 3}, init_text: "1"])
+{:ok, %{menu_string: "Wrong PIN, attempt 3/3\nEnter your PIN", should_close: false}}
+```
 
-iex> ExUssd.to_string(menu, :ussd_init, [])
-{:ok, %{menu_string: "Welcome, Your account is now active", should_close: false}}
+**`ussd_after_callback/3`**
+
+```elixir
+iex> ExUssd.to_string(menu, :ussd_after_callback, [payload: %{text: "42", attempt: 3}, init_text: "1"])
+{:ok,
+ %{
+   menu_string: "Account is locked, you have entered the wrong PIN 3 times",
+   should_close: true
+ }}
 ```
 
 ## Contribution

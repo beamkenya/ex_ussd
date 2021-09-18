@@ -95,16 +95,33 @@ defmodule ExUssd.Executer do
   def execute_callback(%ExUssd{resolve: resolve} = menu, payload, opts)
       when is_atom(resolve) do
     if function_exported?(resolve, :ussd_callback, 3) do
-      metadata = if(Keyword.get(opts, :state), do: Utils.fetch_metadata(payload), else: Map.new())
+      metadata =
+        if(Keyword.get(opts, :state),
+          do: Utils.fetch_metadata(payload),
+          else:
+            Map.merge(
+              %{
+                route: "*test#",
+                invoked_at: DateTime.truncate(DateTime.utc_now(), :second),
+                attempt: 1
+              },
+              payload
+            )
+        )
 
-      with %ExUssd{error: error} = current_menu <-
-             apply(resolve, :ussd_callback, [%{menu | resolve: nil}, payload, metadata]) do
-        if is_bitstring(error) do
-          build_response_menu(:halt, current_menu, menu, payload, opts)
-        else
-          build_response_menu(:ok, current_menu, menu, payload, opts)
-          |> get_next_menu(payload, opts)
+      try do
+        with %ExUssd{error: error} = current_menu <-
+               apply(resolve, :ussd_callback, [%{menu | resolve: nil}, payload, metadata]) do
+          if is_bitstring(error) do
+            build_response_menu(:halt, current_menu, menu, payload, opts)
+          else
+            build_response_menu(:ok, current_menu, menu, payload, opts)
+            |> get_next_menu(payload, opts)
+          end
         end
+      rescue
+        FunctionClauseError ->
+          nil
       end
     end
   end
@@ -140,20 +157,37 @@ defmodule ExUssd.Executer do
     if function_exported?(resolve, :ussd_after_callback, 3) do
       error_state = if is_bitstring(original_error), do: true
 
-      metadata = if(Keyword.get(opts, :state), do: Utils.fetch_metadata(payload), else: Map.new())
+      metadata =
+        if(Keyword.get(opts, :state),
+          do: Utils.fetch_metadata(payload),
+          else:
+            Map.merge(
+              %{
+                route: "*test#",
+                invoked_at: DateTime.truncate(DateTime.utc_now(), :second),
+                attempt: 3
+              },
+              payload
+            )
+        )
 
-      with %ExUssd{error: error} = current_menu <-
-             apply(resolve, :ussd_after_callback, [
-               %{menu | resolve: nil, error: error_state},
-               payload,
-               metadata
-             ]) do
-        if is_bitstring(error) do
-          build_response_menu(:halt, current_menu, menu, payload, opts)
-        else
-          build_response_menu(:ok, current_menu, menu, payload, opts)
-          |> get_next_menu(payload, opts)
+      try do
+        with %ExUssd{error: error} = current_menu <-
+               apply(resolve, :ussd_after_callback, [
+                 %{menu | resolve: nil, error: error_state},
+                 payload,
+                 metadata
+               ]) do
+          if is_bitstring(error) do
+            build_response_menu(:halt, current_menu, menu, payload, opts)
+          else
+            build_response_menu(:ok, current_menu, menu, payload, opts)
+            |> get_next_menu(payload, opts)
+          end
         end
+      rescue
+        FunctionClauseError ->
+          nil
       end
     end
   end
