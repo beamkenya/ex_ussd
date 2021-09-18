@@ -41,13 +41,21 @@ config :ex_ussd,
  delimiter: ").",
  default_error: "invalid input,try again\n"
 ```
+
 ## Usage
+
 ### ExUssd Callbacks
 
 ExUssd provides you with 3 callbacks
-    - `ussd_init/2` - It's invoked once when the user navigates to that perticular menu
-    - `ussd_callback/3` - It's an optional callback that is invoked after `ussd_init/2` to validate the user input.
-    - `ussd_after_callback/3` - It's an optional callback that is invoked after `ussd_callback` is invoked.
+
+* **`ussd_init/2`** 
+  It's invoked once when the user navigates to that particular menu
+
+* **`ussd_callback/3`**
+  It's an optional callback that is invoked after `ussd_init/2` to validate the user input.
+
+* **`ussd_after_callback/3`**
+  It's an optional callback that is invoked after `ussd_callback/3` is invoked.
 
 Create a new module:
 

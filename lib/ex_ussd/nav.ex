@@ -98,6 +98,7 @@ defmodule ExUssd.Nav do
    BACK:0 MORE:98"
   """
 
+  @spec to_string([ExUssd.Nav.t()]) :: String.t()
   def to_string(nav) when is_list(nav) do
     to_string(nav, 1, Enum.map(1..10, & &1), 0)
   end
@@ -171,7 +172,14 @@ defmodule ExUssd.Nav do
 
   defp padding(string, :bottom, %ExUssd.Nav{orientation: :horizontal}), do: string
 
-  @spec reduce_nav(map(), String.t(), ExUssd.Nav.t(), list(ExUssd.t()), integer(), integer()) ::
+  @spec reduce_nav(
+          ExUssd.Nav.t(),
+          String.t(),
+          [ExUssd.Nav.t()],
+          [ExUssd.t()],
+          integer(),
+          integer()
+        ) ::
           String.t()
   defp reduce_nav(%{type: type}, acc, nav, menu_list, depth, max) do
     navigation = to_string(Enum.find(nav, &(&1.type == type)), depth, Enum.at(menu_list, max + 1))
