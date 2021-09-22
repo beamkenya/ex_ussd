@@ -68,9 +68,7 @@ defmodule Api.HomeResolver do
 
   def ussd_callback(menu, payload, %{attempt: attempt}) do
     if payload.text == "5555" do
-      menu
-      |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
-      |> ExUssd.set(should_close: true)
+      ExUssd.set(menu, resolve: &success_menu/2)
     else
       ExUssd.set(menu, error: "Wrong PIN, attempt #{attempt}/3\n")
     end
@@ -79,6 +77,12 @@ defmodule Api.HomeResolver do
   def ussd_after_callback(%{error: true} = menu, _payload, %{attempt: 3}) do
     menu
     |> ExUssd.set(title: "Account is locked, you have entered the wrong PIN 3 times")
+    |> ExUssd.set(should_close: true)
+  end
+
+  def success_menu(menu, _) do
+    menu
+    |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
     |> ExUssd.set(should_close: true)
   end
 end
@@ -119,6 +123,18 @@ iex> ExUssd.to_string(menu, :ussd_after_callback, [payload: %{text: "42", attemp
    should_close: true
  }}
 ```
+
+
+
+
+
+
+
+
+### ExUssd Navigation
+
+### ExUssd Menu List
+
 
 ## Contribution
 
