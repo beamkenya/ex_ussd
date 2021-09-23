@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="certifi" type="mix">
+    <CLASSES />
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/certifi/src" />
+      <root url="file://$PROJECT_DIR$/deps/certifi/priv" />
+      <root url="file://$PROJECT_DIR$/deps/certifi/src" />
+      <root url="file://$PROJECT_DIR$/deps/certifi/priv" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="phoenix_pubsub" type="mix">
+    <CLASSES />
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/phoenix_pubsub/lib" />
+      <root url="file://$PROJECT_DIR$/deps/phoenix_pubsub/lib" />
+    </SOURCES>
+  </library>
+</component>

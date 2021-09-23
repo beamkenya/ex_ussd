@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="phoenix_live_reload" type="mix">
+    <CLASSES />
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/phoenix_live_reload/lib" />
+      <root url="file://$PROJECT_DIR$/deps/phoenix_live_reload/priv" />
+      <root url="file://$PROJECT_DIR$/deps/phoenix_live_reload/lib" />
+      <root url="file://$PROJECT_DIR$/deps/phoenix_live_reload/priv" />
+    </SOURCES>
+  </library>
+</component>

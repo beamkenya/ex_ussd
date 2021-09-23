@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="mimerl" type="mix">
+    <CLASSES />
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/mimerl/src" />
+      <root url="file://$PROJECT_DIR$/deps/mimerl/src" />
+    </SOURCES>
+  </library>
+</component>

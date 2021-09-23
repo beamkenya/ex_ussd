@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="idna" type="mix">
+    <CLASSES />
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/idna/src" />
+      <root url="file://$PROJECT_DIR$/deps/idna/src" />
+    </SOURCES>
+  </library>
+</component>
