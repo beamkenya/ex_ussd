@@ -5,6 +5,8 @@
     <SOURCES>
       <root url="file://$PROJECT_DIR$/deps/excoveralls/lib" />
       <root url="file://$PROJECT_DIR$/deps/excoveralls/lib" />
+      <root url="file://$PROJECT_DIR$/deps/excoveralls/lib" />
+      <root url="file://$PROJECT_DIR$/deps/excoveralls/lib" />
     </SOURCES>
   </library>
 </component>

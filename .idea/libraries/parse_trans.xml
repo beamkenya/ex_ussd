@@ -5,6 +5,8 @@
     <SOURCES>
       <root url="file://$PROJECT_DIR$/deps/parse_trans/src" />
       <root url="file://$PROJECT_DIR$/deps/parse_trans/src" />
+      <root url="file://$PROJECT_DIR$/deps/parse_trans/src" />
+      <root url="file://$PROJECT_DIR$/deps/parse_trans/src" />
     </SOURCES>
   </library>
 </component>

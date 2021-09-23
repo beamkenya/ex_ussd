@@ -5,9 +5,19 @@
       <root url="file://$PROJECT_DIR$/_build/dev/lib/dialyxir/ebin" />
       <root url="file://$PROJECT_DIR$/_build/dev/lib/dialyxir/ebin" />
       <root url="file://$PROJECT_DIR$/_build/dev/lib/dialyxir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/dialyxir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/test/lib/dialyxir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/dialyxir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/test/lib/dialyxir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/dialyxir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/test/lib/dialyxir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/dialyxir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/test/lib/dialyxir/ebin" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/dialyxir/lib" />
+      <root url="file://$PROJECT_DIR$/deps/dialyxir/lib" />
       <root url="file://$PROJECT_DIR$/deps/dialyxir/lib" />
       <root url="file://$PROJECT_DIR$/deps/dialyxir/lib" />
     </SOURCES>

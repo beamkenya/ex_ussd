@@ -7,6 +7,10 @@
       <root url="file://$PROJECT_DIR$/deps/mime/priv" />
       <root url="file://$PROJECT_DIR$/deps/mime/lib" />
       <root url="file://$PROJECT_DIR$/deps/mime/priv" />
+      <root url="file://$PROJECT_DIR$/deps/mime/lib" />
+      <root url="file://$PROJECT_DIR$/deps/mime/priv" />
+      <root url="file://$PROJECT_DIR$/deps/mime/lib" />
+      <root url="file://$PROJECT_DIR$/deps/mime/priv" />
     </SOURCES>
   </library>
 </component>

@@ -5,6 +5,8 @@
     <SOURCES>
       <root url="file://$PROJECT_DIR$/deps/unicode_util_compat/src" />
       <root url="file://$PROJECT_DIR$/deps/unicode_util_compat/src" />
+      <root url="file://$PROJECT_DIR$/deps/unicode_util_compat/src" />
+      <root url="file://$PROJECT_DIR$/deps/unicode_util_compat/src" />
     </SOURCES>
   </library>
 </component>

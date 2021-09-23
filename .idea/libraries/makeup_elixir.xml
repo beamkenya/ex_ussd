@@ -5,9 +5,19 @@
       <root url="file://$PROJECT_DIR$/_build/dev/lib/makeup_elixir/ebin" />
       <root url="file://$PROJECT_DIR$/_build/dev/lib/makeup_elixir/ebin" />
       <root url="file://$PROJECT_DIR$/_build/dev/lib/makeup_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/makeup_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/test/lib/makeup_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/makeup_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/test/lib/makeup_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/makeup_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/test/lib/makeup_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/dev/lib/makeup_elixir/ebin" />
+      <root url="file://$PROJECT_DIR$/_build/test/lib/makeup_elixir/ebin" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
+      <root url="file://$PROJECT_DIR$/deps/makeup_elixir/lib" />
+      <root url="file://$PROJECT_DIR$/deps/makeup_elixir/lib" />
       <root url="file://$PROJECT_DIR$/deps/makeup_elixir/lib" />
       <root url="file://$PROJECT_DIR$/deps/makeup_elixir/lib" />
     </SOURCES>

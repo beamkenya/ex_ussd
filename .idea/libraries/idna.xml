@@ -5,6 +5,8 @@
     <SOURCES>
       <root url="file://$PROJECT_DIR$/deps/idna/src" />
       <root url="file://$PROJECT_DIR$/deps/idna/src" />
+      <root url="file://$PROJECT_DIR$/deps/idna/src" />
+      <root url="file://$PROJECT_DIR$/deps/idna/src" />
     </SOURCES>
   </library>
 </component>

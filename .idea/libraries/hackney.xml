@@ -5,6 +5,8 @@
     <SOURCES>
       <root url="file://$PROJECT_DIR$/deps/hackney/src" />
       <root url="file://$PROJECT_DIR$/deps/hackney/src" />
+      <root url="file://$PROJECT_DIR$/deps/hackney/src" />
+      <root url="file://$PROJECT_DIR$/deps/hackney/src" />
     </SOURCES>
   </library>
 </component>

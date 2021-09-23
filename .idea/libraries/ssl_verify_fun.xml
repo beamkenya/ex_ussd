@@ -5,6 +5,8 @@
     <SOURCES>
       <root url="file://$PROJECT_DIR$/deps/ssl_verify_fun/src" />
       <root url="file://$PROJECT_DIR$/deps/ssl_verify_fun/src" />
+      <root url="file://$PROJECT_DIR$/deps/ssl_verify_fun/src" />
+      <root url="file://$PROJECT_DIR$/deps/ssl_verify_fun/src" />
     </SOURCES>
   </library>
 </component>

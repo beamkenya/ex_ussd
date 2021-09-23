@@ -7,6 +7,10 @@
       <root url="file://$PROJECT_DIR$/deps/plug/src" />
       <root url="file://$PROJECT_DIR$/deps/plug/lib" />
       <root url="file://$PROJECT_DIR$/deps/plug/src" />
+      <root url="file://$PROJECT_DIR$/deps/plug/lib" />
+      <root url="file://$PROJECT_DIR$/deps/plug/src" />
+      <root url="file://$PROJECT_DIR$/deps/plug/lib" />
+      <root url="file://$PROJECT_DIR$/deps/plug/src" />
     </SOURCES>
   </library>
 </component>

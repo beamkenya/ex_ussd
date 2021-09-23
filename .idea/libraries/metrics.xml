@@ -5,6 +5,8 @@
     <SOURCES>
       <root url="file://$PROJECT_DIR$/deps/metrics/src" />
       <root url="file://$PROJECT_DIR$/deps/metrics/src" />
+      <root url="file://$PROJECT_DIR$/deps/metrics/src" />
+      <root url="file://$PROJECT_DIR$/deps/metrics/src" />
     </SOURCES>
   </library>
 </component>
