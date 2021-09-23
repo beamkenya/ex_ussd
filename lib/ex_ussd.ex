@@ -77,13 +77,13 @@ defmodule ExUssd do
     end
   end
 
-  defdelegate new(opts), to: ExUssd.Op
-  defdelegate new(name, function), to: ExUssd.Op
-  defdelegate set(menu, opts), to: ExUssd.Op
   defdelegate add(menu, child), to: ExUssd.Op
   defdelegate add(menu, menus, opts), to: ExUssd.Op
   defdelegate end_session(opts), to: ExUssd.Op
   defdelegate goto(opts), to: ExUssd.Op
+  defdelegate new(opts), to: ExUssd.Op
+  defdelegate new(name, function), to: ExUssd.Op
+  defdelegate set(menu, opts), to: ExUssd.Op
   defdelegate to_string(menu, opts), to: ExUssd.Op
   defdelegate to_string(menu, atom, opts), to: ExUssd.Op
 end

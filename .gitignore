@@ -33,3 +33,6 @@ npm-debug.log
 /assets/node_modules/
 
 .elixir_ls
+.DS_Store
+.vcode
+.idea

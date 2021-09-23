@@ -17,7 +17,8 @@ defmodule ExUssd.Op do
     :data,
     :resolve,
     :orientation,
-    :name
+    :name,
+    :nav
   ]
 
   @doc """
@@ -185,7 +186,7 @@ defmodule ExUssd.Op do
   ```
 
     Note: ExUssd.new callback function will be called multiple times to get the `name` value.
-    
+
     It's advisable to only set the `name` and `resolve` values on the callback like so reduce the side effects.
 
     ```elixir
@@ -340,7 +341,7 @@ defmodule ExUssd.Op do
   ## Example
   ```elixir
     iex> menu = ExUssd.new(name: "home", resolve: fn menu, _payload -> menu |> ExUssd.set(title: "Welcome") end)
-    
+
     iex> ExUssd.to_string(menu, [])
     {:ok, %{menu_string: "Welcome", should_close: false}}
 
