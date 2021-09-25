@@ -1,5 +1,6 @@
 defmodule ExUssd.Utils do
   @moduledoc false
+  alias ExUssd.Executer
 
   @default_value 436_739_010_658_356_127_157_159_114_145
 
@@ -114,4 +115,126 @@ defmodule ExUssd.Utils do
     invoked_at = DateTime.truncate(DateTime.utc_now(), :second)
     %{attempt: attempt, invoked_at: invoked_at, route: routes_string, text: text}
   end
+
+  @spec get_menu(ExUssd.t(), keyword()) :: ExUssd.t()
+  def get_menu(%ExUssd{} = menu, opts) do
+    payload = Keyword.get(opts, :payload, %{text: "set_opts_payload_text"})
+
+    position =
+      case Integer.parse(payload.text) do
+        {position, ""} -> position
+        _ -> 436_739_010_658_356_127_157_159_114_145
+      end
+
+    fun = fn
+      %{simulate: true, init_text: _init_text, position: position} ->
+        %{error: error, menu_list: menu_list} =
+          current_menu = get_menu(menu, :ussd_callback, opts)
+
+        if error do
+          case Enum.at(Enum.reverse(menu_list), position - 1) do
+            nil ->
+              get_menu(%{menu | error: true}, :ussd_after_callback, opts)
+
+            %ExUssd{} = next_menu ->
+              get_menu(next_menu, :ussd_init, opts)
+          end
+        else
+          current_menu
+        end
+
+      _ ->
+        get_menu(menu, :ussd_init, opts)
+    end
+
+    apply(fun, [Map.new(Keyword.put(opts, :position, position))])
+  end
+
+  @spec get_menu(ExUssd.t(), :ussd_init, keyword()) :: ExUssd.t()
+  def get_menu(%ExUssd{} = menu, :ussd_init, opts) do
+    init_data = Keyword.get(opts, :init_data)
+
+    payload = Keyword.get(opts, :payload, %{text: "set_opts_payload_text"})
+
+    fun = fn
+      menu, payload ->
+        menu
+        |> Executer.execute_navigate(payload)
+        |> Executer.execute_init_callback!(payload)
+    end
+
+    apply(fun, [%{menu | data: init_data}, payload])
+  end
+
+  @spec get_menu(ExUssd.t(), :ussd_callback, keyword()) :: ExUssd.t()
+  def get_menu(%ExUssd{default_error: error} = menu, :ussd_callback, opts) do
+    init_data = Keyword.get(opts, :init_data)
+
+    payload = Keyword.get(opts, :payload)
+
+    fun = fn
+      _menu, opts, nil ->
+        raise ArgumentError, "`:payload` not found, #{inspect(Keyword.new(opts))}"
+
+      menu, %{init_text: init_text}, %{text: _} = payload ->
+        init_payload = Map.put(payload, :text, init_text)
+
+        init_menu =
+          menu
+          |> Executer.execute_navigate(init_payload)
+          |> Executer.execute_init_callback!(init_payload)
+
+        with nil <- Executer.execute_callback!(init_menu, payload, state: false) do
+          %{init_menu | error: error}
+        end
+
+      _menu, opts, %{text: _} ->
+        raise ArgumentError, "opts missing `:init_text`, #{inspect(Keyword.new(opts))}"
+
+      _menu, _, payload ->
+        raise ArgumentError, "payload missing `:text`, #{inspect(payload)}"
+    end
+
+    apply(fun, [%{menu | data: init_data}, Map.new(opts), payload])
+  end
+
+  @spec get_menu(ExUssd.t(), :ussd_after_callback, keyword()) :: ExUssd.t()
+  def get_menu(%ExUssd{default_error: error} = menu, :ussd_after_callback, opts) do
+    init_data = Keyword.get(opts, :init_data)
+
+    payload = Keyword.get(opts, :payload)
+
+    fun = fn
+      _menu, opts, nil ->
+        raise ArgumentError, "`:payload` not found, #{inspect(Keyword.new(opts))}"
+
+      menu, %{init_text: init_text}, %{text: _} = payload ->
+        init_payload = Map.put(payload, :text, init_text)
+
+        init_menu =
+          menu
+          |> Executer.execute_navigate(init_payload)
+          |> Executer.execute_init_callback!(init_payload)
+
+        callback_menu =
+          with nil <- Executer.execute_callback!(init_menu, payload, state: false) do
+            %{init_menu | error: error}
+          end
+
+        with nil <- Executer.execute_after_callback!(callback_menu, payload, state: false) do
+          callback_menu
+        end
+
+      _menu, %{callback_text: _} = opts, %{text: _} ->
+        raise ArgumentError, "opts missing `:init_text`, #{inspect(Keyword.new(opts))}"
+
+      _menu, _, payload ->
+        raise ArgumentError, "payload missing `:text`, #{inspect(payload)}"
+    end
+
+    apply(fun, [%{menu | data: init_data}, Map.new(opts), payload])
+  end
+
+  @spec get_menu(ExUssd.t(), any(), keyword()) :: nil
+  def get_menu(_menu, _atom, _opts), do: nil
 end
