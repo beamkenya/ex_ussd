@@ -360,24 +360,26 @@ defmodule ExUssd.Op do
     ```
   """
 
-  @spec to_string(ExUssd.t(), keyword()) :: String.t()
+  @spec to_string(ExUssd.t(), keyword()) ::
+          {:ok, %{:menu_string => binary(), :should_close => boolean()}} | {:error, String.t()}
   def to_string(%ExUssd{} = menu, opts) do
     case Utils.get_menu(menu, opts) do
       %ExUssd{} = menu ->
         Display.to_string(menu, ExUssd.Route.get_route(%{text: "*test#", service_code: "*test#"}))
 
-      nil ->
+      _ ->
         {:error, "Couldn't convert #{inspect(menu)} to_string"}
     end
   end
 
-  @spec to_string(ExUssd.t(), atom, keyword()) :: String.t()
+  @spec to_string(ExUssd.t(), atom, keyword()) ::
+          {:ok, %{:menu_string => binary(), :should_close => boolean()}} | {:error, String.t()}
   def to_string(%ExUssd{} = menu, atom, opts) do
     case Utils.get_menu(menu, atom, opts) do
       %ExUssd{} = menu ->
         Display.to_string(menu, ExUssd.Route.get_route(%{text: "*test#", service_code: "*test#"}))
 
-      nil ->
+      _ ->
         {:error, "Couldn't convert to_string for callback #{inspect(atom)}"}
     end
   end

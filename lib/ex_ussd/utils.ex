@@ -116,7 +116,6 @@ defmodule ExUssd.Utils do
     %{attempt: attempt, invoked_at: invoked_at, route: routes_string, text: text}
   end
 
-  @spec get_menu(ExUssd.t(), keyword()) :: ExUssd.t()
   def get_menu(%ExUssd{} = menu, opts) do
     payload = Keyword.get(opts, :payload, %{text: "set_opts_payload_text"})
 
@@ -150,7 +149,6 @@ defmodule ExUssd.Utils do
     apply(fun, [Map.new(Keyword.put(opts, :position, position))])
   end
 
-  @spec get_menu(ExUssd.t(), :ussd_init, keyword()) :: ExUssd.t()
   def get_menu(%ExUssd{} = menu, :ussd_init, opts) do
     init_data = Keyword.get(opts, :init_data)
 
@@ -166,7 +164,6 @@ defmodule ExUssd.Utils do
     apply(fun, [%{menu | data: init_data}, payload])
   end
 
-  @spec get_menu(ExUssd.t(), :ussd_callback, keyword()) :: ExUssd.t()
   def get_menu(%ExUssd{default_error: error} = menu, :ussd_callback, opts) do
     init_data = Keyword.get(opts, :init_data)
 
@@ -198,7 +195,6 @@ defmodule ExUssd.Utils do
     apply(fun, [%{menu | data: init_data}, Map.new(opts), payload])
   end
 
-  @spec get_menu(ExUssd.t(), :ussd_after_callback, keyword()) :: ExUssd.t()
   def get_menu(%ExUssd{default_error: error} = menu, :ussd_after_callback, opts) do
     init_data = Keyword.get(opts, :init_data)
 
@@ -235,6 +231,5 @@ defmodule ExUssd.Utils do
     apply(fun, [%{menu | data: init_data}, Map.new(opts), payload])
   end
 
-  @spec get_menu(ExUssd.t(), any(), keyword()) :: nil
   def get_menu(_menu, _atom, _opts), do: nil
 end
