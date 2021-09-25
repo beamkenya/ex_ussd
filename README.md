@@ -113,13 +113,13 @@ defmodule ApiWeb.HomeResolver do
     if payload.text == "5555" do
       ExUssd.set(menu, resolve: &success_menu/2)
     else
-      ExUssd.set(menu, error: "Wrong PIN, attempt #{attempt}/3\n")
+      ExUssd.set(menu, error: "Wrong PIN, #{3 - attempt} attempt left\n")
     end
   end
 
   def ussd_after_callback(%{error: true} = menu, _payload, %{attempt: 3}) do
     menu
-    |> ExUssd.set(title: "Account is locked, you have entered the wrong PIN 3 times")
+    |> ExUssd.set(title: "Account is locked, Dial *234# to reset your account")
     |> ExUssd.set(should_close: true)
   end
 
