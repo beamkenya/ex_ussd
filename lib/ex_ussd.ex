@@ -317,9 +317,86 @@ defmodule ExUssd do
     end
   end
 
+  @doc """
+  Add menu to ExUssd menu list.
+
+  Arguments:
+    - menu :: menu() :: The parent menu
+    - menu :: menu() :: The menu to add to the parent menu list.
+
+  ## Example
+      iex> resolve = fn menu, _payload -> 
+      ...>  menu 
+      ...>  |> ExUssd.set(title: "Menu title")
+      ...>  |> ExUssd.add(ExUssd.new(name: "option 1", resolve: &(ExUssd.set(&1, title: "option 1"))))
+      ...>  |> ExUssd.add(ExUssd.new(name: "option 2", resolve: &(ExUssd.set(&1, title: "option 2"))))
+      ...> end
+      iex> menu = ExUssd.new(name: "HOME", resolve: resolve)
+      iex> ExUssd.to_string!(menu, [])
+      "Menu title\\n1:option 1\\n2:option 2"
+  """
   defdelegate add(menu, child), to: ExUssd.Op
+
+  @doc """
+  Add menus to ExUssd menu list.
+
+  Arguments:
+    - `menu` :: menu() :: The parent menu
+    - `menus` :: list(menu()) :: The menu to add to the parent menu list.
+    - `opts` :: keyword_args() :: Options to pass to `ExUssd.add/3`
+
+    Example:
+          iex> defmodule AppWeb.LocationResolver do
+          ...>  use ExUssd
+          ...>  def ussd_init(menu, _) do
+          ...>   # Get locations from database
+          ...>    locations = Enum.map(1..5, &Integer.to_string/1)
+          ...>    # convert locations to menus
+          ...>    menus = Enum.map(locations, fn location ->
+          ...>       ExUssd.new(name: "Location " <> location, data: %{name: location})
+          ...>    end)
+          ...>    menu
+          ...>    |> ExUssd.set(title: "Select Location")
+          ...>    |> ExUssd.add(menus, resolve: &(ExUssd.set(&1, title: "Location " <> &1.data.name)))
+          ...>  end
+          ...> end
+          iex> menu = ExUssd.new(name: "HOME", resolve: AppWeb.LocationResolver)
+          iex> ExUssd.to_string!(menu, [])
+          "Select Location\\n1:Location 1\\n2:Location 2\\n3:Location 3\\n4:Location 4\\n5:Location 5"
+  """
   defdelegate add(menu, menus, opts), to: ExUssd.Op
+
+  @doc """
+  Teminates session.
+    ```elixir
+        ExUssd.end_session(session_id: "sn1")
+    ```
+  """
   defdelegate end_session(opts), to: ExUssd.Op
+
+  @doc """
+  `ExUssd.goto/1` is called when the gateway provider calls the callback URL.
+
+    Keyword Arguments:
+
+    - `payload`: The payload from the gateway provider.
+    - `menu`: The menu to be rendered.
+
+    Example:
+
+    ```elixir
+      case ExUssd.goto(menu: menu, payload: payload) do
+      {:ok, %{menu_string: menu_string, should_close: false}} ->
+        "CON " <> menu_string
+
+      {:ok, %{menu_string: menu_string, should_close: true}} ->
+        # End Session
+        ExUssd.end_session(session_id: session_id)
+
+        "END " <> menu_string
+      end
+    ```
+  """
   defdelegate goto(opts), to: ExUssd.Op
 
   @doc """
@@ -460,6 +537,50 @@ defmodule ExUssd do
       "Welcome John\\n1:Product A\\n2:Product B\\n3:Product C\\n4:Account"
   """
   defdelegate new(name, function), to: ExUssd.Op
+
+  @doc """
+  `ExUssd.set/2` - Sets the menu field.
+
+  Arguments:
+    menu: The menu to set.
+    field: The field to set.
+
+  It sets the field of the menu.
+  ## Settable Fields
+    - **`:data`** Set data to pass through to next menu. N/B - ExUssd menu are stateful unless using `ExUssd.new/2` with `:name` and `:resolve` as arguments;
+
+      ```elixir
+        data = %{name: "John Doe"}
+        # stateful
+        menu
+        |> ExUssd.set(data: data)
+        |> ExUssd.add(ExUssd.new(&check_balance/2))
+        
+        menu
+        |> ExUssd.set(data: data)
+        |> ExUssd.add(ExUssd.new("Check Balance", &check_balance/2))
+      
+        # stateless
+        menu
+        |> ExUssd.add(ExUssd.new(data: data, name: "Check Balance", resolve: &check_balance/2))
+        ```
+
+    - **`:delimiter`** Set's menu style delimiter. Default- `:`
+    - **`:default_error`** Default error shown on invalid input
+    - **`:error`** Set custom error message
+
+    - **`:name`** Sets the name of the menu
+    - **`:nav`** Its used to set a new ExUssd Nav menu, see `ExUssd.Nav.new/1`
+
+    - **`:orientation`** Sets the menu orientation. Available option;
+      - `:horizontal` - Left to right. Blog/articles style menu
+      - `vertical` - Top to bottom(default)
+    - **`:resolve`** set the resolve function/module
+    - **`:should_close`** Indicate whether to USSD session should end or continue
+    - **`:show_navigation`** Set show navigation menu. Default - `true`
+    - **`:split`** Set menu batch size. Default - 7
+    - **`:title`** Set menu title
+  """
   defdelegate set(menu, opts), to: ExUssd.Op
 
   @doc """

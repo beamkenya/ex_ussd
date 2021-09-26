@@ -14,7 +14,6 @@ defmodule ExUssd.MixProject do
       name: "ExUssd",
       source_url: "https://github.com/beamkenya/ex_ussd.git",
       docs: [
-        # The main page in the docs
         canonical: "http://hexdocs.pm/ex_ussd",
         source_url: "https://github.com/beamkenya/ex_ussd.git",
         extras: ["README.md", "contributing.md"]

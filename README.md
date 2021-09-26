@@ -63,37 +63,6 @@ config :ex_ussd,
 
 ## Usage
 
-### Settable Fields
-
-- **`:data`** Set data to pass through to next menu. N/B - ExUssd menu are stateful unless using ExUssd.new/2 with `:name` and `:resolve` as arguments;
-
-  ```elixir
-  data = %{name: "John Doe"}
-  # stateful
-  menu
-  |> ExUssd.set(data: data)
-  |> ExUssd.add(ExUssd.new("Check Balance", &check_balance/2))
- 
-  # stateless
-  menu
-  |> ExUssd.add(ExUssd.new(data: data, name: "Check Balance", resolve: &check_balance/2))
-    ```
-
-- **`:delimiter`** Set's menu style delimiter. Default- `:`
-- **`:default_error`** Default error shown on invalid input
-- **`:error`** Set custom error message
-
-- **`:name`** Sets the name of the menu
-- **`:nav`** Its used to create a new ExUssd Nav menu
-- **`:orientation`** Sets the menu orientation. Available option;
-  - `:horizontal` - Left to right. Blog/articles style menu
-  - `vertical` - Top to bottom(default)
-- **`:resolve`** Navigates(invokes the next `ussd_init/2`) to the next menu
-- **`:should_close`** Indicate whether to USSD session should end or continue
-- **`:show_navigation`** Set show navigation menu. Default - `true`
-- **`:split`** Set menu batch size. Default - 7
-- **`:title`** Set menu title
-
 ### ExUssd Callbacks
 
 ExUssd provides you with 3 callbacks
