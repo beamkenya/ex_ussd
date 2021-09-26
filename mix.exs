@@ -4,7 +4,7 @@ defmodule ExUssd.MixProject do
   def project do
     [
       app: :ex_ussd,
-      version: "1.0.0",
+      version: "1.0.0-rc-1",
       elixir: "~> 1.12",
       start_permanent: Mix.env() == :prod,
       description: "ExUssd lets you create simple, flexible, and customizable USSD interface.",

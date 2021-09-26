@@ -29,17 +29,17 @@ https://user-images.githubusercontent.com/23293150/124460086-95ebf080-dd97-11eb-
 
 ## Documentation
 
-The docs can be found at [https://hexdocs.pm/ex_ussd](https://hexdocs.pm/ex_ussd).
+The docs can be found at [https://hexdocs.pm/ex_ussd](https://hexdocs.pm/ex_ussd/1.0.0-rc-1/readme.html).
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
+The package can be installed
 by adding `ex_ussd` to your list of dependencies in `mix.exs`:
 
 ```elixir
 defp deps do
   [
-    {:ex_ussd, "~> 1.0.0"}
+    {:ex_ussd, "~> 1.0.0-rc-1"}
   ]
 end
 ```
