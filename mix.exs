@@ -4,7 +4,7 @@ defmodule ExUssd.MixProject do
   def project do
     [
       app: :ex_ussd,
-      version: "1.0.0-rc-1",
+      version: "1.0.0",
       elixir: "~> 1.12",
       start_permanent: Mix.env() == :prod,
       description: "ExUssd lets you create simple, flexible, and customizable USSD interface.",
@@ -14,8 +14,6 @@ defmodule ExUssd.MixProject do
       name: "ExUssd",
       source_url: "https://github.com/beamkenya/ex_ussd.git",
       docs: [
-        # The main page in the docs
-        main: "readme",
         canonical: "http://hexdocs.pm/ex_ussd",
         source_url: "https://github.com/beamkenya/ex_ussd.git",
         extras: ["README.md", "contributing.md"]
