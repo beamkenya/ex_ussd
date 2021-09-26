@@ -108,16 +108,13 @@ defmodule ExUssd.Executer do
         )
 
       try do
-        with %ExUssd{error: error, resolve: current_resolve} = current_menu <-
+        with %ExUssd{error: error} = current_menu <-
                apply(resolve, :ussd_callback, [%{menu | resolve: nil}, payload, metadata]) do
           if is_bitstring(error) do
             build_response_menu(:halt, current_menu, menu, payload, opts)
           else
-            if current_resolve == resolve do
-              build_response_menu(:ok, current_menu, menu, payload, opts)
-            else
-              get_next_menu(current_menu, payload, opts)
-            end
+            build_response_menu(:ok, current_menu, menu, payload, opts)
+            |> get_next_menu(payload, opts)
           end
         end
       rescue
@@ -173,7 +170,7 @@ defmodule ExUssd.Executer do
         )
 
       try do
-        with %ExUssd{error: error, resolve: current_resolve} = current_menu <-
+        with %ExUssd{error: error} = current_menu <-
                apply(resolve, :ussd_after_callback, [
                  %{menu | resolve: nil, error: error_state},
                  payload,
@@ -182,11 +179,8 @@ defmodule ExUssd.Executer do
           if is_bitstring(error) do
             build_response_menu(:halt, current_menu, menu, payload, opts)
           else
-            if current_resolve == resolve do
-              build_response_menu(:ok, current_menu, menu, payload, opts)
-            else
-              get_next_menu(current_menu, payload, opts)
-            end
+            build_response_menu(:ok, current_menu, menu, payload, opts)
+            |> get_next_menu(payload, opts)
           end
         end
       rescue
