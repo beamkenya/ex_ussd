@@ -16,9 +16,14 @@ defmodule ExUssd.Executer do
 
   def execute_navigate(%ExUssd{navigate: navigate} = menu, payload)
       when is_function(navigate) do
-    case apply(navigate, [menu, payload]) do
-      %ExUssd{} = menu -> %{menu | navigate: nil}
-      _ -> menu
+    try do
+      case apply(navigate, [menu, payload]) do
+        %ExUssd{} = menu -> %{menu | navigate: nil}
+        _ -> menu
+      end
+    rescue
+      _exception ->
+        raise ArgumentError, "#{inspect(navigate)} function with payload: #{inspect(payload)}"
     end
   end
 

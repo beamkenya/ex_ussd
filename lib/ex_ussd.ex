@@ -321,7 +321,144 @@ defmodule ExUssd do
   defdelegate add(menu, menus, opts), to: ExUssd.Op
   defdelegate end_session(opts), to: ExUssd.Op
   defdelegate goto(opts), to: ExUssd.Op
+
+  @doc """
+  `ExUssd.new/1` - Creates a new ExUssd menu.
+
+  Keyword Arguments:
+     - `name` :: The name of the menu.
+     - `resolve` :: The resolve function to be called when the menu is selected.
+     - `orientation` :: The orientation of the menu.
+
+  Example:
+      iex> resolve = fn menu, _payload -> 
+      ...>  menu 
+      ...>  |> ExUssd.set(title: "Menu title")
+      ...>  |> ExUssd.add(ExUssd.new(name: "option 1", resolve: &(ExUssd.set(&1, title: "option 1"))))
+      ...>  |> ExUssd.add(ExUssd.new(name: "option 2", resolve: &(ExUssd.set(&1, title: "option 2"))))
+      ...> end
+      iex> menu = ExUssd.new(name: "HOME", resolve: resolve)
+      iex> ExUssd.to_string!(menu, [])
+      "Menu title\\n1:option 1\\n2:option 2"
+      iex> # Change menu orientation
+      iex> menu = ExUssd.new(name: "HOME", resolve: resolve, orientation: :horizontal)
+      iex> ExUssd.to_string!(menu, [])
+      "1:2\\noption 1\\n00:HOME\\nBACK:0 MORE:98"
+
+  NOTE:
+    `ExUssd.new/1` can be used to create a menu with a callback function.
+
+    Use the anonymous function syntax to create menu if you want to perform some action before the menu is rendered.
+
+    Remember to use `ExUssd.set` to set the menu name and the resolve function/module.
+
+    Example:
+
+      iex> defmodule User do
+      ...>  def get_user(phone_number), do: %{name: "John", phone_number: phone_number, type: :personal}
+      ...> end
+      iex> defmodule HomeResolver do
+      ...>  def home(%ExUssd{data: %{name: name}} = menu, _) do
+      ...>    menu 
+      ...>    |> ExUssd.set(title: "Welcome " <> name)
+      ...>    |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
+      ...>    |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
+      ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
+      ...>  end
+      ...>  def product_a(menu, _payload), do: menu |> ExUssd.set(title: "selected product a")
+      ...>  def product_b(menu, _payload), do: menu |> ExUssd.set(title: "selected product b")
+      ...>  def product_c(menu, _payload), do: menu |> ExUssd.set(title: "selected product c")
+      ...> end
+      iex> menu = ExUssd.new(fn menu, %{phone: phone} = _payload ->
+      ...>    user = User.get_user(phone)
+      ...>    menu
+      ...>    |> ExUssd.set(name: "Home")
+      ...>    |> ExUssd.set(data: user)
+      ...>    |> ExUssd.set(resolve: &HomeResolver.home/2)
+      ...> end)
+      iex> ExUssd.to_string!(menu, [payload: %{text: "*544#", phone: "072000000"}])
+      "Welcome John\\n1:Product A\\n2:Product B\\n3:Product C"
+
+   You can also use the anonymous function syntax to create menu if you want to create dymamic menu name.
+
+    Example:
+      iex> defmodule User do
+      ...>  def get_user(phone_number), do: %{name: "John", phone_number: phone_number, type: :personal}
+      ...> end
+      iex> defmodule HomeResolver do
+      ...>  def home(menu, %{phone: phone} = _payload) do
+      ...>    user = User.get_user(phone)
+      ...>    menu 
+      ...>    |> ExUssd.set(title: "Welcome "<> user.name)
+      ...>    |> ExUssd.set(data: user)
+      ...>    |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
+      ...>    |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
+      ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
+      ...>    |> ExUssd.add(ExUssd.new(&account/2))
+      ...>  end
+      ...>  def product_a(menu, _payload), do: menu |> ExUssd.set(title: "selected product a")
+      ...>  def product_b(menu, _payload), do: menu |> ExUssd.set(title: "selected product b")
+      ...>  def product_c(menu, _payload), do: menu |> ExUssd.set(title: "selected product c")
+      ...>  def account(%{data: %{type: :personal, name: name}} = menu, _payload) do
+      ...>    # Get Personal account details, then set as data
+      ...>    menu 
+      ...>    |> ExUssd.set(name: "Personal account")
+      ...>    |> ExUssd.set(resolve: &(ExUssd.set(&1, title: "Personal account")))
+      ...>  end
+      ...>  def account(%{data: %{type: :business, name: name}} = menu, _payload) do
+      ...>    # Get Business account details, then set as data
+      ...>    menu 
+      ...>    |> ExUssd.set(name: "Business account")
+      ...>    |> ExUssd.set(resolve: &(ExUssd.set(&1, title: "Business account")))
+      ...>  end
+      ...> end
+      iex> menu = ExUssd.new(name: "HOME", resolve: &HomeResolver.home/2)
+      iex> ExUssd.to_string!(menu, [payload: %{text: "*544#", phone: "072000000"}])
+      "Welcome John\\n1:Product A\\n2:Product B\\n3:Product C\\n4:Personal account"
+  """
   defdelegate new(opts), to: ExUssd.Op
+
+  @doc """
+  `ExUssd.new/2` - Creates a new ExUssd menu.
+
+  Arguments:
+    name: The name of the menu.
+    resolve: The resolve function/module.
+
+  It similiar to `ExUssd.new/1` that takes callback function.
+  The only difference is that it takes a static name argument.
+
+   Example:
+      iex> defmodule User do
+      ...>  def get_user(phone_number), do: %{name: "John", phone_number: phone_number, type: :personal}
+      ...> end
+      iex> defmodule HomeResolver do
+      ...>  def home(menu, %{phone: phone} = _payload) do
+      ...>    user = User.get_user(phone)
+      ...>    menu 
+      ...>    |> ExUssd.set(title: "Welcome "<> user.name)
+      ...>    |> ExUssd.set(data: user)
+      ...>    |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
+      ...>    |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
+      ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
+      ...>    |> ExUssd.add(ExUssd.new("Account", &account/2))
+      ...>  end
+      ...>  def product_a(menu, _payload), do: menu |> ExUssd.set(title: "selected product a")
+      ...>  def product_b(menu, _payload), do: menu |> ExUssd.set(title: "selected product b")
+      ...>  def product_c(menu, _payload), do: menu |> ExUssd.set(title: "selected product c")
+      ...>  def account(%{data: %{type: :personal, name: name}} = menu, _payload) do
+      ...>    # Get Personal account details, then set as data
+      ...>     ExUssd.set(menu, resolve: &(ExUssd.set(&1, title: "Personal account")))
+      ...>  end
+      ...>  def account(%{data: %{type: :business, name: name}} = menu, _payload) do
+      ...>    # Get Business account details, then set as data
+      ...>    ExUssd.set(menu, resolve: &(ExUssd.set(&1, title: "Business account")))
+      ...>  end
+      ...> end
+      iex> menu = ExUssd.new(name: "HOME", resolve: &HomeResolver.home/2)
+      iex> ExUssd.to_string!(menu, [payload: %{text: "*544#", phone: "072000000"}])
+      "Welcome John\\n1:Product A\\n2:Product B\\n3:Product C\\n4:Account"
+  """
   defdelegate new(name, function), to: ExUssd.Op
   defdelegate set(menu, opts), to: ExUssd.Op
 
