@@ -133,11 +133,11 @@ defmodule ExUssd do
       ...> end
       iex> # To simulate a user entering correct PIN, you can use the `ExUssd.to_string/3` method.
       iex> menu = ExUssd.new(name: "HOME", resolve: AppWeb.PinResolver)
-      iex> ExUssd.to_string!(menu, :ussd_callback, [payload: %{text: "5555"}, init_text: "1"])
+      iex> ExUssd.to_string!(menu, :ussd_callback, [payload: %{text: "5555"}])
       "You have Entered the Secret Number, 5555"
       iex> # To simulate a user entering wrong PIN, you can use the `ExUssd.to_string/3` method.
       iex> menu = ExUssd.new(name: "HOME", resolve: AppWeb.PinResolver)
-      iex> ExUssd.to_string!(menu, :ussd_callback, payload: %{text: "5556"}, init_text: "1")
+      iex> ExUssd.to_string!(menu, :ussd_callback, payload: %{text: "5556"})
       "Wrong PIN\\nEnter your PIN"
 
   ## Note: 
@@ -164,7 +164,7 @@ defmodule ExUssd do
         ...> end
         iex> # To simulate a user entering wrong PIN.
         iex> menu = ExUssd.new(name: "PIN", resolve: AppWeb.PinResolver)
-        iex> ExUssd.to_string!(menu, :ussd_callback, payload: %{text: "5556"}, init_text: "1")
+        iex> ExUssd.to_string!(menu, :ussd_callback, payload: %{text: "5556"})
         "Invalid Choice\\nEnter your PIN"
 
   #### Life cycle
@@ -194,10 +194,10 @@ defmodule ExUssd do
           ...> end
           iex> menu = ExUssd.new(name: "HOME", resolve: AppWeb.ProductResolver)
           iex> # To simulate a user entering "5555"
-          iex> ExUssd.to_string!(menu, simulate: true, payload: %{text: "5555"}, init_text: "1")
+          iex> ExUssd.to_string!(menu, simulate: true, payload: %{text: "5555"})
           "selected product offer"
           iex> # To simulate a user selecting option "1"
-          iex> ExUssd.to_string!(menu, simulate: true, payload: %{text: "1"}, init_text: "1")
+          iex> ExUssd.to_string!(menu, simulate: true, payload: %{text: "1"})
           "selected product a"
   """
   @callback ussd_callback(
@@ -233,10 +233,10 @@ defmodule ExUssd do
           ...> end
           iex> menu = ExUssd.new(name: "HOME", resolve: AppWeb.ProductResolver)
           iex> # To simulate a user selecting option "1"
-          iex> ExUssd.to_string!(menu, simulate: true, payload: %{text: "1"}, init_text: "1")
+          iex> ExUssd.to_string!(menu, simulate: true, payload: %{text: "1"})
           "selected product a"
           iex> # To simulate a user selecting invalid option "42"
-          iex> ExUssd.to_string!(menu, simulate: true, payload: %{text: "42"}, init_text: "1")
+          iex> ExUssd.to_string!(menu, simulate: true, payload: %{text: "42"})
           "Invalid Choice\\nProduct List\\n1:Product A\\n2:Product B\\n3:Product C"
 
    # Note:
@@ -269,7 +269,7 @@ defmodule ExUssd do
           ...> end
           iex> # To simulate a user entering wrong PIN 3 times.
           iex> menu = ExUssd.new(name: "PIN", resolve: AppWeb.HomeResolver)
-          iex> ExUssd.to_string!(menu, :ussd_after_callback, payload: %{text: "5556", attempt: 3}, init_text: "1")
+          iex> ExUssd.to_string!(menu, :ussd_after_callback, payload: %{text: "5556", attempt: 3})
           "Account is locked, you have entered the wrong PIN 3 times"
   """
   @callback ussd_after_callback(
@@ -324,8 +324,140 @@ defmodule ExUssd do
   defdelegate new(opts), to: ExUssd.Op
   defdelegate new(name, function), to: ExUssd.Op
   defdelegate set(menu, opts), to: ExUssd.Op
+
+  @doc """
+  Use `ExUssd.to_string/2` to get menu string representation and should close value which indicates if the session.
+  `ExUssd.to_string/2` takes a menu and opts.
+
+  Example:
+          iex> defmodule AppWeb.ProductResolver do
+          ...>  use ExUssd
+          ...>  def ussd_init(menu, _) do
+          ...>    menu 
+          ...>    |> ExUssd.set(title: "Product List")
+          ...>    |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
+          ...>    |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
+          ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
+          ...> end
+          ...>  def product_a(menu, _payload), do: menu |> ExUssd.set(title: "selected product a")
+          ...>  def product_b(menu, _payload), do: menu |> ExUssd.set(title: "selected product b")
+          ...>  def product_c(menu, _payload), do: menu |> ExUssd.set(title: "selected product c")
+          ...> end
+          iex> menu = ExUssd.new(name: "HOME", resolve: AppWeb.ProductResolver)
+          iex> # Simulate the first time user enters the menu
+          iex> ExUssd.to_string(menu, [])
+          {:ok, %{menu_string: "Product List\\n1:Product A\\n2:Product B\\n3:Product C", should_close: false}}
+          iex> # To simulate a user selecting option "1"
+          iex> ExUssd.to_string(menu, [simulate: true, payload: %{text: "1"}])
+          {:ok, %{menu_string: "selected product a", should_close: false}}
+          
+  NOTE:
+  If your `ussd_init/2` callback expects `data` field to have values, Use `init_data`.
+
+  Example:
+          iex> defmodule AppWeb.ProductResolver do
+          ...>  use ExUssd
+          ...>  def ussd_init(%ExUssd{data: %{user_name: user_name}} = menu, _) do
+          ...>    menu 
+          ...>    |> ExUssd.set(title: "Welcome " <> user_name <> ", Select Product")
+          ...>    |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
+          ...>    |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
+          ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
+          ...> end
+          ...>  def product_a(menu, _payload), do: menu |> ExUssd.set(title: "selected product a")
+          ...>  def product_b(menu, _payload), do: menu |> ExUssd.set(title: "selected product b")
+          ...>  def product_c(menu, _payload), do: menu |> ExUssd.set(title: "selected product c")
+          ...> end
+          iex> menu = ExUssd.new(name: "HOME", resolve: AppWeb.ProductResolver)
+          iex> # Simulate the first time user enters the menu
+          iex> ExUssd.to_string(menu, init_data: %{user_name: "John"})
+          {:ok, %{menu_string: "Welcome John, Select Product\\n1:Product A\\n2:Product B\\n3:Product C", should_close: false}}
+  """
   defdelegate to_string(menu, opts), to: ExUssd.Op
+
+  @doc """
+  `ExUssd.to_string/3` is similar to `ExUssd.to_string/2`
+  The only difference is that it takes a `menu`, `atom` and `opts`.
+  Its used to test the menu life cycle.
+
+  Example:
+        iex> defmodule AppWeb.PinResolver do
+        ...>  use ExUssd
+        ...>  def ussd_init(menu, _) do
+        ...>    ExUssd.set(menu, title: "Enter your PIN")
+        ...>  end
+        ...>  def ussd_callback(menu, payload, _) do
+        ...>    if payload.text == "5555" do
+        ...>       ExUssd.set(menu, resolve: &success_menu/2)
+        ...>    end
+        ...>  end
+        ...>  def success_menu(menu, _) do
+        ...>    menu
+        ...>    |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
+        ...>    |> ExUssd.set(should_close: true)
+        ...>  end
+        ...> end
+        iex> menu = ExUssd.new(name: "PIN", resolve: AppWeb.PinResolver)
+        iex> # Get `ussd_init/2` menu string representation
+        iex> ExUssd.to_string(menu, :ussd_init, [])
+        {:ok, %{menu_string: "Enter your PIN", should_close: false}}
+        iex> # Get `ussd_callback/2` menu string representation
+        iex> ExUssd.to_string(menu, :ussd_callback, payload: %{text: "5555"})
+        {:ok, %{menu_string: "You have Entered the Secret Number, 5555", should_close: true}}
+  """
   defdelegate to_string(menu, atom, opts), to: ExUssd.Op
+
+  @doc """
+  `ExUssd.to_string!/2` gets the menu string text from `ExUssd.to_string/2`
+  See `ExUssd.to_string/2` for more details.
+
+  Example:
+          iex> defmodule AppWeb.ProductResolver do
+          ...>  def products(menu, _) do
+          ...>    menu 
+          ...>    |> ExUssd.set(title: "Product List")
+          ...>    |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
+          ...>    |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
+          ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
+          ...> end
+          ...>  def product_a(menu, _payload), do: menu |> ExUssd.set(title: "selected product a")
+          ...>  def product_b(menu, _payload), do: menu |> ExUssd.set(title: "selected product b")
+          ...>  def product_c(menu, _payload), do: menu |> ExUssd.set(title: "selected product c")
+          ...> end
+          iex> menu = ExUssd.new(name: "HOME", resolve: &AppWeb.ProductResolver.products/2)
+          iex> # Simulate the first time user enters the menu
+          iex> ExUssd.to_string!(menu, [])
+          "Product List\\n1:Product A\\n2:Product B\\n3:Product C"
+  """
   defdelegate to_string!(menu, opts), to: ExUssd.Op
+
+  @doc """
+  `ExUssd.to_string!/3` gets the menu string text from `ExUssd.to_string/3`
+  See `ExUssd.to_string/3` for more details.
+   Example:
+        iex> defmodule AppWeb.PinResolver do
+        ...>  use ExUssd
+        ...>  def ussd_init(menu, _) do
+        ...>    ExUssd.set(menu, title: "Enter your PIN")
+        ...>  end
+        ...>  def ussd_callback(menu, payload, _) do
+        ...>    if payload.text == "5555" do
+        ...>       ExUssd.set(menu, resolve: &success_menu/2)
+        ...>    end
+        ...>  end
+        ...>  def success_menu(menu, _) do
+        ...>    menu
+        ...>    |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
+        ...>    |> ExUssd.set(should_close: true)
+        ...>  end
+        ...> end
+        iex> menu = ExUssd.new(name: "PIN", resolve: AppWeb.PinResolver)
+        iex> # Get `ussd_init/2` menu string representation
+        iex> ExUssd.to_string!(menu, :ussd_init, [])
+        "Enter your PIN"
+        iex> # Get `ussd_callback/2` menu string representation
+        iex> ExUssd.to_string!(menu, :ussd_callback, payload: %{text: "5555"})
+        "You have Entered the Secret Number, 5555"
+  """
   defdelegate to_string!(menu, atom, opts), to: ExUssd.Op
 end

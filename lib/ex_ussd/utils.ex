@@ -117,7 +117,7 @@ defmodule ExUssd.Utils do
   end
 
   def get_menu(%ExUssd{} = menu, opts) do
-    payload = Keyword.get(opts, :payload, %{text: "set_opts_payload_text"})
+    payload = Keyword.get(opts, :payload, %{text: "set_init_text"})
 
     position =
       case Integer.parse(payload.text) do
@@ -126,7 +126,7 @@ defmodule ExUssd.Utils do
       end
 
     fun = fn
-      %{simulate: true, init_text: _init_text, position: position} ->
+      %{simulate: true, position: position} ->
         %{error: error, menu_list: menu_list} =
           current_menu = get_menu(menu, :ussd_callback, opts)
 
@@ -151,8 +151,7 @@ defmodule ExUssd.Utils do
 
   def get_menu(%ExUssd{} = menu, :ussd_init, opts) do
     init_data = Keyword.get(opts, :init_data)
-
-    payload = Keyword.get(opts, :payload, %{text: "set_opts_payload_text"})
+    payload = Keyword.get(opts, :payload)
 
     fun = fn
       menu, payload ->
@@ -166,6 +165,7 @@ defmodule ExUssd.Utils do
 
   def get_menu(%ExUssd{default_error: error} = menu, :ussd_callback, opts) do
     init_data = Keyword.get(opts, :init_data)
+    init_text = Keyword.get(opts, :init_text, "set_init_text")
 
     payload = Keyword.get(opts, :payload)
 
@@ -173,7 +173,7 @@ defmodule ExUssd.Utils do
       _menu, opts, nil ->
         raise ArgumentError, "`:payload` not found, #{inspect(Keyword.new(opts))}"
 
-      menu, %{init_text: init_text}, %{text: _} = payload ->
+      menu, _, %{text: _} = payload ->
         init_payload = Map.put(payload, :text, init_text)
 
         init_menu =
@@ -185,9 +185,6 @@ defmodule ExUssd.Utils do
           %{init_menu | error: error}
         end
 
-      _menu, opts, %{text: _} ->
-        raise ArgumentError, "opts missing `:init_text`, #{inspect(Keyword.new(opts))}"
-
       _menu, _, payload ->
         raise ArgumentError, "payload missing `:text`, #{inspect(payload)}"
     end
@@ -197,6 +194,7 @@ defmodule ExUssd.Utils do
 
   def get_menu(%ExUssd{default_error: error} = menu, :ussd_after_callback, opts) do
     init_data = Keyword.get(opts, :init_data)
+    init_text = Keyword.get(opts, :init_text, "set_init_text")
 
     payload = Keyword.get(opts, :payload)
 
@@ -204,7 +202,7 @@ defmodule ExUssd.Utils do
       _menu, opts, nil ->
         raise ArgumentError, "`:payload` not found, #{inspect(Keyword.new(opts))}"
 
-      menu, %{init_text: init_text}, %{text: _} = payload ->
+      menu, _, %{text: _} = payload ->
         init_payload = Map.put(payload, :text, init_text)
 
         init_menu =
@@ -220,9 +218,6 @@ defmodule ExUssd.Utils do
         with nil <- Executer.execute_after_callback!(callback_menu, payload, state: false) do
           callback_menu
         end
-
-      _menu, %{callback_text: _} = opts, %{text: _} ->
-        raise ArgumentError, "opts missing `:init_text`, #{inspect(Keyword.new(opts))}"
 
       _menu, _, payload ->
         raise ArgumentError, "payload missing `:text`, #{inspect(payload)}"

@@ -375,6 +375,10 @@ defmodule ExUssd.Op do
   @spec to_string(ExUssd.t(), atom, keyword()) ::
           {:ok, %{:menu_string => binary(), :should_close => boolean()}} | {:error, String.t()}
   def to_string(%ExUssd{} = menu, atom, opts) do
+    if Keyword.get(opts, :simulate) do
+      raise %ArgumentError{message: "simulate is not supported, Use ExUssd.to_string/2"}
+    end
+
     case Utils.get_menu(menu, atom, opts) do
       %ExUssd{} = menu ->
         Display.to_string(menu, ExUssd.Route.get_route(%{text: "*test#", service_code: "*test#"}))
