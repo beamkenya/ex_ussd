@@ -1,8 +1,6 @@
 defmodule ExUssd.Op do
-  @moduledoc """
-  Contains all ExUssd Public API functions
-  """
-  alias ExUssd.{Display, Executer, Route, Utils}
+  @moduledoc false
+  alias ExUssd.{Display, Utils}
 
   @allowed_fields [
     :error,
@@ -23,26 +21,6 @@ defmodule ExUssd.Op do
 
   @doc """
   Add menu to ExUssd menu list.
-
-  ## Parameters
-    - `menu` — ExUssd Menu
-    - `menu` — ExUssd or List of ExUssd
-    - `opts` — Keyword list
-
-  ## Example
-  ```elixir
-    iex> menu = ExUssd.new(name: "Home", resolve: MyHomeResolver)
-    iex> ExUssd.add(menu, ExUssd.new(name: "Product A", resolve: ProductResolver)))
-  ```
-
-  Add menus to to ExUssd menu list.
-  Note: The menus with `orientation: :vertical` share one resolver
-
-  ## Example
-  ```elixir
-    iex> menu = ExUssd.new(orientation: :vertical, name: "Home", resolve: MyHomeResolver)
-    iex> menu |> ExUssd.add([ExUssd.new(name: "Nairobi", data: %{city: "Nairobi", code: 47})], resolve: &CountyResolver.city_menu/2))
-  ```
   """
   @spec add(ExUssd.t(), ExUssd.t() | [ExUssd.t()], keyword()) :: ExUssd.t()
   def add(_, _, opts \\ [])
@@ -101,26 +79,10 @@ defmodule ExUssd.Op do
   end
 
   @doc """
+  `ExUssd.goto/1` is called when the gateway provider calls the callback URL.
   Returns
   menu_string: to be used as gateway response string.
   should_close: indicates if the gateway should close the session.
-
-  ## Parameters
-   - `opts` — keyword list / map
-
-  ## Example
-  ```elixir
-  iex> case ExUssd.goto(menu: menu, payload: payload) do
-    {:ok, %{menu_string: menu_string, should_close: false}} ->
-      "CON " <> menu_string
-
-    {:ok, %{menu_string: menu_string, should_close: true}} ->
-      # End Session
-      ExUssd.end_session(session_id: session_id)
-
-      "END " <> menu_string
-    end
-  ```
   """
   @spec goto(map() | keyword()) :: {:ok, %{menu_string: String.t(), should_close: boolean()}}
   def goto(opts)
@@ -168,40 +130,6 @@ defmodule ExUssd.Op do
 
   @doc """
   Returns the ExUssd struct for the given keyword list opts.
-
-  ## Parameters
-   - `opts` — keyword lists, must include name field
-
-  ## Example
-  ```elixir
-    iex> ExUssd.new(orientation: :vertical, name: "home", resolve: MyHomeResolver)
-    iex> ExUssd.new(orientation: :horizontal, name: "home", resolve: fn menu, _payload -> menu |> ExUssd.set(title: "Welcome") end)
-  ```
-
-  To have the child menu have a known `name` value, you can pass a string to ExUssd.new.
-  ```elixir
-    iex> ExUssd.new("home", fn menu, payload ->
-        menu |> ExUssd.set(resolve: HomeResolver)
-    end)
-  ```
-
-    Note: ExUssd.new callback function will be called multiple times to get the `name` value.
-
-    It's advisable to only set the `name` and `resolve` values on the callback like so reduce the side effects.
-
-    ```elixir
-    iex> ExUssd.new(fn menu, payload ->
-      if is_registered?(phone_number: payload[:phone_number]) do
-        menu
-        |> ExUssd.set(name: "home")
-        |> ExUssd.set(resolve: HomeResolver)
-      else
-        menu
-        |> ExUssd.set(name: "guest")
-        |> ExUssd.set(resolve: GuestResolver)
-      end
-    end)
-   ```
   """
 
   @spec new(String.t(), fun()) :: ExUssd.t()
@@ -233,7 +161,10 @@ defmodule ExUssd.Op do
             &{&1, Utils.truncate(&1, length: 140, omission: "...")}
           )
 
-        struct!(ExUssd, Keyword.take(opts, [:data, :resolve, :name, :orientation, :navigate]))
+        struct!(
+          ExUssd,
+          Keyword.take(opts, [:data, :resolve, :name, :orientation, :navigate, :is_zero_based])
+        )
       end
     end
 
@@ -244,36 +175,6 @@ defmodule ExUssd.Op do
 
   @doc """
   Sets the allowed fields on ExUssd struct.
-
-  ## Parameters
-   - `:menu` — ExUssd Menu
-   - `:opts` — Keyword list. Keys should be in the @allowed_fields
-
-   ```elixir
-   @allowed_fields [
-    :error,
-    :title,
-    :next,
-    :previous,
-    :should_close,
-    :split,
-    :delimiter,
-    :default_error,
-    :show_navigation,
-    :data,
-    :resolve,
-    :orientation,
-    :name
-  ]
-  ```
-
-  ## Example
-  ```elixir
-    iex> menu = ExUssd.new(name: "Home", resolve: &HomeResolver.welcome_menu/2)
-    iex> menu |> ExUssd.set(title: "Welcome", data: %{a: 1}, should_close: true)
-    iex> menu |> ExUssd.set(nav: ExUssd.Nav.new(type: :back, name: "BACK", match: "*"))
-    iex> menu |> ExUssd.set(nav: [ExUssd.Nav.new(type: :back, name: "BACK", match: "*")])
-    ```
   """
 
   @spec set(ExUssd.t(), keyword()) :: ExUssd.t()
@@ -336,134 +237,51 @@ defmodule ExUssd.Op do
   end
 
   @doc """
-  Returns Menu string
-
-  ## Example
-  ```elixir
-    iex> menu = ExUssd.new(name: "home", resolve: fn menu, _payload -> menu |> ExUssd.set(title: "Welcome") end)
-
-    iex> ExUssd.to_string(menu, [])
-    {:ok, %{menu_string: "Welcome", should_close: false}}
-
-    iex> ExUssd.to_string(menu, :ussd_init, [])
-    {:ok, %{menu_string: "Welcome", should_close: false}}
-
-    iex> menu = ExUssd.new(name: "home", resolve: HomeResolver)
-
-    iex> ExUssd.to_string(menu, :ussd_init, [])
-    {:ok, %{menu_string: "Enter your PIN", should_close: false}}
-
-    iex> ExUssd.to_string(menu, :ussd_callback, [payload: %{text: "1"}, init_text: "1"])
-    {:ok, %{menu_string: "Invalid Choice\nEnter your PIN", should_close: false}}
-
-    iex> ExUssd.to_string(menu, :ussd_callback, [payload: %{text: "5555", attempts: 3}, init_text: "1", init_data: %{name: "John"}])
-    {:ok, %{menu_string: "You have Entered the Secret Number, 5555", should_close: true}}
-    ```
+  Returns Menu string for the given ExUssd struct.
   """
 
   @spec to_string(ExUssd.t(), keyword()) ::
-          {:ok, %{menu_string: String.t(), should_close: boolean()}}
-  def to_string(%ExUssd{} = menu, opts), do: to_string(menu, :ussd_init, opts)
+          {:ok, %{:menu_string => binary(), :should_close => boolean()}} | {:error, String.t()}
+  def to_string(%ExUssd{} = menu, opts) do
+    case Utils.get_menu(menu, opts) do
+      %ExUssd{} = menu ->
+        Display.to_string(menu, ExUssd.Route.get_route(%{text: "*test#", service_code: "*test#"}))
 
-  @spec to_string(ExUssd.t(), :ussd_init, keyword()) ::
-          {:ok, %{menu_string: String.t(), should_close: boolean()}}
-  def to_string(%ExUssd{} = menu, :ussd_init, opts) do
-    init_data = Keyword.get(opts, :init_data)
-
-    payload = Keyword.get(opts, :payload, %{text: "set_opts_payload_text"})
-
-    fun = fn
-      menu, payload ->
-        menu
-        |> Executer.execute_navigate(payload)
-        |> Executer.execute_init_callback!(payload)
-        |> Display.to_string(Route.get_route(%{text: "*test#", service_code: "*test#"}))
+      _ ->
+        {:error, "Couldn't convert #{inspect(menu)} to_string"}
     end
-
-    apply(fun, [%{menu | data: init_data}, payload])
   end
 
-  @spec to_string(ExUssd.t(), :ussd_callback, keyword()) ::
-          {:ok, %{menu_string: String.t(), should_close: boolean()}}
-  def to_string(%ExUssd{default_error: error} = menu, :ussd_callback, opts) do
-    init_data = Keyword.get(opts, :init_data)
-
-    payload = Keyword.get(opts, :payload)
-
-    fun = fn
-      _menu, opts, nil ->
-        raise ArgumentError, "`:payload` not found, #{inspect(Keyword.new(opts))}"
-
-      menu, %{init_text: init_text}, %{text: _} = payload ->
-        init_payload = Map.put(payload, :text, init_text)
-
-        init_menu =
-          menu
-          |> Executer.execute_navigate(init_payload)
-          |> Executer.execute_init_callback!(init_payload)
-
-        callback_menu =
-          with nil <- Executer.execute_callback!(init_menu, payload, state: false) do
-            %{init_menu | error: error}
-          end
-
-        Display.to_string(
-          callback_menu,
-          Route.get_route(%{text: "*test#", service_code: "*test#"})
-        )
-
-      _menu, opts, %{text: _} ->
-        raise ArgumentError, "opts missing `:init_text`, #{inspect(Keyword.new(opts))}"
-
-      _menu, _, payload ->
-        raise ArgumentError, "payload missing `:text`, #{inspect(payload)}"
+  @spec to_string(ExUssd.t(), atom, keyword()) ::
+          {:ok, %{:menu_string => binary(), :should_close => boolean()}} | {:error, String.t()}
+  def to_string(%ExUssd{} = menu, atom, opts) do
+    if Keyword.get(opts, :simulate) do
+      raise %ArgumentError{message: "simulate is not supported, Use ExUssd.to_string/2"}
     end
 
-    apply(fun, [%{menu | data: init_data}, Map.new(opts), payload])
+    case Utils.get_menu(menu, atom, opts) do
+      %ExUssd{} = menu ->
+        Display.to_string(menu, ExUssd.Route.get_route(%{text: "*test#", service_code: "*test#"}))
+
+      _ ->
+        {:error, "Couldn't convert to_string for callback #{inspect(atom)}"}
+    end
   end
 
-  @spec to_string(ExUssd.t(), :ussd_after_callback, keyword()) ::
-          {:ok, %{menu_string: String.t(), should_close: boolean()}}
-  def to_string(%ExUssd{default_error: error} = menu, :ussd_after_callback, opts) do
-    init_data = Keyword.get(opts, :init_data)
-
-    payload = Keyword.get(opts, :payload)
-
-    fun = fn
-      _menu, opts, nil ->
-        raise ArgumentError, "`:payload` not found, #{inspect(Keyword.new(opts))}"
-
-      menu, %{init_text: init_text}, %{text: _} = payload ->
-        init_payload = Map.put(payload, :text, init_text)
-
-        init_menu =
-          menu
-          |> Executer.execute_navigate(init_payload)
-          |> Executer.execute_init_callback!(init_payload)
-
-        callback_menu =
-          with nil <- Executer.execute_callback!(init_menu, payload, state: false) do
-            %{init_menu | error: error}
-          end
-
-        after_callback_menu =
-          with nil <- Executer.execute_after_callback!(callback_menu, payload, state: false) do
-            callback_menu
-          end
-
-        Display.to_string(
-          after_callback_menu,
-          Route.get_route(%{text: "*544#", service_code: "*544#"})
-        )
-
-      _menu, %{callback_text: _} = opts, %{text: _} ->
-        raise ArgumentError, "opts missing `:init_text`, #{inspect(Keyword.new(opts))}"
-
-      _menu, _, payload ->
-        raise ArgumentError, "payload missing `:text`, #{inspect(payload)}"
+  @spec to_string!(ExUssd.t(), keyword()) :: String.t()
+  def to_string!(%ExUssd{} = menu, opts) do
+    case to_string(menu, opts) do
+      {:ok, %{menu_string: menu_string}} -> menu_string
+      {:error, error} -> raise ArgumentError, error
     end
+  end
 
-    apply(fun, [%{menu | data: init_data}, Map.new(opts), payload])
+  @spec to_string!(ExUssd.t(), atom, keyword()) :: String.t()
+  def to_string!(%ExUssd{} = menu, atom, opts) do
+    case to_string(menu, atom, opts) do
+      {:ok, %{menu_string: menu_string}} -> menu_string
+      {:error, error} -> raise ArgumentError, error
+    end
   end
 
   @spec validate_new(nil | ExUssd.t(), any()) :: ExUssd.t() | {:error, String.t()}

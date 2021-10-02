@@ -1,25 +1,40 @@
 defmodule ExUssd.MixProject do
   use Mix.Project
 
+  @source_url "https://github.com/beamkenya/ex_ussd.git"
+  @version "1.0.0"
+
   def project do
     [
       app: :ex_ussd,
-      version: "1.0.0-rc-1",
+      version: @version,
       elixir: "~> 1.12",
       start_permanent: Mix.env() == :prod,
       description: "ExUssd lets you create simple, flexible, and customizable USSD interface.",
       deps: deps(),
       package: package(),
-      deps: deps(),
+      source_url: @source_url,
+      # Docs
       name: "ExUssd",
-      source_url: "https://github.com/beamkenya/ex_ussd.git",
-      docs: [
-        # The main page in the docs
-        main: "readme",
-        canonical: "http://hexdocs.pm/ex_ussd",
-        source_url: "https://github.com/beamkenya/ex_ussd.git",
-        extras: ["README.md", "contributing.md"]
-      ]
+      docs: docs()
+    ]
+  end
+
+  defp docs do
+    [
+      main: "ExUssd",
+      groups_for_modules: [
+        Nav: [
+          ExUssd.Nav
+        ]
+      ],
+      extras: [
+        "CHANGELOG.md",
+        "contributing.md",
+        "README.md": [title: "Overview"]
+      ],
+      source_url: @source_url,
+      source_ref: "v#{@version}"
     ]
   end
 
@@ -37,9 +52,16 @@ defmodule ExUssd.MixProject do
       licenses: ["MIT"],
       maintainers: [],
       links: %{
-        "GitHub" => "https://github.com/beamkenya/ex_ussd.git",
+        "GitHub" => @source_url,
         "README" => "https://hexdocs.pm/ex_ussd/readme.html"
       },
+      files: [
+        "lib",
+        "mix.exs",
+        "README.md",
+        "CHANGELOG.md",
+        "contributing.md"
+      ],
       homepage_url: "https://github.com/beamkenya/ex_ussd"
     ]
   end

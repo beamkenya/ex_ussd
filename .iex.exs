@@ -3,7 +3,12 @@ defmodule HomeResolver do
 
     def product_a(menu, _payload), do: menu |> ExUssd.set(title: "selected product a")
     def product_b(menu, _payload), do: menu |> ExUssd.set(title: "selected product b")
-    def product_c(menu, _payload), do: menu |> ExUssd.set(title: "selected product c")
+    def product_c(menu, _payload) do 
+      menu 
+      |> ExUssd.set(title: "selected product c")
+      |> ExUssd.add(ExUssd.new(name: "option 1", resolve: &(ExUssd.set(&1, title: "option 1"))))
+      |> ExUssd.add(ExUssd.new(name: "option 2", resolve: &(ExUssd.set(&1, title: "option 2"))))
+    end
 
     def account(%{data: %{account_type: :personal}} = menu, _payload) do
        menu 
@@ -22,10 +27,12 @@ defmodule HomeResolver do
       menu 
       |> ExUssd.set(title: "Welcome")
       |> ExUssd.set(data: data)
+      |> ExUssd.set(split: 3)
       |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
       |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
       |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
       |> ExUssd.add(ExUssd.new(&account/2))
+      |> ExUssd.add(ExUssd.new("account", &account/2))
       |> ExUssd.add(ExUssd.new(name: "Enter Pin", resolve: __MODULE__))
     end
 

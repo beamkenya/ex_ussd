@@ -42,7 +42,8 @@ defmodule ExUssd.Display do
 
     menu_list = get_menu_list(menu_list, opts)
 
-    navigation = ExUssd.Nav.to_string(nav, depth + 1, menu_list, depth - 1)
+    navigation =
+      ExUssd.Nav.to_string(nav, depth + 1, menu_list, depth - 1, length(route), :horizontal)
 
     should_close =
       if depth == total_length do
@@ -54,7 +55,11 @@ defmodule ExUssd.Display do
     menu_string =
       case Enum.at(menu_list, depth - 1) do
         %ExUssd{name: name} ->
-          IO.iodata_to_binary(["#{depth}", delimiter, "#{total_length}", "\n", name, navigation])
+          if should_close do
+            IO.iodata_to_binary(["#{depth}", delimiter, "#{total_length}", "\n", name])
+          else
+            IO.iodata_to_binary(["#{depth}", delimiter, "#{total_length}", "\n", name, navigation])
+          end
 
         _ ->
           ExUssd.Registry.set_depth(session, total_length + 1)
@@ -79,7 +84,8 @@ defmodule ExUssd.Display do
           should_close: should_close,
           show_navigation: show_navigation,
           split: split,
-          title: title
+          title: title,
+          is_zero_based: is_zero_based
         },
         %{route: route},
         opts
@@ -97,13 +103,20 @@ defmodule ExUssd.Display do
     menus =
       selection
       |> Enum.with_index()
-      |> Enum.map(&transform(menu_list, min, delimiter, &1))
+      |> Enum.map(&transform(menu_list, min, delimiter, &1, is_zero_based))
       |> Enum.reject(&is_nil(&1))
 
-    navigation = ExUssd.Nav.to_string(nav, depth, menu_list, max)
+    navigation = ExUssd.Nav.to_string(nav, depth, menu_list, max, length(route), :vertical)
     error = if error != true, do: error
 
     title_error = IO.iodata_to_binary(["#{error}", "#{title}"])
+
+    show_navigation =
+      if should_close do
+        false
+      else
+        show_navigation
+      end
 
     menu_string =
       cond do
@@ -123,11 +136,13 @@ defmodule ExUssd.Display do
     {:ok, %{menu_string: menu_string, should_close: should_close}}
   end
 
-  @spec transform([ExUssd.t()], integer(), String.t(), {integer(), integer()}) :: nil | binary()
-  defp transform(menu_list, min, delimiter, {position, index}) do
+  @spec transform([ExUssd.t()], integer(), String.t(), {integer(), integer()}, boolean()) ::
+          nil | binary()
+  defp transform(menu_list, min, delimiter, {position, index}, is_zero_based) do
     case Enum.at(menu_list, position) do
       %ExUssd{name: name} ->
-        "#{index + 1 + min}#{delimiter}#{name}"
+        start = if(is_zero_based, do: 0, else: 1)
+        "#{index + start + min}#{delimiter}#{name}"
 
       nil ->
         nil
