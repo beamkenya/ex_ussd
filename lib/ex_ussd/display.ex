@@ -83,7 +83,8 @@ defmodule ExUssd.Display do
           should_close: should_close,
           show_navigation: show_navigation,
           split: split,
-          title: title
+          title: title,
+          is_zero_based: is_zero_based
         },
         %{route: route},
         opts
@@ -101,7 +102,7 @@ defmodule ExUssd.Display do
     menus =
       selection
       |> Enum.with_index()
-      |> Enum.map(&transform(menu_list, min, delimiter, &1))
+      |> Enum.map(&transform(menu_list, min, delimiter, &1, is_zero_based))
       |> Enum.reject(&is_nil(&1))
 
     navigation = ExUssd.Nav.to_string(nav, depth, menu_list, max, length(route))
@@ -134,11 +135,13 @@ defmodule ExUssd.Display do
     {:ok, %{menu_string: menu_string, should_close: should_close}}
   end
 
-  @spec transform([ExUssd.t()], integer(), String.t(), {integer(), integer()}) :: nil | binary()
-  defp transform(menu_list, min, delimiter, {position, index}) do
+  @spec transform([ExUssd.t()], integer(), String.t(), {integer(), integer()}, boolean()) ::
+          nil | binary()
+  defp transform(menu_list, min, delimiter, {position, index}, is_zero_based) do
     case Enum.at(menu_list, position) do
       %ExUssd{name: name} ->
-        "#{index + 1 + min}#{delimiter}#{name}"
+        start = if(is_zero_based, do: 0, else: 1)
+        "#{index + start + min}#{delimiter}#{name}"
 
       nil ->
         nil

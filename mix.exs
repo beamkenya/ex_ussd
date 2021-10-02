@@ -10,7 +10,6 @@ defmodule ExUssd.MixProject do
       description: "ExUssd lets you create simple, flexible, and customizable USSD interface.",
       deps: deps(),
       package: package(),
-      deps: deps(),
       name: "ExUssd",
       source_url: "https://github.com/beamkenya/ex_ussd.git",
       docs: [

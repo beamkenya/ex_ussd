@@ -9,6 +9,7 @@ defmodule ExUssd do
           default_error: String.t(),
           delimiter: String.t(),
           error: String.t(),
+          is_zero_based: boolean(),
           menu_list: list(ExUssd.t()),
           name: String.t(),
           nav: [ExUssd.Nav.t()],
@@ -284,6 +285,7 @@ defmodule ExUssd do
   defstruct [
     :data,
     :error,
+    :is_zero_based,
     :name,
     :navigate,
     :parent,

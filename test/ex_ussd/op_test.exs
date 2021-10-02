@@ -137,8 +137,7 @@ defmodule ExUssd.OpTest do
   describe "goto/1 simple" do
     setup do
       %{
-        menu:
-          ExUssd.new(fn menu, _ -> menu |> ExUssd.set(resolve: &ExUssd.OpTest.Module.simple/2) end),
+        menu: ExUssd.new(name: Faker.Company.name(), resolve: &ExUssd.OpTest.Module.simple/2),
         session: "#{System.unique_integer()}"
       }
     end
@@ -212,6 +211,44 @@ defmodule ExUssd.OpTest do
                ExUssd.goto(%{
                  payload: %{session_id: session, text: "00", service_code: "*544#"},
                  menu: menu
+               })
+    end
+  end
+
+  describe "goto/1 zero base" do
+    setup do
+      %{
+        menu:
+          ExUssd.new(
+            name: Faker.Company.name(),
+            is_zero_based: true,
+            resolve: &ExUssd.OpTest.Module.simple/2
+          ),
+        session: "#{System.unique_integer()}"
+      }
+    end
+
+    test "successfully navigates to the first layer", %{menu: menu, session: session} do
+      assert {:ok,
+              %{
+                menu_string: "Welcome\n0:menu 1\n1:menu 2\n2:menu 3\n3:menu 4\n4:menu 5",
+                should_close: false
+              }} ==
+               ExUssd.goto(%{
+                 payload: %{session_id: session, text: "", service_code: "*544#"},
+                 menu: menu
+               })
+    end
+
+    test "successfully navigates to the first menu option", %{menu: menu, session: session} do
+      assert {:ok,
+              %{
+                menu_string: "Welcome\n0:menu 1\n1:menu 2\n2:menu 3MORE:98",
+                should_close: false
+              }} ==
+               ExUssd.goto(%{
+                 payload: %{session_id: session, text: "0", service_code: "*544#"},
+                 menu: ExUssd.set(menu, split: 3)
                })
     end
   end
