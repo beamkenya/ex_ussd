@@ -23,8 +23,10 @@ defmodule ExUssd.MixProject do
   defp docs do
     [
       main: "ExUssd",
-      Nav: [
-        ExUssd.Nav
+      groups_for_modules: [
+        Nav: [
+          ExUssd.Nav
+        ]
       ],
       extras: [
         "CHANGELOG.md",
@@ -69,7 +71,7 @@ defmodule ExUssd.MixProject do
     [
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.1", only: [:dev, :test], runtime: false},
-      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.24", only: [:dev, :test], runtime: false},
       {:faker, "~> 0.15", only: [:test, :dev]}
     ]
   end
