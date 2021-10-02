@@ -29,7 +29,7 @@ https://user-images.githubusercontent.com/23293150/124460086-95ebf080-dd97-11eb-
 
 ## Documentation
 
-The docs can be found at [https://hexdocs.pm/ex_ussd](https://hexdocs.pm/ex_ussd/1.0.0-rc-1/readme.html)
+The docs can be found at [https://hexdocs.pm/ex_ussd](https://hexdocs.pm/ex_ussd)
 
 ## Installation
 
