@@ -42,7 +42,7 @@ defmodule ExUssd.Display do
 
     menu_list = get_menu_list(menu_list, opts)
 
-    navigation = ExUssd.Nav.to_string(nav, depth + 1, menu_list, depth - 1)
+    navigation = ExUssd.Nav.to_string(nav, depth + 1, menu_list, depth - 1, length(route))
 
     should_close =
       if depth == total_length do
@@ -54,7 +54,11 @@ defmodule ExUssd.Display do
     menu_string =
       case Enum.at(menu_list, depth - 1) do
         %ExUssd{name: name} ->
-          IO.iodata_to_binary(["#{depth}", delimiter, "#{total_length}", "\n", name, navigation])
+          if should_close do
+            IO.iodata_to_binary(["#{depth}", delimiter, "#{total_length}", "\n", name])
+          else
+            IO.iodata_to_binary(["#{depth}", delimiter, "#{total_length}", "\n", name, navigation])
+          end
 
         _ ->
           ExUssd.Registry.set_depth(session, total_length + 1)
@@ -100,10 +104,17 @@ defmodule ExUssd.Display do
       |> Enum.map(&transform(menu_list, min, delimiter, &1))
       |> Enum.reject(&is_nil(&1))
 
-    navigation = ExUssd.Nav.to_string(nav, depth, menu_list, max)
+    navigation = ExUssd.Nav.to_string(nav, depth, menu_list, max, length(route))
     error = if error != true, do: error
 
     title_error = IO.iodata_to_binary(["#{error}", "#{title}"])
+
+    show_navigation =
+      if should_close do
+        false
+      else
+        show_navigation
+      end
 
     menu_string =
       cond do
