@@ -3,9 +3,14 @@ defmodule ExUssd.Utils do
   alias ExUssd.Executer
 
   @default_value 436_739_010_658_356_127_157_159_114_145
+  @is_zero_based 741_463_257_579_241_461_489_157_167_458
 
   @spec to_int(term() | {integer(), String.t()}, ExUssd.t(), map(), String.t()) :: integer()
   def to_int(input, menu, _, input_value)
+
+  def to_int({0, _}, %ExUssd{is_zero_based: is_zero_based} = menu, payload, input_value)
+      when is_zero_based,
+      do: to_int({@is_zero_based, ""}, menu, payload, input_value)
 
   def to_int({0, _}, menu, payload, input_value),
     do: to_int({@default_value, ""}, menu, payload, input_value)

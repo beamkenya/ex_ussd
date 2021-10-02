@@ -4,9 +4,6 @@ defmodule ExUssd.Executer do
   @doc """
   'execute_navigate/2' function
   It invoke's anonymous function set on navigate field.
-  Params:
-    - menu: ExUssd struct menu
-    - payload: gateway response map
   """
 
   alias ExUssd.Utils
@@ -26,11 +23,6 @@ defmodule ExUssd.Executer do
 
   @doc """
    It invoke's the init callback function on the resolve field.
-
-  ## Parameters
-
-    - `menu` - ExUssd struct menu
-    - `payload` - gateway response map
   """
   @spec execute_init_callback(ExUssd.t(), map()) :: {:ok, ExUssd.t()}
   def execute_init_callback(menu, payload)
@@ -72,12 +64,6 @@ defmodule ExUssd.Executer do
 
   @doc """
    It invoke's 'ussd_callback/3' callback function on the resolver module.
-
-  ## Parameters
-
-    - `menu` - ExUssd struct menu
-    - `payload` - gateway response map
-    -  `opts` - optional argument 
   """
 
   @spec execute_callback(%ExUssd{}, map(), keyword()) :: {:ok, ExUssd.t()} | any()
@@ -136,11 +122,6 @@ defmodule ExUssd.Executer do
 
   @doc """
    It invoke's 'ussd_after_callback/3' callback function on the resolver module.
-
-  ## Parameters
-
-    - `menu` - ExUssd struct menu
-    - `payload` - gateway response map
   """
 
   @spec execute_after_callback(%ExUssd{}, map()) :: {:ok | :halt, ExUssd.t()} | any()

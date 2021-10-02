@@ -7,12 +7,6 @@ defmodule ExUssd.Navigation do
 
   @doc """
   Its used to navigate ExUssd menus.
-
-  ## Parameters
-
-    - `route` - route to navigate
-    - `menu` - menu to navigate
-    - `payload` - gateway response value
   """
   @spec navigate(ExUssd.Route.t(), ExUssd.t(), map()) :: ExUssd.t()
   def navigate(routes, menu, %{session_id: session_id} = payload) do
@@ -95,6 +89,12 @@ defmodule ExUssd.Navigation do
         end
 
       position ->
+        position =
+          if(String.equivalent?("741_463_257_579_241_461_489_157_167_458", "#{position}"),
+            do: 1,
+            else: position
+          )
+
         with {_, current_menu} = menu <- get_menu(position, route, menu, payload),
              response when not is_menu(response) <-
                Executer.execute_after_callback(current_menu, payload) do
