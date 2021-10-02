@@ -64,7 +64,7 @@ defmodule ExUssd.Nav do
    - **`:right`** - The right position of the nav. default is 0
    - **`:left`** - The left position of the nav. default is 0
    - **`:show`** - Show the nav. default is true. if false, the nav will not be shown in the menu
-   
+
   ## Example 
 
   ```elixir
@@ -114,7 +114,7 @@ defmodule ExUssd.Nav do
     to_string(nav, 1, Enum.map(1..10, & &1), 0, 1)
   end
 
-  @spec to_string([ExUssd.Nav.t()], integer(), [ExUssd.t()], integer()) :: String.t()
+  @spec to_string([ExUssd.Nav.t()], integer(), [ExUssd.t()], integer(), integer()) :: String.t()
   def to_string(navs, depth, menu_list, max, level) when is_list(navs) do
     navs
     |> Enum.reduce("", &reduce_nav(&1, &2, navs, menu_list, depth, max, level))
