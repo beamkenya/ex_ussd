@@ -163,7 +163,7 @@ defmodule ExUssd.Op do
 
         struct!(
           ExUssd,
-          Keyword.take(opts, [:data, :resolve, :name, :orientation, :is_zero_based])
+          Keyword.take(opts, [:data, :resolve, :name, :orientation, :navigate, :is_zero_based])
         )
       end
     end
