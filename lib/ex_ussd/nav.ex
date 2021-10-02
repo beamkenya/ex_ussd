@@ -111,18 +111,25 @@ defmodule ExUssd.Nav do
 
   @spec to_string([ExUssd.Nav.t()]) :: String.t()
   def to_string(nav) when is_list(nav) do
-    to_string(nav, 1, Enum.map(1..10, & &1), 0, 1)
+    to_string(nav, 1, Enum.map(1..10, & &1), 0, 1, :vertical)
   end
 
-  @spec to_string([ExUssd.Nav.t()], integer(), [ExUssd.t()], integer(), integer()) :: String.t()
-  def to_string(navs, depth, menu_list, max, level) when is_list(navs) do
+  @spec to_string([ExUssd.Nav.t()], integer(), [ExUssd.t()], integer(), integer(), term()) ::
+          String.t()
+  def to_string(navs, depth, menu_list, max, level, orientation) when is_list(navs) do
     navs
-    |> Enum.reduce("", &reduce_nav(&1, &2, navs, menu_list, depth, max, level))
+    |> Enum.reduce("", &reduce_nav(&1, &2, navs, menu_list, depth, max, level, orientation))
     |> String.trim_trailing()
   end
 
-  @spec to_string(ExUssd.Nav.t(), integer(), integer()) :: String.t()
-  def to_string(%ExUssd.Nav{} = nav, depth \\ 2, has_next \\ true, level \\ 1) do
+  @spec to_string(ExUssd.Nav.t(), integer(), integer(), term()) :: String.t()
+  def to_string(
+        %ExUssd.Nav{} = nav,
+        depth \\ 2,
+        has_next \\ true,
+        level \\ 1,
+        orientation \\ :vertical
+      ) do
     fun = fn
       _, %ExUssd.Nav{show: false} ->
         ""
@@ -139,6 +146,14 @@ defmodule ExUssd.Nav do
       %{has_next: nil}, %ExUssd.Nav{type: :next} ->
         ""
 
+      %{orientation: :vertical, depth: 1, level: 1},
+      %ExUssd.Nav{type: :next, name: name, delimiter: delimiter, match: match, reverse: true} ->
+        "\n#{match}#{delimiter}#{name}"
+
+      %{orientation: :vertical, depth: 1, level: 1},
+      %ExUssd.Nav{type: :next, name: name, delimiter: delimiter, match: match} ->
+        "\n#{name}#{delimiter}#{match}"
+
       _, %ExUssd.Nav{name: name, delimiter: delimiter, match: match, reverse: true} ->
         "#{match}#{delimiter}#{name}"
 
@@ -146,7 +161,11 @@ defmodule ExUssd.Nav do
         "#{name}#{delimiter}#{match}"
     end
 
-    navigation = apply(fun, [%{depth: depth, has_next: has_next, level: level}, nav])
+    navigation =
+      apply(fun, [
+        %{orientation: orientation, depth: depth, has_next: has_next, level: level},
+        nav
+      ])
 
     if String.equivalent?(navigation, "") do
       navigation
@@ -190,6 +209,7 @@ defmodule ExUssd.Nav do
   defp padding(string, :bottom, %ExUssd.Nav{orientation: :horizontal}), do: string
 
   @spec reduce_nav(
+          term(),
           ExUssd.Nav.t(),
           String.t(),
           [ExUssd.Nav.t()],
@@ -199,9 +219,15 @@ defmodule ExUssd.Nav do
           integer()
         ) ::
           String.t()
-  defp reduce_nav(%{type: type}, acc, nav, menu_list, depth, max, level) do
+  defp reduce_nav(%{type: type}, acc, nav, menu_list, depth, max, level, orientation) do
     navigation =
-      to_string(Enum.find(nav, &(&1.type == type)), depth, Enum.at(menu_list, max + 1), level)
+      to_string(
+        Enum.find(nav, &(&1.type == type)),
+        depth,
+        Enum.at(menu_list, max + 1),
+        level,
+        orientation
+      )
 
     IO.iodata_to_binary([acc, navigation])
   end

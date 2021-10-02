@@ -181,7 +181,7 @@ defmodule ExUssd.OpTest do
     test "successfully navigates back the nested menu", %{menu: menu, session: session} do
       assert {:ok,
               %{
-                menu_string: "Welcome\n1:menu 1\n2:menu 2\n3:menu 3MORE:98",
+                menu_string: "Welcome\n1:menu 1\n2:menu 2\n3:menu 3\nMORE:98",
                 should_close: false
               }} ==
                ExUssd.goto(%{
@@ -243,7 +243,7 @@ defmodule ExUssd.OpTest do
     test "successfully navigates to the first menu option", %{menu: menu, session: session} do
       assert {:ok,
               %{
-                menu_string: "Welcome\n0:menu 1\n1:menu 2\n2:menu 3MORE:98",
+                menu_string: "Welcome\n0:menu 1\n1:menu 2\n2:menu 3\nMORE:98",
                 should_close: false
               }} ==
                ExUssd.goto(%{

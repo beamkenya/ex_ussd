@@ -42,7 +42,8 @@ defmodule ExUssd.Display do
 
     menu_list = get_menu_list(menu_list, opts)
 
-    navigation = ExUssd.Nav.to_string(nav, depth + 1, menu_list, depth - 1, length(route))
+    navigation =
+      ExUssd.Nav.to_string(nav, depth + 1, menu_list, depth - 1, length(route), :horizontal)
 
     should_close =
       if depth == total_length do
@@ -105,7 +106,7 @@ defmodule ExUssd.Display do
       |> Enum.map(&transform(menu_list, min, delimiter, &1, is_zero_based))
       |> Enum.reject(&is_nil(&1))
 
-    navigation = ExUssd.Nav.to_string(nav, depth, menu_list, max, length(route))
+    navigation = ExUssd.Nav.to_string(nav, depth, menu_list, max, length(route), :vertical)
     error = if error != true, do: error
 
     title_error = IO.iodata_to_binary(["#{error}", "#{title}"])
