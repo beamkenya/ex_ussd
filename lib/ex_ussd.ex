@@ -427,7 +427,7 @@ defmodule ExUssd do
 
   ## zero based
   Used when the menu list is zero based.
-  
+
   Example:
       iex> resolve = fn menu, _payload -> 
       ...>  menu 
