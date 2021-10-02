@@ -408,6 +408,7 @@ defmodule ExUssd do
      - `name` :: The name of the menu.
      - `resolve` :: The resolve function to be called when the menu is selected.
      - `orientation` :: The orientation of the menu.
+     - `is_zero_based` :: indicates whether the menu list is zero based.
 
   Example:
       iex> resolve = fn menu, _payload -> 
@@ -423,6 +424,21 @@ defmodule ExUssd do
       iex> menu = ExUssd.new(name: "HOME", resolve: resolve, orientation: :horizontal)
       iex> ExUssd.to_string!(menu, [])
       "1:2\\noption 1\\n00:HOME\\nBACK:0 MORE:98"
+
+  ## zero based
+  Used when the menu list is zero based.
+  
+  Example:
+      iex> resolve = fn menu, _payload -> 
+      ...>  menu 
+      ...>  |> ExUssd.set(title: "Menu title")
+      ...>  |> ExUssd.add(ExUssd.new(name: "offers", resolve: &(ExUssd.set(&1, title: "offers"))))
+      ...>  |> ExUssd.add(ExUssd.new(name: "option 1", resolve: &(ExUssd.set(&1, title: "option 1"))))
+      ...>  |> ExUssd.add(ExUssd.new(name: "option 2", resolve: &(ExUssd.set(&1, title: "option 2"))))
+      ...> end
+      iex> menu = ExUssd.new(name: "HOME", is_zero_based: true, resolve: resolve)
+      iex> ExUssd.to_string!(menu, [])
+      "Menu title\\n0:offers\\n1:option 1\\n2:option 2"
 
   NOTE:
     `ExUssd.new/1` can be used to create a menu with a callback function.
