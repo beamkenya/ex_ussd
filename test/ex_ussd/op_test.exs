@@ -251,6 +251,18 @@ defmodule ExUssd.OpTest do
                  menu: ExUssd.set(menu, split: 3)
                })
     end
+
+    test "successfully navigates to the second menu option", %{menu: menu, session: session} do
+      assert {:ok,
+              %{
+                menu_string: "menu 2\n00:HOME\nBACK:0",
+                should_close: false
+              }} ==
+               ExUssd.goto(%{
+                 payload: %{session_id: session, text: "*544*1#", service_code: "*544#"},
+                 menu: ExUssd.set(menu, split: 3)
+               })
+    end
   end
 
   describe "goto/1 with callback" do

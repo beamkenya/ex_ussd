@@ -91,7 +91,7 @@ defmodule ExUssd.Navigation do
       position ->
         position =
           if(String.equivalent?("741_463_257_579_241_461_489_157_167_458", "#{position}"),
-            do: 1,
+            do: 0,
             else: position
           )
 
@@ -163,13 +163,16 @@ defmodule ExUssd.Navigation do
   defp get_menu(
          position,
          route,
-         %ExUssd{default_error: default_error, menu_list: menu_list} = parent_menu,
+         %ExUssd{default_error: default_error, menu_list: menu_list, is_zero_based: is_zero_based} =
+           parent_menu,
          %{session_id: session} = payload
        ) do
     with menu <- Executer.execute_navigate(parent_menu, payload),
          response when not is_menu(response) <-
            Executer.execute_callback(menu, payload) do
-      case Enum.at(Enum.reverse(menu_list), position - 1) do
+      from = if(is_zero_based, do: 0, else: 1)
+
+      case Enum.at(Enum.reverse(menu_list), position - from) do
         # invoke the child init callback
         %ExUssd{} = menu ->
           Registry.add_route(session, route)
