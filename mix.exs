@@ -32,8 +32,7 @@ defmodule ExUssd.MixProject do
         "README.md": [title: "Overview"]
       ],
       source_url: @source_url,
-      source_ref: "v#{@version}",
-      formatters: ["html"]
+      source_ref: "v#{@version}"
     ]
   end
 
