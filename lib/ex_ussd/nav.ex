@@ -114,7 +114,7 @@ defmodule ExUssd.Nav do
     to_string(nav, 1, Enum.map(1..10, & &1), 0, 1, :vertical)
   end
 
-  @spec to_string([ExUssd.Nav.t()], integer(), [ExUssd.t()], integer(), integer(), term()) ::
+  @spec to_string([ExUssd.Nav.t()], integer(), [ExUssd.t()], integer(), integer(), any()) ::
           String.t()
   def to_string(navs, depth, menu_list, max, level, orientation) when is_list(navs) do
     navs
@@ -122,7 +122,7 @@ defmodule ExUssd.Nav do
     |> String.trim_trailing()
   end
 
-  @spec to_string(ExUssd.Nav.t(), integer(), integer(), term()) :: String.t()
+  @spec to_string(ExUssd.Nav.t(), integer(), integer(), any()) :: String.t()
   def to_string(
         %ExUssd.Nav{} = nav,
         depth \\ 2,
@@ -208,17 +208,6 @@ defmodule ExUssd.Nav do
 
   defp padding(string, :bottom, %ExUssd.Nav{orientation: :horizontal}), do: string
 
-  @spec reduce_nav(
-          term(),
-          ExUssd.Nav.t(),
-          String.t(),
-          [ExUssd.Nav.t()],
-          [ExUssd.t()],
-          integer(),
-          integer(),
-          integer()
-        ) ::
-          String.t()
   defp reduce_nav(%{type: type}, acc, nav, menu_list, depth, max, level, orientation) do
     navigation =
       to_string(
