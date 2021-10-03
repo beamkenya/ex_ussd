@@ -111,11 +111,9 @@ defmodule ExUssd.Nav do
 
   @spec to_string([ExUssd.Nav.t()]) :: String.t()
   def to_string(nav) when is_list(nav) do
-    to_string(nav, 1, Enum.map(1..10, & &1), 0, 1, :vertical)
+    to_string(nav, 1, Enum.map(1..10, & &1), %{}, 1, :vertical)
   end
 
-  @spec to_string([ExUssd.Nav.t()], integer(), [ExUssd.t()], integer(), integer(), any()) ::
-          String.t()
   def to_string(navs, depth, menu_list, max, level, orientation) when is_list(navs) do
     nav =
       navs
@@ -130,7 +128,6 @@ defmodule ExUssd.Nav do
     end
   end
 
-  @spec to_string(ExUssd.Nav.t(), integer(), integer(), any()) :: String.t()
   def to_string(
         %ExUssd.Nav{} = nav,
         depth \\ 2,
