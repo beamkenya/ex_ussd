@@ -8,7 +8,7 @@ defmodule ExUssd.Utils do
   @spec to_int(term() | {integer(), String.t()}, ExUssd.t(), map(), String.t()) :: integer()
   def to_int(input, menu, _, input_value)
 
-  def to_int({0, _}, %ExUssd{is_zero_based: is_zero_based} = menu, payload, input_value)
+  def to_int({0, _}, %ExUssd{is_zero_based: is_zero_based}, _payload, _input_value)
       when is_zero_based,
       do: 0
 
