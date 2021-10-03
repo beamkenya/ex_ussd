@@ -29,6 +29,7 @@ defmodule ExUssd.Display do
           menu_list: menu_list,
           nav: nav,
           should_close: should_close,
+          split: split,
           default_error: default_error
         },
         %{route: route},
@@ -42,8 +43,8 @@ defmodule ExUssd.Display do
 
     menu_list = get_menu_list(menu_list, opts)
 
-    navigation =
-      ExUssd.Nav.to_string(nav, depth + 1, menu_list, depth - 1, length(route), :horizontal)
+    max = depth * split - 1
+    navigation = ExUssd.Nav.to_string(nav, depth, menu_list, max, length(route), :horizontal)
 
     should_close =
       if depth == total_length do

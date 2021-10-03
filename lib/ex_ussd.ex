@@ -423,7 +423,7 @@ defmodule ExUssd do
       iex> # Change menu orientation
       iex> menu = ExUssd.new(name: "HOME", resolve: resolve, orientation: :horizontal)
       iex> ExUssd.to_string!(menu, [])
-      "1:2\\noption 1\\n00:HOME\\nBACK:0 MORE:98"
+      "1:2\\noption 1\\nMORE:98"
 
   ## zero based
   Used when the menu list is zero based.

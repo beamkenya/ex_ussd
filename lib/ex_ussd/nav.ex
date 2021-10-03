@@ -117,42 +117,57 @@ defmodule ExUssd.Nav do
   @spec to_string([ExUssd.Nav.t()], integer(), [ExUssd.t()], integer(), integer(), any()) ::
           String.t()
   def to_string(navs, depth, menu_list, max, level, orientation) when is_list(navs) do
-    navs
-    |> Enum.reduce("", &reduce_nav(&1, &2, navs, menu_list, depth, max, level, orientation))
-    |> String.trim_trailing()
+    nav =
+      navs
+      |> Enum.reduce("", &reduce_nav(&1, &2, navs, menu_list, depth, max, level, orientation))
+      |> String.trim_trailing()
+
+    if String.starts_with?(nav, "\n") do
+      nav
+    else
+      String.pad_leading(nav, String.length(nav) + 1, "\n")
+      |> String.trim_trailing()
+    end
   end
 
   @spec to_string(ExUssd.Nav.t(), integer(), integer(), any()) :: String.t()
   def to_string(
         %ExUssd.Nav{} = nav,
         depth \\ 2,
-        has_next \\ true,
+        opts \\ %{},
         level \\ 1,
         orientation \\ :vertical
       ) do
+    menu_list = Map.get(opts, :menu_list, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    max = Map.get(opts, :max, 0)
+    has_next = Enum.at(menu_list, max + 1)
+
     fun = fn
       _, %ExUssd.Nav{show: false} ->
         ""
 
-      %{depth: 1, has_next: nil, level: 1}, _nav ->
+      %{orientation: :vertical, depth: 1, has_next: nil, level: 1}, _nav ->
         ""
 
-      %{depth: 1, level: 1}, %ExUssd.Nav{type: :back} ->
+      %{orientation: :vertical, depth: 1, level: 1}, %ExUssd.Nav{type: :back} ->
         ""
 
-      %{depth: 1, level: 1}, %ExUssd.Nav{type: :home} ->
+      %{orientation: :vertical, depth: 1, level: 1}, %ExUssd.Nav{type: :home} ->
         ""
 
-      %{has_next: nil}, %ExUssd.Nav{type: :next} ->
+      %{orientation: :vertical, has_next: nil}, %ExUssd.Nav{type: :next} ->
         ""
 
-      %{orientation: :vertical, depth: 1, level: 1},
-      %ExUssd.Nav{type: :next, name: name, delimiter: delimiter, match: match, reverse: true} ->
-        "\n#{match}#{delimiter}#{name}"
+      %{orientation: :horizontal, depth: 1, level: 1}, %ExUssd.Nav{type: :back} ->
+        ""
 
-      %{orientation: :vertical, depth: 1, level: 1},
-      %ExUssd.Nav{type: :next, name: name, delimiter: delimiter, match: match} ->
-        "\n#{name}#{delimiter}#{match}"
+      %{orientation: :horizontal, level: 1}, %ExUssd.Nav{type: :home} ->
+        ""
+
+      %{orientation: :horizontal, depth: depth, menu_length: menu_length},
+      %ExUssd.Nav{type: :next}
+      when depth >= menu_length ->
+        ""
 
       _, %ExUssd.Nav{name: name, delimiter: delimiter, match: match, reverse: true} ->
         "#{match}#{delimiter}#{name}"
@@ -163,7 +178,14 @@ defmodule ExUssd.Nav do
 
     navigation =
       apply(fun, [
-        %{orientation: orientation, depth: depth, has_next: has_next, level: level},
+        %{
+          orientation: orientation,
+          depth: depth,
+          has_next: has_next,
+          level: level,
+          max: max,
+          menu_length: length(menu_list)
+        },
         nav
       ])
 
@@ -213,7 +235,7 @@ defmodule ExUssd.Nav do
       to_string(
         Enum.find(nav, &(&1.type == type)),
         depth,
-        Enum.at(menu_list, max + 1),
+        %{max: max, menu_list: menu_list},
         level,
         orientation
       )

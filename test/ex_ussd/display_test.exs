@@ -29,8 +29,37 @@ defmodule ExUssd.DisplayTest do
     test "successfully converts ExUssd :horizontal menu struct into display string", %{menu: menu} do
       menu = Map.put(menu, :orientation, :horizontal)
 
-      assert {:ok, %{menu_string: "1:3\nmenu 1\n00:HOME\nBACK:0 MORE:98", should_close: false}} ==
+      assert {:ok, %{menu_string: "1:3\nmenu 1\nMORE:98", should_close: false}} ==
                Display.to_string(menu, %{route: [%{depth: 1, text: "1"}]})
+    end
+
+    test "successfully converts ExUssd :horizontal menu struct into display string (nest 2)", %{
+      menu: menu
+    } do
+      menu = Map.put(menu, :orientation, :horizontal)
+
+      assert {:ok, %{menu_string: "2:3\nmenu 2\nBACK:0 MORE:98", should_close: false}} ==
+               Display.to_string(menu, %{route: [%{depth: 2, text: "1"}]})
+    end
+
+    test "successfully converts ExUssd :horizontal menu struct into display string (nest 3)", %{
+      menu: menu
+    } do
+      menu = Map.put(menu, :orientation, :horizontal)
+
+      assert {:ok, %{menu_string: "3:3\nmenu 3\nBACK:0", should_close: false}} ==
+               Display.to_string(menu, %{route: [%{depth: 3, text: "1"}]})
+    end
+
+    test "successfully converts ExUssd :horizontal menu struct into display string (level 1)", %{
+      menu: menu
+    } do
+      menu = Map.put(menu, :orientation, :horizontal)
+
+      assert {:ok, %{menu_string: "1:3\nmenu 1\n00:HOME\nBACK:0 MORE:98", should_close: false}} ==
+               Display.to_string(menu, %{
+                 route: [%{depth: 1, text: "1"}, %{depth: 1, text: "5555"}]
+               })
     end
   end
 end

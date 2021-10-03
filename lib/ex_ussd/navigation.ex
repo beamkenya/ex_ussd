@@ -89,12 +89,6 @@ defmodule ExUssd.Navigation do
         end
 
       position ->
-        position =
-          if(String.equivalent?("741_463_257_579_241_461_489_157_167_458", "#{position}"),
-            do: 0,
-            else: position
-          )
-
         with {_, current_menu} = menu <- get_menu(position, route, menu, payload),
              response when not is_menu(response) <-
                Executer.execute_after_callback(current_menu, payload) do

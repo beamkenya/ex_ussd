@@ -10,7 +10,7 @@ defmodule ExUssd.Utils do
 
   def to_int({0, _}, %ExUssd{is_zero_based: is_zero_based} = menu, payload, input_value)
       when is_zero_based,
-      do: to_int({@is_zero_based, ""}, menu, payload, input_value)
+      do: 0
 
   def to_int({0, _}, menu, payload, input_value),
     do: to_int({@default_value, ""}, menu, payload, input_value)
