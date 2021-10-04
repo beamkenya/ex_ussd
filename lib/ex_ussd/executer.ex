@@ -97,10 +97,11 @@ defmodule ExUssd.Executer do
         with %ExUssd{error: error} = current_menu <-
                apply(resolve, :ussd_callback, [%{menu | resolve: nil}, payload, metadata]) do
           if is_bitstring(error) do
+            ExUssd.Registry.add_attempt(payload[:session_id], payload[:text])
             build_response_menu(:halt, current_menu, menu, payload, opts)
           else
             build_response_menu(:ok, current_menu, menu, payload, opts)
-            |> get_next_menu(payload, opts)
+            |> get_next_menu(payload, state: false)
           end
         end
       rescue
@@ -161,7 +162,7 @@ defmodule ExUssd.Executer do
             build_response_menu(:halt, current_menu, menu, payload, opts)
           else
             build_response_menu(:ok, current_menu, menu, payload, opts)
-            |> get_next_menu(payload, opts)
+            |> get_next_menu(payload, state: false)
           end
         end
       rescue
@@ -189,9 +190,11 @@ defmodule ExUssd.Executer do
       %{route: route} = ExUssd.Route.get_route(payload)
       %{session_id: session} = payload
       ExUssd.Registry.add_route(session, route)
-    end
 
-    {:ok, %{current_menu | parent: fn -> menu end}}
+      {:ok, %{current_menu | parent: fn -> menu end}}
+    else
+      {:ok, current_menu}
+    end
   end
 
   defp get_next_menu(menu, payload, opts) do
@@ -216,9 +219,6 @@ defmodule ExUssd.Executer do
     current_response =
       case menu do
         {:ok, %ExUssd{resolve: resolve} = menu} when not is_nil(resolve) ->
-          menu
-
-        %ExUssd{} = menu ->
           menu
 
         menu ->

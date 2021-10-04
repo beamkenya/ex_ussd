@@ -78,15 +78,15 @@ defmodule ApiWeb.HomeResolver do
     ExUssd.set(menu, title: "Enter your PIN")
   end
 
-  def ussd_callback(menu, payload, %{attempt: attempt}) do
+  def ussd_callback(menu, payload,%{attempt: %{count: count}}) do
     if payload.text == "5555" do
       ExUssd.set(menu, resolve: &success_menu/2)
     else
-      ExUssd.set(menu, error: "Wrong PIN, #{3 - attempt} attempt left\n")
+      ExUssd.set(menu, error: "Wrong PIN, #{2 - count} attempt left\n")
     end
   end
 
-  def ussd_after_callback(%{error: true} = menu, _payload, %{attempt: 3}) do
+  def ussd_after_callback(%{error: true} = menu, _payload, %{attempt: %{count: 3}}) do
     menu
     |> ExUssd.set(title: "Account is locked, Dial *234# to reset your account")
     |> ExUssd.set(should_close: true)

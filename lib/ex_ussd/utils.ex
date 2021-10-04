@@ -120,7 +120,7 @@ defmodule ExUssd.Utils do
     %{attempt: attempt, invoked_at: invoked_at, route: routes_string, text: text}
   end
 
-  def get_menu(%ExUssd{} = menu, opts) do
+  def get_menu(%ExUssd{is_zero_based: is_zero_based} = menu, opts) do
     payload = Keyword.get(opts, :payload, %{text: "set_init_text"})
 
     position =
@@ -135,7 +135,9 @@ defmodule ExUssd.Utils do
           current_menu = get_menu(menu, :ussd_callback, opts)
 
         if error do
-          case Enum.at(Enum.reverse(menu_list), position - 1) do
+          from = if(is_zero_based, do: 0, else: 1)
+
+          case Enum.at(Enum.reverse(menu_list), position - from) do
             nil ->
               get_menu(%{menu | error: true}, :ussd_after_callback, opts)
 
