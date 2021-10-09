@@ -25,8 +25,6 @@ Goals:
  ExUssd lets you create simple, flexible, and customizable USSD interface.
  Under the hood ExUssd uses Elixir Registry to create and route individual USSD session.
 
-https://user-images.githubusercontent.com/23293150/124460086-95ebf080-dd97-11eb-87ab-605f06291563.mp4
-
 ## Documentation
 
 The docs can be found at [https://hexdocs.pm/ex_ussd](https://hexdocs.pm/ex_ussd)
@@ -39,7 +37,7 @@ by adding `ex_ussd` to your list of dependencies in `mix.exs`:
 ```elixir
 defp deps do
   [
-    {:ex_ussd, "~> 1.0.0"}
+    {:ex_ussd, "~> 1.0.1"}
   ]
 end
 ```
