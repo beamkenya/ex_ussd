@@ -173,7 +173,6 @@ defmodule ExUssd.Navigation do
           {:ok, %{current_menu | parent: fn -> parent_menu end}}
 
         nil ->
-          Registry.add_attempt(session, route[:text])
           {:halt, %{menu | error: default_error}}
       end
     end

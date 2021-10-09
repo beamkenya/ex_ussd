@@ -76,7 +76,7 @@ defmodule ExUssd.Executer do
     |> get_next_menu(payload, opts)
   end
 
-  def execute_callback(%ExUssd{resolve: resolve} = menu, payload, opts)
+  def execute_callback(%ExUssd{resolve: resolve, menu_list: menu_list} = menu, payload, opts)
       when is_atom(resolve) do
     if function_exported?(resolve, :ussd_callback, 3) do
       metadata =
@@ -87,7 +87,7 @@ defmodule ExUssd.Executer do
               %{
                 route: "*test#",
                 invoked_at: DateTime.truncate(DateTime.utc_now(), :second),
-                attempt: 1
+                attempt: %{count: 1}
               },
               payload
             )
@@ -95,13 +95,22 @@ defmodule ExUssd.Executer do
 
       try do
         with %ExUssd{error: error} = current_menu <-
-               apply(resolve, :ussd_callback, [%{menu | resolve: nil}, payload, metadata]) do
+               apply(resolve, :ussd_callback, [
+                 %{menu | resolve: nil, menu_list: []},
+                 payload,
+                 metadata
+               ]) do
           if is_bitstring(error) do
-            ExUssd.Registry.add_attempt(payload[:session_id], payload[:text])
-            build_response_menu(:halt, current_menu, menu, payload, opts)
+            if Keyword.get(opts, :state) do
+              ExUssd.Registry.add_attempt(payload[:session_id], payload[:text])
+            end
+
+            if Enum.empty?(menu_list) do
+              build_response_menu(:halt, current_menu, menu, payload, opts)
+            end
           else
             build_response_menu(:ok, current_menu, menu, payload, opts)
-            |> get_next_menu(payload, state: false)
+            |> get_next_menu(payload, opts)
           end
         end
       rescue
@@ -145,7 +154,7 @@ defmodule ExUssd.Executer do
               %{
                 route: "*test#",
                 invoked_at: DateTime.truncate(DateTime.utc_now(), :second),
-                attempt: 3
+                attempt: %{count: 3}
               },
               payload
             )
@@ -154,7 +163,7 @@ defmodule ExUssd.Executer do
       try do
         with %ExUssd{error: error} = current_menu <-
                apply(resolve, :ussd_after_callback, [
-                 %{menu | resolve: nil, error: error_state},
+                 %{menu | resolve: nil, menu_list: [], error: error_state},
                  payload,
                  metadata
                ]) do
@@ -162,7 +171,7 @@ defmodule ExUssd.Executer do
             build_response_menu(:halt, current_menu, menu, payload, opts)
           else
             build_response_menu(:ok, current_menu, menu, payload, opts)
-            |> get_next_menu(payload, state: false)
+            |> get_next_menu(payload, opts)
           end
         end
       rescue

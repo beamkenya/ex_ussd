@@ -22,7 +22,7 @@ defmodule HomeResolver do
       |> ExUssd.set(resolve: &business_account/2)
    end
 
-    def home(menu, _payload) do
+    def ussd_init(menu, _payload) do
       data = %{user_name: "john_doe", account_type: :personal}
       menu 
       |> ExUssd.set(title: "Welcome")
@@ -45,16 +45,19 @@ defmodule HomeResolver do
        menu |> ExUssd.set(title: "This is a business account")
     end
 
-    def ussd_init(menu, _) do
-      menu
-      |> ExUssd.set(title: "Enter your PIN")
-    end
-
     def ussd_callback(menu, payload, _metadata) do
       if payload.text == "5555" do
         menu
-        |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
-        |> ExUssd.set(should_close: true)
+        |> ExUssd.set(resolve: &product_a/2)
+      else
+        menu
+        |> ExUssd.set(error: "You have Entered the Wrong Number")
       end
+    end
+
+    def ussd_after_callback(%{error: true} = menu, _payload, %{attempt: %{count: 3}}) do
+      menu
+      |> ExUssd.set(title: "Account is locked, Dial *234# to reset your account")
+      |> ExUssd.set(should_close: true)
     end
   end
