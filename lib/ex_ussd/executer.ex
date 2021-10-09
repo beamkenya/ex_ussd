@@ -73,7 +73,7 @@ defmodule ExUssd.Executer do
       when not is_nil(navigate) do
     menu
     |> Map.put(:resolve, navigate)
-    |> get_next_menu(payload, opts)
+    |> get_next_menu(menu, payload, Keyword.merge(opts, navigate: true))
   end
 
   def execute_callback(%ExUssd{resolve: resolve, menu_list: menu_list} = menu, payload, opts)
@@ -110,7 +110,7 @@ defmodule ExUssd.Executer do
             end
           else
             build_response_menu(:ok, current_menu, menu, payload, opts)
-            |> get_next_menu(payload, opts)
+            |> get_next_menu(menu, payload, opts)
           end
         end
       rescue
@@ -171,7 +171,7 @@ defmodule ExUssd.Executer do
             build_response_menu(:halt, current_menu, menu, payload, opts)
           else
             build_response_menu(:ok, current_menu, menu, payload, opts)
-            |> get_next_menu(payload, opts)
+            |> get_next_menu(menu, payload, opts)
           end
         end
       rescue
@@ -206,9 +206,9 @@ defmodule ExUssd.Executer do
     end
   end
 
-  defp get_next_menu(menu, payload, opts) do
+  defp get_next_menu(menu, parent, payload, opts) do
     fun = fn
-      %ExUssd{orientation: orientation, data: data, resolve: resolve} ->
+      %ExUssd{orientation: orientation, data: data, resolve: resolve} when not is_nil(resolve) ->
         new_menu =
           ExUssd.new(
             orientation: orientation,
@@ -219,7 +219,11 @@ defmodule ExUssd.Executer do
 
         current_menu = execute_init_callback!(new_menu, payload)
 
-        build_response_menu(:ok, current_menu, menu, payload, opts)
+        if Keyword.get(opts, :navigate) do
+          build_response_menu(:ok, current_menu, menu, payload, opts)
+        else
+          {:ok, %{current_menu | parent: fn -> parent end}}
+        end
 
       response ->
         response

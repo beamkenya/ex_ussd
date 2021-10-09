@@ -432,13 +432,15 @@ defmodule ExUssd do
       iex> resolve = fn menu, _payload -> 
       ...>  menu 
       ...>  |> ExUssd.set(title: "Menu title")
-      ...>  |> ExUssd.add(ExUssd.new(name: "offers", resolve: &(ExUssd.set(&1, title: "offers"))))
+      ...>  |> ExUssd.add(ExUssd.new(name: "offers", resolve: fn menu, _ -> ExUssd.set(menu, title: "offers") end))
       ...>  |> ExUssd.add(ExUssd.new(name: "option 1", resolve: &(ExUssd.set(&1, title: "option 1"))))
       ...>  |> ExUssd.add(ExUssd.new(name: "option 2", resolve: &(ExUssd.set(&1, title: "option 2"))))
       ...> end
       iex> menu = ExUssd.new(name: "HOME", is_zero_based: true, resolve: resolve)
       iex> ExUssd.to_string!(menu, [])
       "Menu title\\n0:offers\\n1:option 1\\n2:option 2"
+      iex> ExUssd.to_string!(menu, [simulate: true, payload: %{text: "0"}])
+      "offers"
 
   NOTE:
     `ExUssd.new/1` can be used to create a menu with a callback function.
