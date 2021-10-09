@@ -43,7 +43,7 @@ config :ex_ussd,
     ExUssd.Nav.new(type: :home, name: "HOME", match: "00", reverse: true, orientation: :vertical),
     ExUssd.Nav.new(type: :back, name: "BACK", match: "0", right: 1),
     ExUssd.Nav.new(type: :next, name: "MORE", match: "98")
-      ],
+  ],
   delimiter: ").",
   default_error: "invalid input,try again\n"
 ```
@@ -61,7 +61,7 @@ Create a new module:
 ```elixir
 defmodule ApiWeb.HomeResolver do
   use ExUssd
-  def ussd_init(menu, _) do
+  def ussd_init(menu, _payload) do
     ExUssd.set(menu, title: "Enter your PIN")
   end
 
