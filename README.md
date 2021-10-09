@@ -65,7 +65,7 @@ defmodule ApiWeb.HomeResolver do
     ExUssd.set(menu, title: "Enter your PIN")
   end
 
-  def ussd_callback(menu, payload,%{attempt: %{count: count}}) do
+  def ussd_callback(menu, payload, %{attempt: %{count: count}}) do
     if payload.text == "5555" do
       ExUssd.set(menu, resolve: &success_menu/2)
     else
