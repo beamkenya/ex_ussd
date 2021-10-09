@@ -9,17 +9,6 @@ Goals:
 - Detailed error messages and documentation.
 - A focus on robustness and production-level performance.
 
-## Table of contents
-
-- [Why Use ExUssd](#why-use-exussd)
-- [Documentation](#documentation)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [Contribution](#contribution)
-- [Contributors](#contributors)
-- [Licence](#licence)
-
 ## Why Use ExUssd?
 
  ExUssd lets you create simple, flexible, and customizable USSD interface.
