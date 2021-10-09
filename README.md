@@ -9,23 +9,10 @@ Goals:
 - Detailed error messages and documentation.
 - A focus on robustness and production-level performance.
 
-## Table of contents
-
-- [Why Use ExUssd](#why-use-exussd)
-- [Documentation](#documentation)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [Contribution](#contribution)
-- [Contributors](#contributors)
-- [Licence](#licence)
-
 ## Why Use ExUssd?
 
  ExUssd lets you create simple, flexible, and customizable USSD interface.
  Under the hood ExUssd uses Elixir Registry to create and route individual USSD session.
-
-https://user-images.githubusercontent.com/23293150/124460086-95ebf080-dd97-11eb-87ab-605f06291563.mp4
 
 ## Documentation
 
@@ -39,7 +26,7 @@ by adding `ex_ussd` to your list of dependencies in `mix.exs`:
 ```elixir
 defp deps do
   [
-    {:ex_ussd, "~> 1.0.0"}
+    {:ex_ussd, "~> 1.0.1"}
   ]
 end
 ```
@@ -78,15 +65,15 @@ defmodule ApiWeb.HomeResolver do
     ExUssd.set(menu, title: "Enter your PIN")
   end
 
-  def ussd_callback(menu, payload, %{attempt: attempt}) do
+  def ussd_callback(menu, payload,%{attempt: %{count: count}}) do
     if payload.text == "5555" do
       ExUssd.set(menu, resolve: &success_menu/2)
     else
-      ExUssd.set(menu, error: "Wrong PIN, #{3 - attempt} attempt left\n")
+      ExUssd.set(menu, error: "Wrong PIN, #{2 - count} attempt left\n")
     end
   end
 
-  def ussd_after_callback(%{error: true} = menu, _payload, %{attempt: 3}) do
+  def ussd_after_callback(%{error: true} = menu, _payload, %{attempt: %{count: 3}}) do
     menu
     |> ExUssd.set(title: "Account is locked, Dial *234# to reset your account")
     |> ExUssd.set(should_close: true)

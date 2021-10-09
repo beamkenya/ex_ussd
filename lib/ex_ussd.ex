@@ -67,7 +67,7 @@ defmodule ExUssd do
 
   Example:
   ```elixir
-    %{attempt: 1, invoked_at: ~U[2024-09-25 09:10:15Z], route: "*555*1#", text: "1"}
+    %{attempt: %{count: 2, input: ["wrong2", "wrong1"]}, invoked_at: ~U[2024-09-25 09:10:15Z], route: "*555*1#", text: "1"}
   ```
   """
   @type metadata() :: map()
@@ -257,7 +257,7 @@ defmodule ExUssd do
           ...>      ExUssd.set(menu, error: "Wrong PIN\\n")
           ...>    end
           ...>  end
-          ...>  def ussd_after_callback(%{error: true} = menu, _payload, %{attempt: 3}) do
+          ...>  def ussd_after_callback(%{error: true} = menu, _payload, %{attempt: %{count: 3}}) do
           ...>   menu
           ...>   |> ExUssd.set(title: "Account is locked, you have entered the wrong PIN 3 times")
           ...>   |> ExUssd.set(should_close: true)
@@ -270,7 +270,7 @@ defmodule ExUssd do
           ...> end
           iex> # To simulate a user entering wrong PIN 3 times.
           iex> menu = ExUssd.new(name: "PIN", resolve: AppWeb.HomeResolver)
-          iex> ExUssd.to_string!(menu, :ussd_after_callback, payload: %{text: "5556", attempt: 3})
+          iex> ExUssd.to_string!(menu, :ussd_after_callback, payload: %{text: "5556", attempt: %{count: 3}})
           "Account is locked, you have entered the wrong PIN 3 times"
   """
   @callback ussd_after_callback(
@@ -432,13 +432,15 @@ defmodule ExUssd do
       iex> resolve = fn menu, _payload -> 
       ...>  menu 
       ...>  |> ExUssd.set(title: "Menu title")
-      ...>  |> ExUssd.add(ExUssd.new(name: "offers", resolve: &(ExUssd.set(&1, title: "offers"))))
+      ...>  |> ExUssd.add(ExUssd.new(name: "offers", resolve: fn menu, _ -> ExUssd.set(menu, title: "offers") end))
       ...>  |> ExUssd.add(ExUssd.new(name: "option 1", resolve: &(ExUssd.set(&1, title: "option 1"))))
       ...>  |> ExUssd.add(ExUssd.new(name: "option 2", resolve: &(ExUssd.set(&1, title: "option 2"))))
       ...> end
       iex> menu = ExUssd.new(name: "HOME", is_zero_based: true, resolve: resolve)
       iex> ExUssd.to_string!(menu, [])
       "Menu title\\n0:offers\\n1:option 1\\n2:option 2"
+      iex> ExUssd.to_string!(menu, [simulate: true, payload: %{text: "0"}])
+      "offers"
 
   NOTE:
     `ExUssd.new/1` can be used to create a menu with a callback function.
@@ -495,13 +497,17 @@ defmodule ExUssd do
       ...>  def product_b(menu, _payload), do: menu |> ExUssd.set(title: "selected product b")
       ...>  def product_c(menu, _payload), do: menu |> ExUssd.set(title: "selected product c")
       ...>  def account(%{data: %{type: :personal, name: name}} = menu, _payload) do
-      ...>    # Get Personal account details, then set as data
+      ...>    # Should be stateless, don't put call functions with side effect (Insert to DB, fetch)
+      ...>    # Because it will be called every time the menu is rendered because the menu `:name` is dynamic
+      ...>    # See `ExUssd.new/2` for more details where `:name` is static.
       ...>    menu 
       ...>    |> ExUssd.set(name: "Personal account")
       ...>    |> ExUssd.set(resolve: &(ExUssd.set(&1, title: "Personal account")))
       ...>  end
       ...>  def account(%{data: %{type: :business, name: name}} = menu, _payload) do
-      ...>    # Get Business account details, then set as data
+      ...>    # Should be stateless, don't put call functions with side effect (Insert to DB, fetch)
+      ...>    # Because it will be called every time the menu is rendered because the menu `:name` is dynamic
+      ...>    # See `ExUssd.new/2` for more details where `:name` is static.
       ...>    menu 
       ...>    |> ExUssd.set(name: "Business account")
       ...>    |> ExUssd.set(resolve: &(ExUssd.set(&1, title: "Business account")))

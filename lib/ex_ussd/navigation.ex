@@ -141,15 +141,9 @@ defmodule ExUssd.Navigation do
   @spec get_menu(integer(), map(), ExUssd.t(), map()) :: {:ok | :halt, ExUssd.t()}
   defp get_menu(pos, route, menu, payload)
 
-  defp get_menu(
-         _pos,
-         route,
-         %ExUssd{default_error: error, menu_list: []} = menu,
-         %{session_id: session} = payload
-       ) do
+  defp get_menu(_pos, _route, %ExUssd{default_error: error, menu_list: []} = menu, payload) do
     with response when not is_menu(response) <-
            Executer.execute_callback(menu, payload) do
-      Registry.add_attempt(session, route[:text])
       {:halt, %{menu | error: error}}
     end
   end
@@ -179,7 +173,6 @@ defmodule ExUssd.Navigation do
           {:ok, %{current_menu | parent: fn -> parent_menu end}}
 
         nil ->
-          Registry.add_attempt(session, route[:text])
           {:halt, %{menu | error: default_error}}
       end
     end

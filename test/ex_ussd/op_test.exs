@@ -289,4 +289,58 @@ defmodule ExUssd.OpTest do
                })
     end
   end
+
+  describe "metadata" do
+    defmodule PinResolver do
+      use ExUssd
+
+      def ussd_init(menu, _) do
+        ExUssd.set(menu, title: "Enter your PIN")
+      end
+
+      def ussd_callback(menu, payload, %{attempt: %{count: count}}) do
+        if payload.text == "5555" do
+          ExUssd.set(menu, resolve: &success_menu/2)
+        else
+          ExUssd.set(menu, error: "Wrong PIN, #{2 - count} attempt left\n")
+        end
+      end
+
+      def ussd_after_callback(%{error: true} = menu, _payload, %{attempt: %{count: 3}}) do
+        menu
+        |> ExUssd.set(title: "Account is locked, Dial *234# to reset your account")
+        |> ExUssd.set(should_close: true)
+      end
+
+      def success_menu(menu, _) do
+        menu
+        |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
+        |> ExUssd.set(should_close: true)
+      end
+    end
+
+    setup do
+      %{
+        menu: ExUssd.new(name: Faker.Company.name(), resolve: PinResolver),
+        session: "#{System.unique_integer()}"
+      }
+    end
+
+    test "successfully navigates to the first menu", %{menu: menu, session: session} do
+      assert {:ok, %{menu_string: "Enter your PIN", should_close: false}} ==
+               ExUssd.goto(%{
+                 payload: %{session_id: session, text: "*444#", service_code: "*444#"},
+                 menu: menu
+               })
+    end
+
+    test "successfully render the first error message", %{menu: menu, session: session} do
+      assert {:ok,
+              %{menu_string: "Wrong PIN, 2 attempt left\nEnter your PIN", should_close: false}} ==
+               ExUssd.goto(%{
+                 payload: %{session_id: session, text: "2211", service_code: "*444#"},
+                 menu: menu
+               })
+    end
+  end
 end

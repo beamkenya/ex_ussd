@@ -73,10 +73,10 @@ defmodule ExUssd.Executer do
       when not is_nil(navigate) do
     menu
     |> Map.put(:resolve, navigate)
-    |> get_next_menu(payload, opts)
+    |> get_next_menu(menu, payload, Keyword.merge(opts, navigate: true))
   end
 
-  def execute_callback(%ExUssd{resolve: resolve} = menu, payload, opts)
+  def execute_callback(%ExUssd{resolve: resolve, menu_list: menu_list} = menu, payload, opts)
       when is_atom(resolve) do
     if function_exported?(resolve, :ussd_callback, 3) do
       metadata =
@@ -87,7 +87,7 @@ defmodule ExUssd.Executer do
               %{
                 route: "*test#",
                 invoked_at: DateTime.truncate(DateTime.utc_now(), :second),
-                attempt: 1
+                attempt: %{count: 1}
               },
               payload
             )
@@ -95,12 +95,22 @@ defmodule ExUssd.Executer do
 
       try do
         with %ExUssd{error: error} = current_menu <-
-               apply(resolve, :ussd_callback, [%{menu | resolve: nil}, payload, metadata]) do
+               apply(resolve, :ussd_callback, [
+                 %{menu | resolve: nil, menu_list: []},
+                 payload,
+                 metadata
+               ]) do
           if is_bitstring(error) do
-            build_response_menu(:halt, current_menu, menu, payload, opts)
+            if Keyword.get(opts, :state) do
+              ExUssd.Registry.add_attempt(payload[:session_id], payload[:text])
+            end
+
+            if Enum.empty?(menu_list) do
+              build_response_menu(:halt, current_menu, menu, payload, opts)
+            end
           else
             build_response_menu(:ok, current_menu, menu, payload, opts)
-            |> get_next_menu(payload, opts)
+            |> get_next_menu(menu, payload, opts)
           end
         end
       rescue
@@ -144,7 +154,7 @@ defmodule ExUssd.Executer do
               %{
                 route: "*test#",
                 invoked_at: DateTime.truncate(DateTime.utc_now(), :second),
-                attempt: 3
+                attempt: %{count: 3}
               },
               payload
             )
@@ -153,7 +163,7 @@ defmodule ExUssd.Executer do
       try do
         with %ExUssd{error: error} = current_menu <-
                apply(resolve, :ussd_after_callback, [
-                 %{menu | resolve: nil, error: error_state},
+                 %{menu | resolve: nil, menu_list: [], error: error_state},
                  payload,
                  metadata
                ]) do
@@ -161,7 +171,7 @@ defmodule ExUssd.Executer do
             build_response_menu(:halt, current_menu, menu, payload, opts)
           else
             build_response_menu(:ok, current_menu, menu, payload, opts)
-            |> get_next_menu(payload, opts)
+            |> get_next_menu(menu, payload, opts)
           end
         end
       rescue
@@ -189,14 +199,16 @@ defmodule ExUssd.Executer do
       %{route: route} = ExUssd.Route.get_route(payload)
       %{session_id: session} = payload
       ExUssd.Registry.add_route(session, route)
-    end
 
-    {:ok, %{current_menu | parent: fn -> menu end}}
+      {:ok, %{current_menu | parent: fn -> menu end}}
+    else
+      {:ok, current_menu}
+    end
   end
 
-  defp get_next_menu(menu, payload, opts) do
+  defp get_next_menu(menu, parent, payload, opts) do
     fun = fn
-      %ExUssd{orientation: orientation, data: data, resolve: resolve} ->
+      %ExUssd{orientation: orientation, data: data, resolve: resolve} when not is_nil(resolve) ->
         new_menu =
           ExUssd.new(
             orientation: orientation,
@@ -207,7 +219,11 @@ defmodule ExUssd.Executer do
 
         current_menu = execute_init_callback!(new_menu, payload)
 
-        build_response_menu(:ok, current_menu, menu, payload, opts)
+        if Keyword.get(opts, :navigate) do
+          build_response_menu(:ok, current_menu, menu, payload, opts)
+        else
+          {:ok, %{current_menu | parent: fn -> parent end}}
+        end
 
       response ->
         response
@@ -216,9 +232,6 @@ defmodule ExUssd.Executer do
     current_response =
       case menu do
         {:ok, %ExUssd{resolve: resolve} = menu} when not is_nil(resolve) ->
-          menu
-
-        %ExUssd{} = menu ->
           menu
 
         menu ->
