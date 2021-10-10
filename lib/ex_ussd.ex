@@ -188,9 +188,9 @@ defmodule ExUssd do
           ...>       ExUssd.set(menu, resolve: &product_offer/2)
           ...>    end
           ...>  end
-          ...>  def product_a(menu, _payload), do: menu |> ExUssd.set(title: "selected product a")
-          ...>  def product_b(menu, _payload), do: menu |> ExUssd.set(title: "selected product b")
-          ...>  def product_c(menu, _payload), do: menu |> ExUssd.set(title: "selected product c")
+          ...>  def product_a(menu, _payload), do: ExUssd.set(menu, title: "selected product a")
+          ...>  def product_b(menu, _payload), do: ExUssd.set(menu, title: "selected product b")
+          ...>  def product_c(menu, _payload), do: ExUssd.set(menu, title: "selected product c")
           ...>  def product_offer(menu, _payload), do: menu |> ExUssd.set(title: "selected product offer")
           ...> end
           iex> menu = ExUssd.new(name: "HOME", resolve: AppWeb.ProductResolver)
@@ -228,9 +228,9 @@ defmodule ExUssd do
           ...>  def ussd_after_callback(_menu, _payload, _metadata) do
           ...>      # Use the gateway payload and metadata to capture user metrics before navigating to next menu
           ...>  end
-          ...>  def product_a(menu, _payload), do: menu |> ExUssd.set(title: "selected product a")
-          ...>  def product_b(menu, _payload), do: menu |> ExUssd.set(title: "selected product b")
-          ...>  def product_c(menu, _payload), do: menu |> ExUssd.set(title: "selected product c")
+          ...>  def product_a(menu, _payload), do: ExUssd.set(menu, title: "selected product a")
+          ...>  def product_b(menu, _payload), do: ExUssd.set(menu, title: "selected product b")
+          ...>  def product_c(menu, _payload), do: ExUssd.set(menu, title: "selected product c")
           ...> end
           iex> menu = ExUssd.new(name: "HOME", resolve: AppWeb.ProductResolver)
           iex> # To simulate a user selecting option "1"
@@ -462,9 +462,9 @@ defmodule ExUssd do
       ...>    |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
       ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
       ...>  end
-      ...>  def product_a(menu, _payload), do: menu |> ExUssd.set(title: "selected product a")
-      ...>  def product_b(menu, _payload), do: menu |> ExUssd.set(title: "selected product b")
-      ...>  def product_c(menu, _payload), do: menu |> ExUssd.set(title: "selected product c")
+      ...>  def product_a(menu, _payload), do: ExUssd.set(menu, title: "selected product a")
+      ...>  def product_b(menu, _payload), do: ExUssd.set(menu, title: "selected product b")
+      ...>  def product_c(menu, _payload), do: ExUssd.set(menu, title: "selected product c")
       ...> end
       iex> menu = ExUssd.new(fn menu, %{phone: phone} = _payload ->
       ...>    user = User.get_user(phone)
@@ -493,9 +493,9 @@ defmodule ExUssd do
       ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
       ...>    |> ExUssd.add(ExUssd.new(&account/2))
       ...>  end
-      ...>  def product_a(menu, _payload), do: menu |> ExUssd.set(title: "selected product a")
-      ...>  def product_b(menu, _payload), do: menu |> ExUssd.set(title: "selected product b")
-      ...>  def product_c(menu, _payload), do: menu |> ExUssd.set(title: "selected product c")
+      ...>  def product_a(menu, _payload), do: ExUssd.set(menu, title: "selected product a")
+      ...>  def product_b(menu, _payload), do: ExUssd.set(menu, title: "selected product b")
+      ...>  def product_c(menu, _payload), do: ExUssd.set(menu, title: "selected product c")
       ...>  def account(%{data: %{type: :personal, name: name}} = menu, _payload) do
       ...>    # Should be stateless, don't put call functions with side effect (Insert to DB, fetch)
       ...>    # Because it will be called every time the menu is rendered because the menu `:name` is dynamic
@@ -544,10 +544,10 @@ defmodule ExUssd do
       ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
       ...>    |> ExUssd.add(ExUssd.new("Account", &account/2))
       ...>  end
-      ...>  def product_a(menu, _payload), do: menu |> ExUssd.set(title: "selected product a")
-      ...>  def product_b(menu, _payload), do: menu |> ExUssd.set(title: "selected product b")
-      ...>  def product_c(menu, _payload), do: menu |> ExUssd.set(title: "selected product c")
-      ...>  def account(%{data: %{type: :personal, name: name}} = menu, _payload) do
+      ...>  def product_a(menu, _payload), do: ExUssd.set(menu, title: "selected product a")
+      ...>  def product_b(menu, _payload), do: ExUssd.set(menu, title: "selected product b")
+      ...>  def product_c(menu, _payload), do: ExUssd.set(menu, title: "selected product c")
+      ...>  def account(%{data: %{type: :personal}} = menu, _payload) do
       ...>    # Get Personal account details, then set as data
       ...>     ExUssd.set(menu, resolve: &(ExUssd.set(&1, title: "Personal account")))
       ...>  end
@@ -621,9 +621,9 @@ defmodule ExUssd do
           ...>    |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
           ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
           ...> end
-          ...>  def product_a(menu, _payload), do: menu |> ExUssd.set(title: "selected product a")
-          ...>  def product_b(menu, _payload), do: menu |> ExUssd.set(title: "selected product b")
-          ...>  def product_c(menu, _payload), do: menu |> ExUssd.set(title: "selected product c")
+          ...>  def product_a(menu, _payload), do: ExUssd.set(menu, title: "selected product a")
+          ...>  def product_b(menu, _payload), do: ExUssd.set(menu, title: "selected product b")
+          ...>  def product_c(menu, _payload), do: ExUssd.set(menu, title: "selected product c")
           ...> end
           iex> menu = ExUssd.new(name: "HOME", resolve: AppWeb.ProductResolver)
           iex> # Simulate the first time user enters the menu
@@ -646,9 +646,9 @@ defmodule ExUssd do
           ...>    |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
           ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
           ...> end
-          ...>  def product_a(menu, _payload), do: menu |> ExUssd.set(title: "selected product a")
-          ...>  def product_b(menu, _payload), do: menu |> ExUssd.set(title: "selected product b")
-          ...>  def product_c(menu, _payload), do: menu |> ExUssd.set(title: "selected product c")
+          ...>  def product_a(menu, _payload), do: ExUssd.set(menu, title: "selected product a")
+          ...>  def product_b(menu, _payload), do: ExUssd.set(menu, title: "selected product b")
+          ...>  def product_c(menu, _payload), do: ExUssd.set(menu, title: "selected product c")
           ...> end
           iex> menu = ExUssd.new(name: "HOME", resolve: AppWeb.ProductResolver)
           iex> # Simulate the first time user enters the menu
@@ -702,9 +702,9 @@ defmodule ExUssd do
           ...>    |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
           ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
           ...> end
-          ...>  def product_a(menu, _payload), do: menu |> ExUssd.set(title: "selected product a")
-          ...>  def product_b(menu, _payload), do: menu |> ExUssd.set(title: "selected product b")
-          ...>  def product_c(menu, _payload), do: menu |> ExUssd.set(title: "selected product c")
+          ...>  def product_a(menu, _payload), do: ExUssd.set(menu, title: "selected product a")
+          ...>  def product_b(menu, _payload), do: ExUssd.set(menu, title: "selected product b")
+          ...>  def product_c(menu, _payload), do: ExUssd.set(menu, title: "selected product c")
           ...> end
           iex> menu = ExUssd.new(name: "HOME", resolve: &AppWeb.ProductResolver.products/2)
           iex> # Simulate the first time user enters the menu

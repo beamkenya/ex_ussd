@@ -109,6 +109,6 @@ Auto-populated from:
 
 ## Licence
 
-ExUssd is released under [MIT License](https://github.com/appcues/exsentry/blob/master/LICENSE.txt)
+ExUssd is released under [MIT License](./LICENSE.md).
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg?style=for-the-badge)](#)
