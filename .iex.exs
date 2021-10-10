@@ -22,7 +22,7 @@ defmodule HomeResolver do
       |> ExUssd.set(resolve: &business_account/2)
    end
 
-    def ussd_init(menu, _payload) do
+    def home(menu, _payload) do
       data = %{user_name: "john_doe", account_type: :personal}
       menu 
       |> ExUssd.set(title: "Welcome")

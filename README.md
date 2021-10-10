@@ -67,7 +67,9 @@ defmodule ApiWeb.HomeResolver do
 
   def ussd_callback(menu, payload, %{attempt: %{count: count}}) do
     if payload.text == "5555" do
-      ExUssd.set(menu, resolve: &success_menu/2)
+      menu
+      |> ExUssd.set(data: %{name: "John"}) # use payload `phone_number` to fetch the user from DB
+      |> ExUssd.set(resolve: &home_rc/2)
     else
       ExUssd.set(menu, error: "Wrong PIN, #{2 - count} attempt left\n")
     end
@@ -79,10 +81,12 @@ defmodule ApiWeb.HomeResolver do
     |> ExUssd.set(should_close: true)
   end
 
-  def success_menu(menu, _) do
+  def home_rc(%ExUssd{data: %{name: name}} = menu, _) do
     menu
-    |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
-    |> ExUssd.set(should_close: true)
+    |> ExUssd.set(title: "Welcome #{name}!")
+    |> ExUssd.add(ExUssd.new(name: "option 1"))
+    |> ExUssd.add(ExUssd.new(name: "option 2"))
+    |> ExUssd.set(show_navigation: false) # hide navigation options
   end
 end
 ```
