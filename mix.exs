@@ -49,7 +49,7 @@ defmodule ExUssd.MixProject do
   defp package do
     [
       name: "ex_ussd",
-      licenses: ["MIT"],
+      licenses: ["Apache-2.0"],
       maintainers: [],
       links: %{
         "GitHub" => @source_url,

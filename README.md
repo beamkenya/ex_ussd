@@ -109,6 +109,6 @@ Auto-populated from:
 
 ## Licence
 
-ExUssd is released under [License](./LICENSE.md).
+ExUssd is released under [License](./LICENSE).
 
 ![license](https://img.shields.io/hexpm/l/ex_ussd?style=for-the-badge)
