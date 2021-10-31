@@ -16,7 +16,13 @@ defmodule ExUssd.Utils do
 
   def to_int(
         {value, ""},
-        %ExUssd{split: split, nav: nav, menu_list: menu_list, orientation: orientation},
+        %ExUssd{
+          split: split,
+          nav: nav,
+          menu_list: menu_list,
+          orientation: orientation,
+          show_navigation: show_navigation
+        },
         %{session_id: session},
         input_value
       ) do
@@ -37,16 +43,19 @@ defmodule ExUssd.Utils do
 
     case input_value do
       v
-      when v == next and show_next and orientation == :horizontal and depth < length(menu_list) ->
+      when v == next and show_next and show_navigation and orientation == :horizontal and
+             depth < length(menu_list) ->
         605_356_150_351_840_375_921_999_017_933
 
-      v when v == next and show_next and orientation == :vertical and not is_nil(element) ->
+      v
+      when v == next and show_next and show_navigation and orientation == :vertical and
+             not is_nil(element) ->
         605_356_150_351_840_375_921_999_017_933
 
-      v when v == back and show_back ->
+      v when v == back and show_back and show_navigation ->
         128_977_754_852_657_127_041_634_246_588
 
-      v when v == home and show_home ->
+      v when v == home and show_home and show_navigation ->
         705_897_792_423_629_962_208_442_626_284
 
       _v when orientation == :horizontal and is_nil(menu) ->
@@ -139,7 +148,9 @@ defmodule ExUssd.Utils do
 
           case Enum.at(Enum.reverse(menu_list), position - from) do
             nil ->
-              get_menu(%{menu | error: true}, :ussd_after_callback, opts)
+              with nil <- Executer.execute_after_callback!(current_menu, payload, state: false) do
+                current_menu
+              end
 
             %ExUssd{} = next_menu ->
               get_menu(next_menu, :ussd_init, opts)
