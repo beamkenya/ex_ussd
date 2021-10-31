@@ -41,7 +41,7 @@ defmodule ExUssd.DisplayTest do
     } do
       menu = menu |> Map.put(:orientation, :horizontal) |> Map.put(:is_zero_based, true)
 
-      assert {:ok, %{menu_string: "0:2\nmenu 1\nMORE:98", should_close: false}} ==
+      assert {:ok, %{menu_string: "1:3\nmenu 1\nMORE:98", should_close: false}} ==
                Display.to_string(menu, %{route: [%{depth: 1, text: "1"}]})
     end
 

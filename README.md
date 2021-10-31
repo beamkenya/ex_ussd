@@ -61,6 +61,7 @@ Create a new module:
 ```elixir
 defmodule ApiWeb.HomeResolver do
   use ExUssd
+  
   def ussd_init(menu, _payload) do
     ExUssd.set(menu, title: "Enter your PIN")
   end

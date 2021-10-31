@@ -30,8 +30,7 @@ defmodule ExUssd.Display do
           nav: nav,
           should_close: should_close,
           split: split,
-          default_error: default_error,
-          is_zero_based: is_zero_based
+          default_error: default_error
         },
         %{route: route},
         opts
@@ -40,7 +39,7 @@ defmodule ExUssd.Display do
 
     %{depth: depth} = List.first(route)
 
-    total_length = Enum.count(menu_list) - 1
+    total_length = Enum.count(menu_list)
 
     menu_list = get_menu_list(menu_list, opts)
 
@@ -54,20 +53,16 @@ defmodule ExUssd.Display do
         false
       end
 
-    from = if(is_zero_based, do: 0, else: 1)
-
-    depth = if(is_zero_based, do: depth - 1, else: depth)
-
     menu_string =
-      case Enum.at(menu_list, depth - from) do
+      case Enum.at(menu_list, depth - 1) do
         %ExUssd{name: name} ->
           if should_close do
-            IO.iodata_to_binary(["#{depth}", delimiter, "#{total_length + from}", "\n", name])
+            IO.iodata_to_binary(["#{depth}", delimiter, "#{total_length}", "\n", name])
           else
             IO.iodata_to_binary([
               "#{depth}",
               delimiter,
-              "#{total_length + from}",
+              "#{total_length}",
               "\n",
               name,
               navigation

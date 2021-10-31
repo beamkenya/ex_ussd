@@ -165,10 +165,10 @@ defmodule ExUssd.Navigation do
         %ExUssd{} = menu ->
           Registry.add_route(session, route)
 
-          {:ok, current_menu} =
+          current_menu =
             menu
             |> Executer.execute_navigate(payload)
-            |> Executer.execute_init_callback(payload)
+            |> Executer.execute_init_callback!(payload)
 
           {:ok, %{current_menu | parent: fn -> parent_menu end}}
 
