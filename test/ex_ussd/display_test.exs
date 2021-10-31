@@ -26,6 +26,25 @@ defmodule ExUssd.DisplayTest do
                Display.to_string(menu, route)
     end
 
+    test "successfully converts ExUssd zero based menu struct into display string", %{
+      menu: menu,
+      route: route
+    } do
+      menu = Map.put(menu, :is_zero_based, true)
+
+      assert {:ok, %{menu_string: "Welcome\n0:menu 1\n1:menu 2\n2:menu 3", should_close: false}} ==
+               Display.to_string(menu, route)
+    end
+
+    test "successfully converts ExUssd :horizontal zero based menu struct into display string", %{
+      menu: menu
+    } do
+      menu = menu |> Map.put(:orientation, :horizontal) |> Map.put(:is_zero_based, true)
+
+      assert {:ok, %{menu_string: "0:2\nmenu 1\nMORE:98", should_close: false}} ==
+               Display.to_string(menu, %{route: [%{depth: 1, text: "1"}]})
+    end
+
     test "successfully converts ExUssd :horizontal menu struct into display string", %{menu: menu} do
       menu = Map.put(menu, :orientation, :horizontal)
 

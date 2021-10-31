@@ -59,10 +59,10 @@ defmodule ExUssd.Nav do
    - **`:delimiter`** - The delimiter to split the match string. default is ":"
    - **`:orientation`** - The orientation of the nav. default is :horizontal
    - **`:reverse`** - Reverse the order of the nav. default is false
-   - **`:top`** - The top position of the nav. default is 0
-   - **`:bottom`** - The bottom position of the nav. default is 0
-   - **`:right`** - The right position of the nav. default is 0
-   - **`:left`** - The left position of the nav. default is 0
+   - **`:top`** - Add top position padding of the nav. default is 0
+   - **`:bottom`** - Add padding to bottom position of the nav. default is 0
+   - **`:right`** - Add padding to right position of the nav. default is 0
+   - **`:left`** - Add padding to left position of the nav. default is 0
    - **`:show`** - Show the nav. default is true. if false, the nav will not be shown in the menu
 
   ## Example 

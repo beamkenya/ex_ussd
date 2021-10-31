@@ -110,4 +110,3 @@ Auto-populated from:
 ## Licence
 
 ExUssd is released under [Apache License 2.0](./LICENSE).
-Check LICENSE file for more information.
