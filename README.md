@@ -61,6 +61,7 @@ Create a new module:
 ```elixir
 defmodule ApiWeb.HomeResolver do
   use ExUssd
+  
   def ussd_init(menu, _payload) do
     ExUssd.set(menu, title: "Enter your PIN")
   end
@@ -109,4 +110,4 @@ Auto-populated from:
 
 ## Licence
 
-ExUssd is released under [Apache License 2.0](./LICENSE).
+ExUssd is released under [Apache License 2.0](./LICENSE)
