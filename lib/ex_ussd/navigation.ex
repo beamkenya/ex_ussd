@@ -89,7 +89,7 @@ defmodule ExUssd.Navigation do
         end
 
       position ->
-        with {_, current_menu} = menu <- get_menu(position, route, menu, payload),
+        with {:halt, current_menu} = menu <- get_menu(position, route, menu, payload),
              response when not is_menu(response) <-
                Executer.execute_after_callback(current_menu, payload) do
           menu
