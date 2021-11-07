@@ -104,7 +104,7 @@ Check the [Contribution guide](contributing.md) on how to contribute.
 Auto-populated from:
 [contributors-img](https://contributors-img.firebaseapp.com/image?repo=beamkenya/ex_ussd)
 
-<a href="https://github.com/beamkenya/ex_pesa/graphs/contributors">
+<a href="https://github.com/beamkenya/ex_ussd/graphs/contributors">
   <img src="https://contributors-img.firebaseapp.com/image?repo=beamkenya/ex_ussd" />
 </a>
 
