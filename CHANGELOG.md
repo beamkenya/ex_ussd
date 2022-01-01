@@ -11,4 +11,4 @@
 # v1.1.0 - 2022-01-01
 
  - Deplicate set `error` on ExUssd.set/2 function
- - introduce response tuple
+ - use response tuple

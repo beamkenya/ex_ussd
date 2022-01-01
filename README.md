@@ -116,4 +116,4 @@ Auto-populated from:
 
 ## Licence
 
-ExUssd is released under [Apache License 2.0](./LICENSE).
+ExUssd is released under [Apache License 2.0](LICENSE).
