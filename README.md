@@ -74,7 +74,7 @@ defmodule ApiWeb.HomeResolver do
         |> ExUssd.set(resolve: &home_rc/2)
       {:ok, menu}
     else
-      {:error, "Wrong PIN, #{2 - count} attempt left\n"}
+      {:error, "Wrong PIN, #{2 - count} attempt left"}
     end
   end
 
