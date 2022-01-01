@@ -3,7 +3,6 @@ defmodule ExUssd.Op do
   alias ExUssd.{Display, Utils}
 
   @allowed_fields [
-    :error,
     :title,
     :next,
     :previous,

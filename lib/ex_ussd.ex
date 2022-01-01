@@ -88,7 +88,7 @@ defmodule ExUssd do
       iex> defmodule AppWeb.HomeResolver do
       ...>  use ExUssd
       ...>  def ussd_init(menu, _) do
-      ...>    ExUssd.set(menu, title: "Enter your PIN")
+      ...>    {:ok, ExUssd.set(menu, title: "Enter your PIN")}
       ...>  end
       ...> end
       iex> # To simulate a user entering a PIN, you can use the `ExUssd.to_string/2` method.
@@ -117,19 +117,21 @@ defmodule ExUssd do
       iex> defmodule AppWeb.PinResolver do
       ...>  use ExUssd
       ...>  def ussd_init(menu, _) do
-      ...>    ExUssd.set(menu, title: "Enter your PIN")
+      ...>    {:ok, ExUssd.set(menu, title: "Enter your PIN")}
       ...>  end
       ...>  def ussd_callback(menu, payload, _) do
       ...>    if payload.text == "5555" do
-      ...>       ExUssd.set(menu, resolve: &success_menu/2)
+      ...>       {:ok, ExUssd.set(menu, resolve: &success_menu/2)}
       ...>    else
-      ...>      ExUssd.set(menu, error: "Wrong PIN\\n")
+      ...>      {:error, "Wrong PIN\\n"}
       ...>    end
       ...>  end
       ...>  def success_menu(menu, _) do
-      ...>    menu
-      ...>    |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
-      ...>    |> ExUssd.set(should_close: true)
+      ...>     menu = 
+      ...>      menu
+      ...>      |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
+      ...>      |> ExUssd.set(should_close: true)
+      ...>     {:ok, menu}
       ...>  end
       ...> end
       iex> # To simulate a user entering correct PIN, you can use the `ExUssd.to_string/3` method.
@@ -150,17 +152,19 @@ defmodule ExUssd do
         iex> defmodule AppWeb.PinResolver do
         ...>  use ExUssd
         ...>  def ussd_init(menu, _) do
-        ...>    ExUssd.set(menu, title: "Enter your PIN")
+        ...>    {:ok, ExUssd.set(menu, title: "Enter your PIN")}
         ...>  end
         ...>  def ussd_callback(menu, payload, _) do
         ...>    if payload.text == "5555" do
-        ...>       ExUssd.set(menu, resolve: &success_menu/2)
+        ...>       {:ok, ExUssd.set(menu, resolve: &success_menu/2)}
         ...>    end
         ...>  end
         ...>  def success_menu(menu, _) do
-        ...>    menu
-        ...>    |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
-        ...>    |> ExUssd.set(should_close: true)
+        ...>    menu = 
+        ...>      menu
+        ...>      |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
+        ...>      |> ExUssd.set(should_close: true)
+        ...>     {:ok, menu}
         ...>  end
         ...> end
         iex> # To simulate a user entering wrong PIN.
@@ -177,21 +181,23 @@ defmodule ExUssd do
           iex> defmodule AppWeb.ProductResolver do
           ...>  use ExUssd
           ...>  def ussd_init(menu, _) do
-          ...>    menu 
-          ...>    |> ExUssd.set(title: "Product List, Enter 5555 for Offers")
-          ...>    |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
-          ...>    |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
-          ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
+          ...>    menu = 
+          ...>      menu 
+          ...>      |> ExUssd.set(title: "Product List, Enter 5555 for Offers")
+          ...>      |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
+          ...>      |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
+          ...>      |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
+          ...>    {:ok, menu}
           ...> end
           ...>  def ussd_callback(menu, payload, _) do
           ...>    if payload.text == "5555" do
-          ...>       ExUssd.set(menu, resolve: &product_offer/2)
+          ...>       {:ok, ExUssd.set(menu, resolve: &product_offer/2)}
           ...>    end
           ...>  end
-          ...>  def product_a(menu, _payload), do: ExUssd.set(menu, title: "selected product a")
-          ...>  def product_b(menu, _payload), do: ExUssd.set(menu, title: "selected product b")
-          ...>  def product_c(menu, _payload), do: ExUssd.set(menu, title: "selected product c")
-          ...>  def product_offer(menu, _payload), do: menu |> ExUssd.set(title: "selected product offer")
+          ...>  def product_a(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product a")}
+          ...>  def product_b(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product b")}
+          ...>  def product_c(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product c")}
+          ...>  def product_offer(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product offer")}
           ...> end
           iex> menu = ExUssd.new(name: "HOME", resolve: AppWeb.ProductResolver)
           iex> # To simulate a user entering "5555"
@@ -216,11 +222,13 @@ defmodule ExUssd do
           iex> defmodule AppWeb.ProductResolver do
           ...>  use ExUssd
           ...>  def ussd_init(menu, _) do
-          ...>    menu 
-          ...>    |> ExUssd.set(title: "Product List")
-          ...>    |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
-          ...>    |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
-          ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
+          ...>    menu = 
+          ...>      menu 
+          ...>      |> ExUssd.set(title: "Product List")
+          ...>      |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
+          ...>      |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
+          ...>      |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
+          ...>    {:ok, menu}
           ...> end
           ...>  def ussd_after_callback(%{error: true} = _menu, _payload, _metadata) do
           ...>      # Use the gateway payload and metadata to capture user metrics on error
@@ -228,9 +236,9 @@ defmodule ExUssd do
           ...>  def ussd_after_callback(_menu, _payload, _metadata) do
           ...>      # Use the gateway payload and metadata to capture user metrics before navigating to next menu
           ...>  end
-          ...>  def product_a(menu, _payload), do: ExUssd.set(menu, title: "selected product a")
-          ...>  def product_b(menu, _payload), do: ExUssd.set(menu, title: "selected product b")
-          ...>  def product_c(menu, _payload), do: ExUssd.set(menu, title: "selected product c")
+          ...>  def product_a(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product a")}
+          ...>  def product_b(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product b")}
+          ...>  def product_c(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product c")}
           ...> end
           iex> menu = ExUssd.new(name: "HOME", resolve: AppWeb.ProductResolver)
           iex> # To simulate a user selecting option "1"
@@ -248,24 +256,28 @@ defmodule ExUssd do
           iex> defmodule AppWeb.HomeResolver do
           ...>  use ExUssd
           ...>  def ussd_init(menu, _) do
-          ...>      ExUssd.set(menu, title: "Enter your PIN")
+          ...>      {:ok, ExUssd.set(menu, title: "Enter your PIN")}
           ...>  end
           ...>  def ussd_callback(menu, payload, _) do
           ...>    if payload.text == "5555" do
-          ...>      ExUssd.set(menu, resolve: &success_menu/2)
+          ...>      {:ok, ExUssd.set(menu, resolve: &success_menu/2)}
           ...>    else
-          ...>      ExUssd.set(menu, error: "Wrong PIN\\n")
+          ...>      {:error, "Wrong PIN\\n"}
           ...>    end
           ...>  end
           ...>  def ussd_after_callback(%{error: true} = menu, _payload, %{attempt: %{count: 3}}) do
-          ...>   menu
-          ...>   |> ExUssd.set(title: "Account is locked, you have entered the wrong PIN 3 times")
-          ...>   |> ExUssd.set(should_close: true)
+          ...>     menu = 
+          ...>      menu
+          ...>      |> ExUssd.set(title: "Account is locked, you have entered the wrong PIN 3 times")
+          ...>      |> ExUssd.set(should_close: true)
+          ...>    {:ok, menu}
           ...>  end
           ...>  def success_menu(menu, _) do
-          ...>    menu
-          ...>    |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
-          ...>    |> ExUssd.set(should_close: true)
+          ...>     menu = 
+          ...>      menu
+          ...>      |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
+          ...>      |> ExUssd.set(should_close: true)
+          ...>    {:ok, menu}
           ...>  end
           ...> end
           iex> # To simulate a user entering wrong PIN 3 times.
@@ -328,10 +340,12 @@ defmodule ExUssd do
 
   ## Example
       iex> resolve = fn menu, _payload -> 
-      ...>  menu 
-      ...>  |> ExUssd.set(title: "Menu title")
-      ...>  |> ExUssd.add(ExUssd.new(name: "option 1", resolve: &(ExUssd.set(&1, title: "option 1"))))
-      ...>  |> ExUssd.add(ExUssd.new(name: "option 2", resolve: &(ExUssd.set(&1, title: "option 2"))))
+      ...>   menu = 
+      ...>    menu 
+      ...>    |> ExUssd.set(title: "Menu title")
+      ...>    |> ExUssd.add(ExUssd.new(name: "option 1", resolve: &({:ok, ExUssd.set(&1, title: "option 1")})))
+      ...>    |> ExUssd.add(ExUssd.new(name: "option 2", resolve: &({:ok, ExUssd.set(&1, title: "option 2")})))
+      ...>   {:ok, menu}
       ...> end
       iex> menu = ExUssd.new(name: "HOME", resolve: resolve)
       iex> ExUssd.to_string!(menu, [])
@@ -357,9 +371,11 @@ defmodule ExUssd do
           ...>    menus = Enum.map(locations, fn location ->
           ...>       ExUssd.new(name: "Location " <> location, data: %{name: location})
           ...>    end)
-          ...>    menu
-          ...>    |> ExUssd.set(title: "Select Location")
-          ...>    |> ExUssd.add(menus, resolve: &(ExUssd.set(&1, title: "Location " <> &1.data.name)))
+          ...>    menu = 
+          ...>      menu
+          ...>      |> ExUssd.set(title: "Select Location")
+          ...>      |> ExUssd.add(menus, resolve: &(ExUssd.set(&1, title: "Location " <> &1.data.name)))
+          ...>   {:ok, menu}
           ...>  end
           ...> end
           iex> menu = ExUssd.new(name: "HOME", resolve: AppWeb.LocationResolver)
@@ -412,10 +428,12 @@ defmodule ExUssd do
 
   Example:
       iex> resolve = fn menu, _payload -> 
-      ...>  menu 
-      ...>  |> ExUssd.set(title: "Menu title")
-      ...>  |> ExUssd.add(ExUssd.new(name: "option 1", resolve: &(ExUssd.set(&1, title: "option 1"))))
-      ...>  |> ExUssd.add(ExUssd.new(name: "option 2", resolve: &(ExUssd.set(&1, title: "option 2"))))
+      ...>  menu =
+      ...>    menu 
+      ...>    |> ExUssd.set(title: "Menu title")
+      ...>    |> ExUssd.add(ExUssd.new(name: "option 1", resolve: &({:ok, ExUssd.set(&1, title: "option 1")})))
+      ...>    |> ExUssd.add(ExUssd.new(name: "option 2", resolve: &({:ok, ExUssd.set(&1, title: "option 2")})))
+      ...>  {:ok, menu}
       ...> end
       iex> menu = ExUssd.new(name: "HOME", resolve: resolve)
       iex> ExUssd.to_string!(menu, [])
@@ -430,11 +448,13 @@ defmodule ExUssd do
 
   Example:
       iex> resolve = fn menu, _payload -> 
-      ...>  menu 
-      ...>  |> ExUssd.set(title: "Menu title")
-      ...>  |> ExUssd.add(ExUssd.new(name: "offers", resolve: fn menu, _ -> ExUssd.set(menu, title: "offers") end))
-      ...>  |> ExUssd.add(ExUssd.new(name: "option 1", resolve: &(ExUssd.set(&1, title: "option 1"))))
-      ...>  |> ExUssd.add(ExUssd.new(name: "option 2", resolve: &(ExUssd.set(&1, title: "option 2"))))
+      ...>  menu =
+      ...>    menu 
+      ...>    |> ExUssd.set(title: "Menu title")
+      ...>    |> ExUssd.add(ExUssd.new(name: "offers", resolve: fn menu, _ -> {:ok, ExUssd.set(menu, title: "offers")} end))
+      ...>    |> ExUssd.add(ExUssd.new(name: "option 1", resolve: &({:ok, ExUssd.set(&1, title: "option 1")})))
+      ...>    |> ExUssd.add(ExUssd.new(name: "option 2", resolve: &({:ok, ExUssd.set(&1, title: "option 2")})))
+      ...>  {:ok, menu}
       ...> end
       iex> menu = ExUssd.new(name: "HOME", is_zero_based: true, resolve: resolve)
       iex> ExUssd.to_string!(menu, [])
@@ -456,22 +476,26 @@ defmodule ExUssd do
       ...> end
       iex> defmodule HomeResolver do
       ...>  def home(%ExUssd{data: %{name: name}} = menu, _) do
+      ...>  menu =
       ...>    menu 
       ...>    |> ExUssd.set(title: "Welcome " <> name)
       ...>    |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
       ...>    |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
       ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
+      ...>  {:ok, menu}
       ...>  end
-      ...>  def product_a(menu, _payload), do: ExUssd.set(menu, title: "selected product a")
-      ...>  def product_b(menu, _payload), do: ExUssd.set(menu, title: "selected product b")
-      ...>  def product_c(menu, _payload), do: ExUssd.set(menu, title: "selected product c")
+      ...>  def product_a(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product a")}
+      ...>  def product_b(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product b")}
+      ...>  def product_c(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product c")}
       ...> end
       iex> menu = ExUssd.new(fn menu, %{phone: phone} = _payload ->
       ...>    user = User.get_user(phone)
-      ...>    menu
-      ...>    |> ExUssd.set(name: "Home")
-      ...>    |> ExUssd.set(data: user)
-      ...>    |> ExUssd.set(resolve: &HomeResolver.home/2)
+      ...>   menu =
+      ...>      menu
+      ...>      |> ExUssd.set(name: "Home")
+      ...>      |> ExUssd.set(data: user)
+      ...>      |> ExUssd.set(resolve: &HomeResolver.home/2)
+      ...>   {:ok, menu}
       ...> end)
       iex> ExUssd.to_string!(menu, [payload: %{text: "*544#", phone: "072000000"}])
       "Welcome John\\n1:Product A\\n2:Product B\\n3:Product C"
@@ -485,32 +509,38 @@ defmodule ExUssd do
       iex> defmodule HomeResolver do
       ...>  def home(menu, %{phone: phone} = _payload) do
       ...>    user = User.get_user(phone)
-      ...>    menu 
-      ...>    |> ExUssd.set(title: "Welcome "<> user.name)
-      ...>    |> ExUssd.set(data: user)
-      ...>    |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
-      ...>    |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
-      ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
-      ...>    |> ExUssd.add(ExUssd.new(&account/2))
+      ...>    menu =
+      ...>      menu 
+      ...>      |> ExUssd.set(title: "Welcome "<> user.name)
+      ...>      |> ExUssd.set(data: user)
+      ...>      |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
+      ...>      |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
+      ...>      |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
+      ...>      |> ExUssd.add(ExUssd.new(&account/2))
+      ...>   {:ok, menu}
       ...>  end
-      ...>  def product_a(menu, _payload), do: ExUssd.set(menu, title: "selected product a")
-      ...>  def product_b(menu, _payload), do: ExUssd.set(menu, title: "selected product b")
-      ...>  def product_c(menu, _payload), do: ExUssd.set(menu, title: "selected product c")
+      ...>  def product_a(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product a")}
+      ...>  def product_b(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product b")}
+      ...>  def product_c(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product c")}
       ...>  def account(%{data: %{type: :personal, name: name}} = menu, _payload) do
       ...>    # Should be stateless, don't put call functions with side effect (Insert to DB, fetch)
       ...>    # Because it will be called every time the menu is rendered because the menu `:name` is dynamic
       ...>    # See `ExUssd.new/2` for more details where `:name` is static.
-      ...>    menu 
-      ...>    |> ExUssd.set(name: "Personal account")
-      ...>    |> ExUssd.set(resolve: &(ExUssd.set(&1, title: "Personal account")))
+      ...>   menu =
+      ...>      menu 
+      ...>      |> ExUssd.set(name: "Personal account")
+      ...>      |> ExUssd.set(resolve: &({:ok, ExUssd.set(&1, title: "Personal account")}))
+      ...>   {:ok, menu}
       ...>  end
       ...>  def account(%{data: %{type: :business, name: name}} = menu, _payload) do
       ...>    # Should be stateless, don't put call functions with side effect (Insert to DB, fetch)
       ...>    # Because it will be called every time the menu is rendered because the menu `:name` is dynamic
       ...>    # See `ExUssd.new/2` for more details where `:name` is static.
-      ...>    menu 
-      ...>    |> ExUssd.set(name: "Business account")
-      ...>    |> ExUssd.set(resolve: &(ExUssd.set(&1, title: "Business account")))
+      ...>   menu =
+      ...>      menu 
+      ...>      |> ExUssd.set(name: "Business account")
+      ...>      |> ExUssd.set(resolve: &({:ok, ExUssd.set(&1, title: "Business account")}))
+      ...>   {:ok, menu}
       ...>  end
       ...> end
       iex> menu = ExUssd.new(name: "HOME", resolve: &HomeResolver.home/2)
@@ -536,24 +566,26 @@ defmodule ExUssd do
       iex> defmodule HomeResolver do
       ...>  def home(menu, %{phone: phone} = _payload) do
       ...>    user = User.get_user(phone)
-      ...>    menu 
-      ...>    |> ExUssd.set(title: "Welcome "<> user.name)
-      ...>    |> ExUssd.set(data: user)
-      ...>    |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
-      ...>    |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
-      ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
-      ...>    |> ExUssd.add(ExUssd.new("Account", &account/2))
+      ...>    menu =
+      ...>      menu 
+      ...>      |> ExUssd.set(title: "Welcome "<> user.name)
+      ...>      |> ExUssd.set(data: user)
+      ...>      |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
+      ...>      |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
+      ...>      |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
+      ...>      |> ExUssd.add(ExUssd.new("Account", &account/2))
+      ...>   {:ok, menu}
       ...>  end
-      ...>  def product_a(menu, _payload), do: ExUssd.set(menu, title: "selected product a")
-      ...>  def product_b(menu, _payload), do: ExUssd.set(menu, title: "selected product b")
-      ...>  def product_c(menu, _payload), do: ExUssd.set(menu, title: "selected product c")
+      ...>  def product_a(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product a")}
+      ...>  def product_b(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product b")}
+      ...>  def product_c(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product c")}
       ...>  def account(%{data: %{type: :personal}} = menu, _payload) do
       ...>    # Get Personal account details, then set as data
-      ...>     ExUssd.set(menu, resolve: &(ExUssd.set(&1, title: "Personal account")))
+      ...>     {:ok, ExUssd.set(menu, resolve: &({:ok, ExUssd.set(&1, title: "Personal account")}))}
       ...>  end
       ...>  def account(%{data: %{type: :business, name: name}} = menu, _payload) do
       ...>    # Get Business account details, then set as data
-      ...>    ExUssd.set(menu, resolve: &(ExUssd.set(&1, title: "Business account")))
+      ...>    {:ok, ExUssd.set(menu, resolve: &({:ok, ExUssd.set(&1, title: "Business account")}))}
       ...>  end
       ...> end
       iex> menu = ExUssd.new(name: "HOME", resolve: &HomeResolver.home/2)
@@ -591,7 +623,6 @@ defmodule ExUssd do
 
     - **`:delimiter`** Set's menu style delimiter. Default- `:`
     - **`:default_error`** Default error shown on invalid input
-    - **`:error`** Set custom error message
 
     - **`:name`** Sets the name of the menu
     - **`:nav`** Its used to set a new ExUssd Nav menu, see `ExUssd.Nav.new/1`
@@ -615,15 +646,17 @@ defmodule ExUssd do
           iex> defmodule AppWeb.ProductResolver do
           ...>  use ExUssd
           ...>  def ussd_init(menu, _) do
-          ...>    menu 
-          ...>    |> ExUssd.set(title: "Product List")
-          ...>    |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
-          ...>    |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
-          ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
+          ...>   menu =
+          ...>      menu 
+          ...>      |> ExUssd.set(title: "Product List")
+          ...>      |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
+          ...>      |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
+          ...>      |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
+          ...>   {:ok, menu}
           ...> end
-          ...>  def product_a(menu, _payload), do: ExUssd.set(menu, title: "selected product a")
-          ...>  def product_b(menu, _payload), do: ExUssd.set(menu, title: "selected product b")
-          ...>  def product_c(menu, _payload), do: ExUssd.set(menu, title: "selected product c")
+          ...>  def product_a(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product a")}
+          ...>  def product_b(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product b")}
+          ...>  def product_c(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product c")}
           ...> end
           iex> menu = ExUssd.new(name: "HOME", resolve: AppWeb.ProductResolver)
           iex> # Simulate the first time user enters the menu
@@ -640,15 +673,17 @@ defmodule ExUssd do
           iex> defmodule AppWeb.ProductResolver do
           ...>  use ExUssd
           ...>  def ussd_init(%ExUssd{data: %{user_name: user_name}} = menu, _) do
-          ...>    menu 
-          ...>    |> ExUssd.set(title: "Welcome " <> user_name <> ", Select Product")
-          ...>    |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
-          ...>    |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
-          ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
+          ...>   menu =
+          ...>      menu 
+          ...>      |> ExUssd.set(title: "Welcome " <> user_name <> ", Select Product")
+          ...>      |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
+          ...>      |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
+          ...>      |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
+          ...>   {:ok, menu}
           ...> end
-          ...>  def product_a(menu, _payload), do: ExUssd.set(menu, title: "selected product a")
-          ...>  def product_b(menu, _payload), do: ExUssd.set(menu, title: "selected product b")
-          ...>  def product_c(menu, _payload), do: ExUssd.set(menu, title: "selected product c")
+          ...>  def product_a(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product a")}
+          ...>  def product_b(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product b")}
+          ...>  def product_c(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product c")}
           ...> end
           iex> menu = ExUssd.new(name: "HOME", resolve: AppWeb.ProductResolver)
           iex> # Simulate the first time user enters the menu
@@ -666,17 +701,19 @@ defmodule ExUssd do
         iex> defmodule AppWeb.PinResolver do
         ...>  use ExUssd
         ...>  def ussd_init(menu, _) do
-        ...>    ExUssd.set(menu, title: "Enter your PIN")
+        ...>    {:ok, ExUssd.set(menu, title: "Enter your PIN")}
         ...>  end
         ...>  def ussd_callback(menu, payload, _) do
         ...>    if payload.text == "5555" do
-        ...>       ExUssd.set(menu, resolve: &success_menu/2)
+        ...>       {:ok, ExUssd.set(menu, resolve: &success_menu/2)}
         ...>    end
         ...>  end
         ...>  def success_menu(menu, _) do
-        ...>    menu
-        ...>    |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
-        ...>    |> ExUssd.set(should_close: true)
+        ...>   menu = 
+        ...>      menu
+        ...>      |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
+        ...>      |> ExUssd.set(should_close: true)
+        ...>   {:ok, menu}
         ...>  end
         ...> end
         iex> menu = ExUssd.new(name: "PIN", resolve: AppWeb.PinResolver)
@@ -696,15 +733,17 @@ defmodule ExUssd do
   Example:
           iex> defmodule AppWeb.ProductResolver do
           ...>  def products(menu, _) do
-          ...>    menu 
-          ...>    |> ExUssd.set(title: "Product List")
-          ...>    |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
-          ...>    |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
-          ...>    |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
+          ...>    menu = 
+          ...>      menu 
+          ...>      |> ExUssd.set(title: "Product List")
+          ...>      |> ExUssd.add(ExUssd.new(name: "Product A", resolve: &product_a/2))
+          ...>      |> ExUssd.add(ExUssd.new(name: "Product B", resolve: &product_b/2))
+          ...>      |> ExUssd.add(ExUssd.new(name: "Product C", resolve: &product_c/2))
+          ...>   {:ok, menu}
           ...> end
-          ...>  def product_a(menu, _payload), do: ExUssd.set(menu, title: "selected product a")
-          ...>  def product_b(menu, _payload), do: ExUssd.set(menu, title: "selected product b")
-          ...>  def product_c(menu, _payload), do: ExUssd.set(menu, title: "selected product c")
+          ...>  def product_a(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product a")}
+          ...>  def product_b(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product b")}
+          ...>  def product_c(menu, _payload), do: {:ok, ExUssd.set(menu, title: "selected product c")}
           ...> end
           iex> menu = ExUssd.new(name: "HOME", resolve: &AppWeb.ProductResolver.products/2)
           iex> # Simulate the first time user enters the menu
@@ -720,17 +759,19 @@ defmodule ExUssd do
         iex> defmodule AppWeb.PinResolver do
         ...>  use ExUssd
         ...>  def ussd_init(menu, _) do
-        ...>    ExUssd.set(menu, title: "Enter your PIN")
+        ...>    {:ok, ExUssd.set(menu, title: "Enter your PIN")}
         ...>  end
         ...>  def ussd_callback(menu, payload, _) do
         ...>    if payload.text == "5555" do
-        ...>       ExUssd.set(menu, resolve: &success_menu/2)
+        ...>       {:ok, ExUssd.set(menu, resolve: &success_menu/2)}
         ...>    end
         ...>  end
         ...>  def success_menu(menu, _) do
-        ...>    menu
-        ...>    |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
-        ...>    |> ExUssd.set(should_close: true)
+        ...>   menu =
+        ...>      menu
+        ...>      |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
+        ...>      |> ExUssd.set(should_close: true)
+        ...>   {:ok, menu}
         ...>  end
         ...> end
         iex> menu = ExUssd.new(name: "PIN", resolve: AppWeb.PinResolver)

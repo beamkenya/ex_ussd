@@ -15,6 +15,11 @@ defmodule ExUssd.Executer do
       when is_function(navigate) do
     case apply(navigate, [menu, payload]) do
       %ExUssd{} = menu -> %{menu | navigate: nil}
+      {:ok, %ExUssd{} = menu} -> menu
+      {:ok, menu} -> raise ArgumentError, "Expected ExUssd stuct, found #{inspect(menu)}"
+      {:error, message} when is_binary(message) -> {:ok, %{menu | error: message}}
+      {:error, message} -> raise ArgumentError, "Expected a string, found #{inspect(message)}"
+      nil -> nil
       _ -> menu
     end
   end
@@ -30,7 +35,13 @@ defmodule ExUssd.Executer do
   def execute_init_callback(%ExUssd{resolve: resolve} = menu, payload)
       when is_function(resolve) do
     if is_function(resolve, 2) do
-      with %ExUssd{} = menu <- apply(resolve, [menu, payload]), do: {:ok, menu}
+      case apply(resolve, [menu, payload]) do
+        {:ok, %ExUssd{} = menu} -> menu
+        {:ok, menu} -> raise ArgumentError, "Expected ExUssd stuct, found #{inspect(menu)}"
+        {:error, message} when is_binary(message) -> {:ok, %{menu | error: message}}
+        {:error, message} -> raise ArgumentError, "Expected a string, found #{inspect(message)}"
+        nil -> nil
+      end
     else
       raise %BadArityError{function: resolve, args: [menu, payload]}
     end
@@ -39,8 +50,13 @@ defmodule ExUssd.Executer do
   def execute_init_callback(%ExUssd{name: name, resolve: resolve} = menu, payload)
       when is_atom(resolve) do
     if function_exported?(resolve, :ussd_init, 2) do
-      with %ExUssd{} = menu <- apply(resolve, :ussd_init, [menu, payload]),
-           do: {:ok, menu}
+      case apply(resolve, :ussd_init, [menu, payload]) do
+        {:ok, %ExUssd{} = menu} -> menu
+        {:ok, menu} -> raise ArgumentError, "Expected ExUssd stuct, found #{inspect(menu)}"
+        {:error, message} when is_binary(message) -> {:ok, %{menu | error: message}}
+        {:error, message} -> raise ArgumentError, "Expected a string, found #{inspect(message)}"
+        nil -> nil
+      end
     else
       raise %ArgumentError{message: "resolve module for #{name} does not export ussd_init/2"}
     end
@@ -94,24 +110,32 @@ defmodule ExUssd.Executer do
         )
 
       try do
-        with %ExUssd{error: error} = current_menu <-
-               apply(resolve, :ussd_callback, [
-                 %{menu | resolve: nil, menu_list: []},
-                 payload,
-                 metadata
-               ]) do
-          if is_bitstring(error) do
+        case apply(resolve, :ussd_callback, [
+               %{menu | resolve: nil, menu_list: []},
+               payload,
+               metadata
+             ]) do
+          {:ok, response_menu} ->
+            build_response_menu(:ok, %{response_menu | error: nil}, menu, payload, opts)
+            |> get_next_menu(menu, payload, opts)
+
+          {:ok, menu} ->
+            raise ArgumentError, "Expected ExUssd stuct, found #{inspect(menu)}"
+
+          {:error, message} when is_binary(message) ->
             if Keyword.get(opts, :state) do
               ExUssd.Registry.add_attempt(payload[:session_id], payload[:text])
             end
 
             if Enum.empty?(menu_list) do
-              build_response_menu(:halt, current_menu, menu, payload, opts)
+              build_response_menu(:halt, %{menu | error: message}, menu, payload, opts)
             end
-          else
-            build_response_menu(:ok, current_menu, menu, payload, opts)
-            |> get_next_menu(menu, payload, opts)
-          end
+
+          {:error, message} ->
+            raise ArgumentError, "Expected a string, found #{inspect(message)}"
+
+          nil ->
+            nil
         end
       rescue
         FunctionClauseError ->
@@ -161,18 +185,26 @@ defmodule ExUssd.Executer do
         )
 
       try do
-        with %ExUssd{error: error} = current_menu <-
-               apply(resolve, :ussd_after_callback, [
-                 %{menu | resolve: nil, menu_list: [], error: error_state},
-                 payload,
-                 metadata
-               ]) do
-          if is_bitstring(error) do
-            build_response_menu(:halt, current_menu, menu, payload, opts)
-          else
-            build_response_menu(:ok, current_menu, menu, payload, opts)
+        case apply(resolve, :ussd_after_callback, [
+               %{menu | resolve: nil, menu_list: [], error: error_state},
+               payload,
+               metadata
+             ]) do
+          {:ok, response_menu} ->
+            build_response_menu(:ok, %{response_menu | error: nil}, menu, payload, opts)
             |> get_next_menu(menu, payload, opts)
-          end
+
+          {:ok, menu} ->
+            raise ArgumentError, "Expected ExUssd stuct, found #{inspect(menu)}"
+
+          {:error, message} when is_binary(message) ->
+            build_response_menu(:halt, %{menu | error: message}, menu, payload, opts)
+
+          {:error, message} ->
+            raise ArgumentError, "Expected a string, found #{inspect(message)}"
+
+          nil ->
+            nil
         end
       rescue
         FunctionClauseError ->
