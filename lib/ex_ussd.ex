@@ -123,7 +123,7 @@ defmodule ExUssd do
       ...>    if payload.text == "5555" do
       ...>       {:ok, ExUssd.set(menu, resolve: &success_menu/2)}
       ...>    else
-      ...>      {:error, "Wrong PIN\\n"}
+      ...>      {:error, "Wrong PIN"}
       ...>    end
       ...>  end
       ...>  def success_menu(menu, _) do
@@ -262,7 +262,7 @@ defmodule ExUssd do
           ...>    if payload.text == "5555" do
           ...>      {:ok, ExUssd.set(menu, resolve: &success_menu/2)}
           ...>    else
-          ...>      {:error, "Wrong PIN\\n"}
+          ...>      {:error, "Wrong PIN"}
           ...>    end
           ...>  end
           ...>  def ussd_after_callback(%{error: true} = menu, _payload, %{attempt: %{count: 3}}) do

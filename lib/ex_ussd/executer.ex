@@ -14,13 +14,23 @@ defmodule ExUssd.Executer do
   def execute_navigate(%ExUssd{navigate: navigate} = menu, payload)
       when is_function(navigate) do
     case apply(navigate, [menu, payload]) do
-      %ExUssd{} = menu -> %{menu | navigate: nil}
-      {:ok, %ExUssd{} = menu} -> menu
-      {:ok, menu} -> raise ArgumentError, "Expected ExUssd stuct, found #{inspect(menu)}"
-      {:error, message} when is_binary(message) -> {:ok, %{menu | error: message}}
-      {:error, message} -> raise ArgumentError, "Expected a string, found #{inspect(message)}"
-      nil -> nil
-      _ -> menu
+      %ExUssd{} = menu ->
+        %{menu | navigate: nil}
+
+      {:ok, menu} ->
+        menu
+
+      {:error, message} when is_binary(message) ->
+        {:ok, %{menu | error: IO.iodata_to_binary([message, "\n"])}}
+
+      {:error, message} ->
+        raise ArgumentError, "Expected a string, found #{inspect(message)}"
+
+      nil ->
+        nil
+
+      _ ->
+        menu
     end
   end
 
@@ -36,11 +46,20 @@ defmodule ExUssd.Executer do
       when is_function(resolve) do
     if is_function(resolve, 2) do
       case apply(resolve, [menu, payload]) do
-        {:ok, %ExUssd{} = menu} -> menu
-        {:ok, menu} -> raise ArgumentError, "Expected ExUssd stuct, found #{inspect(menu)}"
-        {:error, message} when is_binary(message) -> {:ok, %{menu | error: message}}
-        {:error, message} -> raise ArgumentError, "Expected a string, found #{inspect(message)}"
-        nil -> nil
+        {:ok, %ExUssd{} = menu} ->
+          {:ok, menu}
+
+        {:ok, menu} ->
+          raise ArgumentError, "Expected ExUssd struct, found #{inspect(menu)}"
+
+        {:error, message} when is_binary(message) ->
+          {:ok, %{menu | error: IO.iodata_to_binary([message, "\n"])}}
+
+        {:error, message} ->
+          raise ArgumentError, "Expected a string, found #{inspect(message)}"
+
+        nil ->
+          nil
       end
     else
       raise %BadArityError{function: resolve, args: [menu, payload]}
@@ -51,11 +70,20 @@ defmodule ExUssd.Executer do
       when is_atom(resolve) do
     if function_exported?(resolve, :ussd_init, 2) do
       case apply(resolve, :ussd_init, [menu, payload]) do
-        {:ok, %ExUssd{} = menu} -> menu
-        {:ok, menu} -> raise ArgumentError, "Expected ExUssd stuct, found #{inspect(menu)}"
-        {:error, message} when is_binary(message) -> {:ok, %{menu | error: message}}
-        {:error, message} -> raise ArgumentError, "Expected a string, found #{inspect(message)}"
-        nil -> nil
+        {:ok, %ExUssd{} = menu} ->
+          {:ok, menu}
+
+        {:ok, menu} ->
+          raise ArgumentError, "Expected ExUssd struct, found #{inspect(menu)}"
+
+        {:error, message} when is_binary(message) ->
+          {:ok, %{menu | error: IO.iodata_to_binary([message, "\n"])}}
+
+        {:error, message} ->
+          raise ArgumentError, "Expected a string, found #{inspect(message)}"
+
+        nil ->
+          nil
       end
     else
       raise %ArgumentError{message: "resolve module for #{name} does not export ussd_init/2"}
@@ -115,12 +143,12 @@ defmodule ExUssd.Executer do
                payload,
                metadata
              ]) do
-          {:ok, response_menu} ->
+          {:ok, %ExUssd{} = response_menu} ->
             build_response_menu(:ok, %{response_menu | error: nil}, menu, payload, opts)
             |> get_next_menu(menu, payload, opts)
 
           {:ok, menu} ->
-            raise ArgumentError, "Expected ExUssd stuct, found #{inspect(menu)}"
+            raise ArgumentError, "Expected ExUssd struct, found #{inspect(menu)}"
 
           {:error, message} when is_binary(message) ->
             if Keyword.get(opts, :state) do
@@ -128,7 +156,13 @@ defmodule ExUssd.Executer do
             end
 
             if Enum.empty?(menu_list) do
-              build_response_menu(:halt, %{menu | error: message}, menu, payload, opts)
+              build_response_menu(
+                :halt,
+                %{menu | error: IO.iodata_to_binary([message, "\n"])},
+                menu,
+                payload,
+                opts
+              )
             end
 
           {:error, message} ->
@@ -190,15 +224,21 @@ defmodule ExUssd.Executer do
                payload,
                metadata
              ]) do
-          {:ok, response_menu} ->
+          {:ok, %ExUssd{} = response_menu} ->
             build_response_menu(:ok, %{response_menu | error: nil}, menu, payload, opts)
             |> get_next_menu(menu, payload, opts)
 
           {:ok, menu} ->
-            raise ArgumentError, "Expected ExUssd stuct, found #{inspect(menu)}"
+            raise ArgumentError, "Expected ExUssd struct, found #{inspect(menu)}"
 
           {:error, message} when is_binary(message) ->
-            build_response_menu(:halt, %{menu | error: message}, menu, payload, opts)
+            build_response_menu(
+              :halt,
+              %{menu | error: IO.iodata_to_binary([message, "\n"])},
+              menu,
+              payload,
+              opts
+            )
 
           {:error, message} ->
             raise ArgumentError, "Expected a string, found #{inspect(message)}"

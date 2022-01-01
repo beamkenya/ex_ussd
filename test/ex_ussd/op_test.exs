@@ -303,7 +303,7 @@ defmodule ExUssd.OpTest do
         if payload.text == "5555" do
           {:ok, ExUssd.set(menu, resolve: &success_menu/2)}
         else
-          {:error, "Wrong PIN, #{2 - count} attempt left\n"}
+          {:error, "Wrong PIN, #{2 - count} attempt left"}
         end
       end
 
