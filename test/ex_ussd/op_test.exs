@@ -1,52 +1,53 @@
 defmodule ExUssd.OpTest.Module do
   @moduledoc false
   def ussd_init(menu, _) do
-    menu
-    |> ExUssd.set(title: "Enter your PIN")
+    {:ok, ExUssd.set(menu, title: "Enter your PIN")}
   end
 
   def ussd_callback(menu, payload, _) do
     if payload.text == "5555" do
-      menu
-      |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
-      |> ExUssd.set(should_close: true)
+      {:ok,
+       menu
+       |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
+       |> ExUssd.set(should_close: true)}
     end
   end
 
   def simple(menu, _) do
-    menu
-    |> ExUssd.set(title: "Welcome")
-    |> ExUssd.add(
-      ExUssd.new(
-        name: "menu 1",
-        resolve: &simple/2
-      )
-      |> ExUssd.set(split: 3)
-    )
-    |> ExUssd.add(
-      ExUssd.new(
-        name: "menu 2",
-        resolve: fn menu, _ -> ExUssd.set(menu, title: "menu 2") end
-      )
-    )
-    |> ExUssd.add(
-      ExUssd.new(
-        name: "menu 3",
-        resolve: fn menu, _ -> ExUssd.set(menu, title: "menu 3") end
-      )
-    )
-    |> ExUssd.add(
-      ExUssd.new(
-        name: "menu 4",
-        resolve: fn menu, _ -> ExUssd.set(menu, title: "menu 4") end
-      )
-    )
-    |> ExUssd.add(
-      ExUssd.new(
-        name: "menu 5",
-        resolve: fn menu, _ -> ExUssd.set(menu, title: "menu 5") end
-      )
-    )
+    {:ok,
+     menu
+     |> ExUssd.set(title: "Welcome")
+     |> ExUssd.add(
+       ExUssd.new(
+         name: "menu 1",
+         resolve: &simple/2
+       )
+       |> ExUssd.set(split: 3)
+     )
+     |> ExUssd.add(
+       ExUssd.new(
+         name: "menu 2",
+         resolve: fn menu, _ -> {:ok, ExUssd.set(menu, title: "menu 2")} end
+       )
+     )
+     |> ExUssd.add(
+       ExUssd.new(
+         name: "menu 3",
+         resolve: fn menu, _ -> {:ok, ExUssd.set(menu, title: "menu 3")} end
+       )
+     )
+     |> ExUssd.add(
+       ExUssd.new(
+         name: "menu 4",
+         resolve: fn menu, _ -> {:ok, ExUssd.set(menu, title: "menu 4")} end
+       )
+     )
+     |> ExUssd.add(
+       ExUssd.new(
+         name: "menu 5",
+         resolve: fn menu, _ -> {:ok, ExUssd.set(menu, title: "menu 5")} end
+       )
+     )}
   end
 end
 
@@ -55,7 +56,7 @@ defmodule ExUssd.OpTest do
   use ExUnit.Case
 
   setup do
-    resolve = fn menu, _payload -> menu |> ExUssd.set(title: "Welcome") end
+    resolve = fn menu, _payload -> {:ok, ExUssd.set(menu, title: "Welcome")} end
 
     menu = ExUssd.new(name: Faker.Company.name(), resolve: resolve)
 
@@ -295,27 +296,29 @@ defmodule ExUssd.OpTest do
       use ExUssd
 
       def ussd_init(menu, _) do
-        ExUssd.set(menu, title: "Enter your PIN")
+        {:ok, ExUssd.set(menu, title: "Enter your PIN")}
       end
 
       def ussd_callback(menu, payload, %{attempt: %{count: count}}) do
         if payload.text == "5555" do
-          ExUssd.set(menu, resolve: &success_menu/2)
+          {:ok, ExUssd.set(menu, resolve: &success_menu/2)}
         else
-          ExUssd.set(menu, error: "Wrong PIN, #{2 - count} attempt left\n")
+          {:error, "Wrong PIN, #{2 - count} attempt left"}
         end
       end
 
       def ussd_after_callback(%{error: true} = menu, _payload, %{attempt: %{count: 3}}) do
-        menu
-        |> ExUssd.set(title: "Account is locked, Dial *234# to reset your account")
-        |> ExUssd.set(should_close: true)
+        {:ok,
+         menu
+         |> ExUssd.set(title: "Account is locked, Dial *234# to reset your account")
+         |> ExUssd.set(should_close: true)}
       end
 
       def success_menu(menu, _) do
-        menu
-        |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
-        |> ExUssd.set(should_close: true)
+        {:ok,
+         menu
+         |> ExUssd.set(title: "You have Entered the Secret Number, 5555")
+         |> ExUssd.set(should_close: true)}
       end
     end
 

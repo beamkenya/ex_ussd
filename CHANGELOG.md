@@ -7,3 +7,8 @@
 ## v1.0.0 - 2021-10-02
 
 - Add support for Zero Based menu list
+
+# v1.1.0 - 2022-01-01
+
+ - Deplicate set `error` on ExUssd.set/2 function
+ - use response tuple

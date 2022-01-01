@@ -2,7 +2,7 @@ defmodule ExUssd.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/beamkenya/ex_ussd.git"
-  @version "1.0.1"
+  @version "1.1.0"
 
   def project do
     [

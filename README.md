@@ -26,7 +26,7 @@ by adding `ex_ussd` to your list of dependencies in `mix.exs`:
 ```elixir
 defp deps do
   [
-    {:ex_ussd, "~> 1.0.2"}
+    {:ex_ussd, "~> 1.1.0"}
   ]
 end
 ```
@@ -63,31 +63,37 @@ defmodule ApiWeb.HomeResolver do
   use ExUssd
   
   def ussd_init(menu, _payload) do
-    ExUssd.set(menu, title: "Enter your PIN")
+    {:ok, ExUssd.set(menu, title: "Enter your PIN")}
   end
 
   def ussd_callback(menu, payload, %{attempt: %{count: count}}) do
     if payload.text == "5555" do
-      menu
-      |> ExUssd.set(data: %{name: "John"}) # use payload `phone_number` to fetch the user from DB
-      |> ExUssd.set(resolve: &home_rc/2)
+      menu =
+        menu
+        |> ExUssd.set(data: %{name: "John"}) # use payload `phone_number` to fetch the user from DB
+        |> ExUssd.set(resolve: &home_rc/2)
+      {:ok, menu}
     else
-      ExUssd.set(menu, error: "Wrong PIN, #{2 - count} attempt left\n")
+      {:error, "Wrong PIN, #{2 - count} attempt left"}
     end
   end
 
   def ussd_after_callback(%{error: true} = menu, _payload, %{attempt: %{count: 3}}) do
-    menu
-    |> ExUssd.set(title: "Account is locked, Dial *234# to reset your account")
-    |> ExUssd.set(should_close: true)
+    menu = 
+      menu
+      |> ExUssd.set(title: "Account is locked, Dial *234# to reset your account")
+      |> ExUssd.set(should_close: true)
+    {:ok, menu}
   end
 
   def home_rc(%ExUssd{data: %{name: name}} = menu, _) do
-    menu
-    |> ExUssd.set(title: "Welcome #{name}!")
-    |> ExUssd.add(ExUssd.new(name: "option 1"))
-    |> ExUssd.add(ExUssd.new(name: "option 2"))
-    |> ExUssd.set(show_navigation: false) # hide navigation options
+    menu =  
+      menu
+      |> ExUssd.set(title: "Welcome #{name}!")
+      |> ExUssd.add(ExUssd.new(name: "option 1"))
+      |> ExUssd.add(ExUssd.new(name: "option 2"))
+      |> ExUssd.set(show_navigation: false) # hide navigation options
+    {:ok, menu}
   end
 end
 ```
@@ -110,4 +116,4 @@ Auto-populated from:
 
 ## Licence
 
-ExUssd is released under [Apache License 2.0](./LICENSE).
+ExUssd is released under [Apache License 2.0](LICENSE).
